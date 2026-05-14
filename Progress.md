@@ -38,6 +38,7 @@ Last updated: 2026-05-15
 - [x] Existing algorithm tests pass.
 - [x] Existing service tests pass.
 - [x] Spring context smoke test passes.
+- [x] 2NF and 3NF tests pass.
 - [x] `mvn test` passes.
 - [x] `mvn -DskipTests package` passes.
 - [x] `mvn javafx:run` reaches desktop app startup and remains alive.
@@ -47,11 +48,11 @@ Last updated: 2026-05-15
 ### Algorithms
 - [x] Attribute closure computation.
 - [x] Candidate key discovery.
+- [x] 2NF detection for partial dependencies on candidate-key subsets.
+- [x] 3NF detection for non-trivial FDs whose determinant is not a superkey and whose RHS is non-prime.
+- [x] Detailed normal form violation reporting for 2NF, 3NF, and BCNF checks.
 - [x] Basic BCNF check.
 - [x] Basic BCNF decomposition path.
-- [ ] Full 2NF detection. Current implementation returns `true`.
-- [ ] Full 3NF detection. Current implementation returns `true`.
-- [ ] Detailed normal form violation reporting.
 - [ ] FD projection during BCNF decomposition.
 - [ ] Lossless join and dependency preservation checks.
 
@@ -75,11 +76,11 @@ Last updated: 2026-05-15
 - [ ] Decide whether `InMemorySessionRepository` should replace direct state in `RelationService`.
 
 ### Normalization Algorithms
-- [ ] Implement 2NF:
+- [x] Implement 2NF:
   - Detect partial dependency from a proper subset of a candidate key to a non-prime attribute.
   - Ignore trivial dependencies.
-  - Report specific violating FDs.
-- [ ] Implement 3NF:
+  - Report specific violating determinants and non-prime attributes.
+- [x] Implement 3NF:
   - For every FD X -> A, verify X is a superkey, A is prime, or the FD is trivial.
   - Report specific violating FDs.
 - [ ] Improve BCNF:
@@ -103,8 +104,8 @@ Last updated: 2026-05-15
 - [ ] Add startup sample data or examples for development/demo mode.
 
 ### Tests
-- [ ] Add unit tests for 2NF.
-- [ ] Add unit tests for 3NF.
+- [x] Add unit tests for 2NF.
+- [x] Add unit tests for 3NF.
 - [ ] Add unit tests for BCNF decomposition FD projection.
 - [ ] Add service tests using Spring context where useful.
 - [ ] Add JavaFX controller tests or lightweight FXML loading tests.
