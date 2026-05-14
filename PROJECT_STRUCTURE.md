@@ -24,7 +24,8 @@ dbms-normalizer/
 └── src/
     ├── main/
     │   ├── java/com/dbms/analyzer/
-    │   │   ├── DbmsApplication.java            # Spring Boot entry point
+    │   │   ├── Launcher.java                   # JavaFX launcher entry point
+    │   │   ├── DbmsApplication.java            # Spring Boot configuration
     │   │   │
     │   │   ├── javafx/
     │   │   │   ├── MainApp.java                # JavaFX application entry point
@@ -115,8 +116,9 @@ dbms-normalizer/
 ## File Categories & Descriptions
 
 ### Core Application Files (2)
-1. **DbmsApplication.java** - Spring Boot entry point, bootstraps the application
-2. **MainApp.java** - JavaFX application startup, loads main UI
+1. **Launcher.java** - Main desktop entry point used by Maven and packaged runs
+2. **DbmsApplication.java** - Spring Boot application configuration
+3. **MainApp.java** - JavaFX application startup, boots Spring and loads main UI
 
 ### Model Classes (6)
 Represent domain objects:
@@ -254,10 +256,10 @@ mvn test
 
 ## Dependencies
 
-**Spring Boot 3.0.0**
+**Spring Boot 3.5.14**
 - Spring Boot Starter (core)
 
-**JavaFX 21.0.1**
+**JavaFX 21.0.9**
 - javafx-controls
 - javafx-fxml
 
@@ -269,9 +271,10 @@ mvn test
 ## Class Relationships
 
 ```
-Spring Boot App (DbmsApplication)
+Launcher
 └── JavaFX App (MainApp)
-    └── Main UI (MainController + main.fxml)
+    └── Spring Boot Context (DbmsApplication)
+        └── Main UI (MainController + main.fxml)
         ├── RelationService ← RelationController
         ├── FdService ← FdController
         ├── ClosureService ← ClosureController
@@ -316,8 +319,8 @@ Models:
 
 1. Import project into IntelliJ IDEA
 2. Let Maven download dependencies
-3. Run `mvn clean install`
-4. Execute `DbmsApplication.main()` or use Maven
+3. Run `mvn test`
+4. Run `mvn javafx:run` or the IntelliJ Maven run configuration
 5. Navigate UI to create relations and add FDs
 6. Explore closure, keys, and normal forms
 7. Write tests for new features in `src/test/`

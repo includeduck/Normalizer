@@ -22,7 +22,7 @@ This application helps students, instructors, and database learners analyze rela
 - **Spring Boot**: Backend architecture and dependency injection
 - **Maven**: Build and dependency management
 - **JUnit**: Unit testing framework
-- **Java 17+**: Programming language
+- **Java 21**: Programming language and build target
 
 ## Project Structure
 
@@ -33,7 +33,8 @@ dbms-normalizer/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/dbms/analyzer/
-│   │   │   ├── DbmsApplication.java         # Spring Boot entry point
+│   │   │   ├── Launcher.java                # Desktop application entry point
+│   │   │   ├── DbmsApplication.java         # Spring Boot configuration
 │   │   │   ├── javafx/
 │   │   │   │   ├── MainApp.java             # JavaFX entry point
 │   │   │   │   ├── controllers/             # FXML controllers
@@ -59,9 +60,9 @@ dbms-normalizer/
 
 ### Prerequisites
 
-- Java 17 or higher
-- Maven 3.6+
-- JavaFX SDK 21+
+- Java 21
+- Maven 3.6.3 or higher
+- No separate JavaFX SDK is required; Maven resolves JavaFX modules
 
 ### Build Instructions
 
@@ -76,7 +77,12 @@ cd dbms-normalizer
 mvn clean package
 ```
 
-3. Run the application:
+3. Run the tests:
+```bash
+mvn test
+```
+
+4. Run the application:
 ```bash
 mvn javafx:run
 ```

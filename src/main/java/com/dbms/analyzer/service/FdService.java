@@ -1,6 +1,5 @@
 package com.dbms.analyzer.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.algorithm.FdUtil;
@@ -10,8 +9,11 @@ import java.util.Set;
 @Service
 public class FdService {
 
-    @Autowired
-    private RelationService relationService;
+    private final RelationService relationService;
+
+    public FdService(RelationService relationService) {
+        this.relationService = relationService;
+    }
 
     /**
      * Adds a functional dependency

@@ -1,6 +1,5 @@
 package com.dbms.analyzer.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.algorithm.BcnfDecomposer;
 import com.dbms.analyzer.model.Relation;
@@ -9,13 +8,14 @@ import java.util.Set;
 @Service
 public class BcnfDecompositionService {
 
-    @Autowired
-    private RelationService relationService;
+    private final RelationService relationService;
+    private final BcnfDecomposer bcnfDecomposer;
 
-    private BcnfDecomposer bcnfDecomposer;
-
-    public BcnfDecompositionService() {
-        this.bcnfDecomposer = new BcnfDecomposer();
+    public BcnfDecompositionService(
+            RelationService relationService,
+            BcnfDecomposer bcnfDecomposer) {
+        this.relationService = relationService;
+        this.bcnfDecomposer = bcnfDecomposer;
     }
 
     /**

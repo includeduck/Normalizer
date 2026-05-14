@@ -1,6 +1,5 @@
 package com.dbms.analyzer.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.algorithm.CandidateKeyFinder;
 import com.dbms.analyzer.model.CandidateKey;
@@ -9,16 +8,17 @@ import java.util.Set;
 @Service
 public class CandidateKeyService {
 
-    @Autowired
-    private RelationService relationService;
+    private final RelationService relationService;
+    private final FdService fdService;
+    private final CandidateKeyFinder candidateKeyFinder;
 
-    @Autowired
-    private FdService fdService;
-
-    private CandidateKeyFinder candidateKeyFinder;
-
-    public CandidateKeyService() {
-        this.candidateKeyFinder = new CandidateKeyFinder();
+    public CandidateKeyService(
+            RelationService relationService,
+            FdService fdService,
+            CandidateKeyFinder candidateKeyFinder) {
+        this.relationService = relationService;
+        this.fdService = fdService;
+        this.candidateKeyFinder = candidateKeyFinder;
     }
 
     /**

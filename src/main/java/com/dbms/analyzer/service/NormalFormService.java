@@ -1,6 +1,5 @@
 package com.dbms.analyzer.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.algorithm.NormalFormChecker;
 import com.dbms.analyzer.model.NormalFormResult;
@@ -8,19 +7,20 @@ import com.dbms.analyzer.model.NormalFormResult;
 @Service
 public class NormalFormService {
 
-    @Autowired
-    private RelationService relationService;
+    private final RelationService relationService;
+    private final FdService fdService;
+    private final CandidateKeyService candidateKeyService;
+    private final NormalFormChecker normalFormChecker;
 
-    @Autowired
-    private FdService fdService;
-
-    @Autowired
-    private CandidateKeyService candidateKeyService;
-
-    private NormalFormChecker normalFormChecker;
-
-    public NormalFormService() {
-        this.normalFormChecker = new NormalFormChecker();
+    public NormalFormService(
+            RelationService relationService,
+            FdService fdService,
+            CandidateKeyService candidateKeyService,
+            NormalFormChecker normalFormChecker) {
+        this.relationService = relationService;
+        this.fdService = fdService;
+        this.candidateKeyService = candidateKeyService;
+        this.normalFormChecker = normalFormChecker;
     }
 
     /**

@@ -3,7 +3,6 @@ package com.dbms.analyzer.service;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class FdServiceTest {
 
@@ -13,9 +12,8 @@ public class FdServiceTest {
     @BeforeEach
     public void setUp() {
         relationService = new RelationService();
-        fdService = new FdService();
-        fdService.relationService = relationService;
-        
+        fdService = new FdService(relationService);
+
         relationService.createRelation("R(A,B,C)");
     }
 

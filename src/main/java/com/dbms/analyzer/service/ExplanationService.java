@@ -1,6 +1,5 @@
 package com.dbms.analyzer.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,20 +7,24 @@ import java.util.List;
 @Service
 public class ExplanationService {
 
-    @Autowired
-    private RelationService relationService;
+    private final RelationService relationService;
+    private final FdService fdService;
+    private final ClosureService closureService;
+    private final CandidateKeyService candidateKeyService;
+    private final NormalFormService normalFormService;
 
-    @Autowired
-    private FdService fdService;
-
-    @Autowired
-    private ClosureService closureService;
-
-    @Autowired
-    private CandidateKeyService candidateKeyService;
-
-    @Autowired
-    private NormalFormService normalFormService;
+    public ExplanationService(
+            RelationService relationService,
+            FdService fdService,
+            ClosureService closureService,
+            CandidateKeyService candidateKeyService,
+            NormalFormService normalFormService) {
+        this.relationService = relationService;
+        this.fdService = fdService;
+        this.closureService = closureService;
+        this.candidateKeyService = candidateKeyService;
+        this.normalFormService = normalFormService;
+    }
 
     /**
      * Generates explanation for closure computation

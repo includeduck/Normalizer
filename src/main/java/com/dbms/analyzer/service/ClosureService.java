@@ -1,6 +1,5 @@
 package com.dbms.analyzer.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.algorithm.ClosureComputer;
 import com.dbms.analyzer.algorithm.FdUtil;
@@ -10,16 +9,17 @@ import java.util.List;
 @Service
 public class ClosureService {
 
-    @Autowired
-    private RelationService relationService;
+    private final RelationService relationService;
+    private final FdService fdService;
+    private final ClosureComputer closureComputer;
 
-    @Autowired
-    private FdService fdService;
-
-    private ClosureComputer closureComputer;
-
-    public ClosureService() {
-        this.closureComputer = new ClosureComputer();
+    public ClosureService(
+            RelationService relationService,
+            FdService fdService,
+            ClosureComputer closureComputer) {
+        this.relationService = relationService;
+        this.fdService = fdService;
+        this.closureComputer = closureComputer;
     }
 
     /**
