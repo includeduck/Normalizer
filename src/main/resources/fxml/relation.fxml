@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" style="-fx-padding: 15;" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dbms.analyzer.javafx.controllers.RelationController">
+    
+    <Label text="Create Relation Schema" styleClass="title"/>
+    
+    <Label text="Enter relation in format: R(A,B,C)" wrapText="true"/>
+    
+    <HBox spacing="10">
+        <TextField fx:id="relationInputField" promptText="e.g., Student(ID,Name,Age)" HBox.hgrow="ALWAYS"/>
+        <Button text="Create" onAction="#handleCreateRelation" prefWidth="80"/>
+    </HBox>
+    
+    <Label text="Example: R(A,B,C,D,E)" style="-fx-text-fill: #666666; -fx-font-size: 11;"/>
+</VBox>

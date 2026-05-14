@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" style="-fx-padding: 15;" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dbms.analyzer.javafx.controllers.ExplanationController">
+    
+    <Label text="Step-by-Step Explanations" styleClass="title"/>
+    
+    <Label text="Select explanation type:" wrapText="true"/>
+    
+    <HBox spacing="10">
+        <ComboBox fx:id="explanationTypeCombo" prefWidth="200"/>
+        <Button text="Generate" onAction="#handleGenerateExplanation" prefWidth="100"/>
+    </HBox>
+    
+    <Label text="Explanation:" styleClass="title"/>
+    
+    <TextArea fx:id="explanationTextArea" wrapText="true" prefHeight="350" editable="false"
+              promptText="Step-by-step explanation will appear here"/>
+</VBox>

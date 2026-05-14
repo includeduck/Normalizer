@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.dbms.analyzer.javafx.controllers.MainController">
+    <top>
+        <VBox spacing="10" style="-fx-padding: 10;">
+            <Label text="DBMS Normalization &amp; Functional Dependency Analyzer" styleClass="title"/>
+            <HBox spacing="10">
+                <Button text="Create Relation" onAction="#handleCreateRelation"/>
+                <Button text="Add FD" onAction="#handleAddFd"/>
+                <Button text="Compute Closure" onAction="#handleComputeClosure"/>
+                <Button text="Find Candidate Keys" onAction="#handleFindCandidateKeys"/>
+                <Button text="Analyze Normal Form" onAction="#handleAnalyzeNormalForm"/>
+                <Button text="BCNF Decomposition" onAction="#handleBcnfDecomposition"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.3">
+            <VBox spacing="10" style="-fx-padding: 10;">
+                <Label text="Relation:" styleClass="title"/>
+                <Label fx:id="relationLabel" text="No relation defined" wrapText="true"/>
+                
+                <Label text="Functional Dependencies:" styleClass="title"/>
+                <ListView fx:id="fdListView" prefHeight="300"/>
+            </VBox>
+
+            <VBox spacing="10" style="-fx-padding: 10;">
+                <Label text="Analysis Results:" styleClass="title"/>
+                <TextArea wrapText="true" prefHeight="400"/>
+            </VBox>
+        </SplitPane>
+    </center>
+
+    <bottom>
+        <VBox style="-fx-padding: 10; -fx-border-color: #CCCCCC; -fx-border-width: 1 0 0 0;">
+            <Label text="Status: Ready" fx:id="statusLabel"/>
+        </VBox>
+    </bottom>
+
+    <stylesheets>
+        <String fx:value="@../css/styles.css"/>
+    </stylesheets>
+</BorderPane>

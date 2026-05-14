@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" style="-fx-padding: 15;" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dbms.analyzer.javafx.controllers.FdController">
+    
+    <Label text="Add Functional Dependency" styleClass="title"/>
+    
+    <Label text="Enter FD in format: AB -> CD" wrapText="true"/>
+    
+    <HBox spacing="10">
+        <TextField fx:id="fdInputField" promptText="e.g., A -> B" HBox.hgrow="ALWAYS"/>
+        <Button text="Add" onAction="#handleAddFd" prefWidth="80"/>
+    </HBox>
+    
+    <Label text="Examples: A -> BC, ABC -> D" style="-fx-text-fill: #666666; -fx-font-size: 11;"/>
+    
+    <TextArea wrapText="true" prefHeight="150" editable="false" promptText="Added dependencies will appear here"/>
+</VBox>

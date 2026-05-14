@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" style="-fx-padding: 15;" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dbms.analyzer.javafx.controllers.NormalFormController">
+    
+    <Label text="Normal Form Analysis" styleClass="title"/>
+    
+    <Button text="Analyze Normal Form" onAction="#handleAnalyzeNormalForm" prefWidth="200"/>
+    
+    <Label fx:id="resultLabel" text="Highest Normal Form: None" styleClass="title"/>
+    
+    <Label text="Detailed Analysis:" styleClass="title"/>
+    
+    <TextArea fx:id="explanationArea" wrapText="true" prefHeight="250" editable="false"
+              promptText="Analysis results will appear here"/>
+</VBox>

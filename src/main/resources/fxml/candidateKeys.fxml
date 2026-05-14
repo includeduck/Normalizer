@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" style="-fx-padding: 15;" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dbms.analyzer.javafx.controllers.CandidateKeyController">
+    
+    <Label text="Find Candidate Keys" styleClass="title"/>
+    
+    <Button text="Find All Candidate Keys" onAction="#handleFindCandidateKeys" prefWidth="200"/>
+    
+    <Label text="Candidate Keys:" styleClass="title"/>
+    
+    <ListView fx:id="candidateKeysListView" prefHeight="150"/>
+    
+    <Label text="Prime and Non-Prime Attributes:" styleClass="title"/>
+    
+    <TextArea fx:id="primeAttributesArea" wrapText="true" prefHeight="100" editable="false"
+              promptText="Prime attributes will appear here"/>
+</VBox>

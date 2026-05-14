@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" style="-fx-padding: 15;" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.dbms.analyzer.javafx.controllers.BcnfController">
+    
+    <Label text="BCNF Decomposition" styleClass="title"/>
+    
+    <Button text="Decompose to BCNF" onAction="#handleDecomposeToBcnf" prefWidth="200"/>
+    
+    <Label fx:id="statusLabel" text="Status: Ready" style="-fx-text-fill: #2196F3;"/>
+    
+    <Label text="Decomposed Relations:" styleClass="title"/>
+    
+    <ListView fx:id="decomposeRelationsListView" prefHeight="150"/>
+    
+    <Label text="Decomposition Details:" styleClass="title"/>
+    
+    <TextArea fx:id="decompositionDetailsArea" wrapText="true" prefHeight="150" editable="false"
+              promptText="Decomposition details will appear here"/>
+</VBox>
