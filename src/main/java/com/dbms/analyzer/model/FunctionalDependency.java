@@ -2,6 +2,7 @@ package com.dbms.analyzer.model;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class FunctionalDependency {
     private Set<String> leftSide;
@@ -28,9 +29,14 @@ public class FunctionalDependency {
         this.rightSide = new HashSet<>(rightSide);
     }
 
+    /**
+     * Returns a deterministic string with sorted attribute names.
+     */
     @Override
     public String toString() {
-        return String.join("", leftSide) + " -> " + String.join("", rightSide);
+        return String.join("", new TreeSet<>(leftSide))
+                + " -> "
+                + String.join("", new TreeSet<>(rightSide));
     }
 
     @Override

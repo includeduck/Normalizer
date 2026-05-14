@@ -33,17 +33,12 @@ Last updated: 2026-05-15
 - [x] BCNF decomposition button is wired from the main screen.
 - [x] Main result panel is bound and displays action results/errors.
 - [x] Status label updates after main actions.
-
-### Tests And Verification
-- [x] Existing algorithm tests pass.
-- [x] Existing service tests pass.
-- [x] Spring context smoke test passes.
-- [x] 2NF and 3NF tests pass.
-- [x] `mvn test` passes.
-- [x] `mvn -DskipTests package` passes.
-- [x] `mvn javafx:run` reaches desktop app startup and remains alive.
-
-## Partially Implemented
+- [x] FD removal from the main screen via list selection.
+- [x] Session clear/reset from the main screen.
+- [x] Duplicate FD detection with user feedback.
+- [x] Minimal cover computation wired from the main screen.
+- [x] 3NF synthesis wired from the main screen.
+- [x] Decomposition analysis (dep preservation + lossless join) wired from the main screen.
 
 ### Algorithms
 - [x] Attribute closure computation.
@@ -52,12 +47,39 @@ Last updated: 2026-05-15
 - [x] 3NF detection for non-trivial FDs whose determinant is not a superkey and whose RHS is non-prime.
 - [x] Detailed normal form violation reporting for 2NF, 3NF, and BCNF checks.
 - [x] Basic BCNF check.
-- [x] Basic BCNF decomposition path.
-- [ ] FD projection during BCNF decomposition.
-- [ ] Lossless join and dependency preservation checks.
+- [x] BCNF decomposition with FD projection onto sub-relations.
+- [x] Trivial FD filtering during BCNF violation search.
+- [x] Exact violating determinant reported during BCNF decomposition.
+- [x] Step-by-step BCNF decomposition explanation.
+- [x] Minimal cover computation (decompose RHS, remove extraneous LHS, remove redundant FDs).
+- [x] 3NF synthesis (minimal cover → relation per FD → candidate key relation → remove subsumed).
+- [x] Dependency preservation checking (projected FD closure equivalence).
+- [x] Lossless join checking (binary superkey shortcut + general chase algorithm).
+
+### Models
+- [x] Deterministic `toString()` for `Relation`, `FunctionalDependency`, and `CandidateKey` (sorted attributes).
+- [x] `equals`/`hashCode` on `Relation` for reliable Set usage.
+
+### Tests And Verification
+- [x] Existing algorithm tests pass.
+- [x] Existing service tests pass.
+- [x] Spring context smoke test passes.
+- [x] 2NF and 3NF tests pass.
+- [x] Minimal cover algorithm tests pass (6 tests).
+- [x] 3NF synthesis tests pass (4 tests).
+- [x] Dependency preservation tests pass (4 tests).
+- [x] Lossless join tests pass (5 tests).
+- [x] FD parser edge case tests pass (14 tests).
+- [x] BCNF decomposition tests pass (3 tests).
+- [x] `mvn test` passes (59 tests, 0 failures).
+- [x] `mvn -DskipTests package` passes.
+- [x] `mvn javafx:run` reaches desktop app startup and remains alive.
+
+## Partially Implemented
 
 ### UI
-- [x] Main screen can run the first workflow through simple input dialogs.
+- [x] Main screen can run the full workflow through simple input dialogs.
+- [x] Buttons organized into logical rows (management, analysis, decomposition).
 - [ ] Dedicated relation dialog is not integrated into the main workflow.
 - [ ] Dedicated FD dialog is not integrated into the main workflow.
 - [ ] Dedicated closure, candidate key, normal form, BCNF, and explanation screens are still mostly standalone stubs.
@@ -68,35 +90,16 @@ Last updated: 2026-05-15
 
 ### Core Backend
 - [ ] Normalize attribute handling so multi-character attribute names are supported consistently.
-- [ ] Make `Relation`, `FunctionalDependency`, and `CandidateKey` output deterministic.
 - [ ] Add relation validation for empty relation names.
-- [ ] Add duplicate FD handling feedback.
-- [ ] Add FD removal/editing.
-- [ ] Add session reset and clear actions.
 - [ ] Decide whether `InMemorySessionRepository` should replace direct state in `RelationService`.
 
 ### Normalization Algorithms
-- [x] Implement 2NF:
-  - Detect partial dependency from a proper subset of a candidate key to a non-prime attribute.
-  - Ignore trivial dependencies.
-  - Report specific violating determinants and non-prime attributes.
-- [x] Implement 3NF:
-  - For every FD X -> A, verify X is a superkey, A is prime, or the FD is trivial.
-  - Report specific violating FDs.
-- [ ] Improve BCNF:
-  - Ignore trivial dependencies.
-  - Report the exact violating determinant.
-  - Preserve relevant FDs in decomposed relations.
-- [ ] Add minimal cover computation.
-- [ ] Add 3NF synthesis.
-- [ ] Add dependency preservation analysis.
-- [ ] Add lossless join analysis.
+- [ ] Add support for MVDs and 4NF/5NF (stretch goal).
 
 ### JavaFX Application
 - [ ] Replace simple `TextInputDialog` flows with proper embedded forms or modal FXML dialogs.
 - [ ] Add validation messages next to fields.
 - [ ] Add relation summary panel with attributes, FDs, keys, and current normal form.
-- [ ] Add FD list actions: add, edit, remove, clear.
 - [ ] Add result tabs for closure, keys, normal forms, decomposition, and explanations.
 - [ ] Add keyboard-friendly navigation.
 - [ ] Improve visual design and spacing.
@@ -104,12 +107,8 @@ Last updated: 2026-05-15
 - [ ] Add startup sample data or examples for development/demo mode.
 
 ### Tests
-- [x] Add unit tests for 2NF.
-- [x] Add unit tests for 3NF.
-- [ ] Add unit tests for BCNF decomposition FD projection.
 - [ ] Add service tests using Spring context where useful.
 - [ ] Add JavaFX controller tests or lightweight FXML loading tests.
-- [ ] Add parser tests for relation and FD input edge cases.
 
 ### Packaging And Tooling
 - [ ] Decide whether `.idea` files should stay local-only or be committed intentionally.

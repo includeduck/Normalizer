@@ -2,6 +2,7 @@ package com.dbms.analyzer.model;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class Relation {
     private String name;
@@ -46,8 +47,24 @@ public class Relation {
         functionalDependencies = new HashSet<>(fds);
     }
 
+    /**
+     * Returns a deterministic string representation with sorted attributes.
+     */
     @Override
     public String toString() {
-        return name + "(" + String.join(",", attributes) + ")";
+        return name + "(" + String.join(",", new TreeSet<>(attributes)) + ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Relation relation = (Relation) o;
+        return name.equals(relation.name) && attributes.equals(relation.attributes);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode() * 31 + attributes.hashCode();
     }
 }

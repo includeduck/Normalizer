@@ -1,16 +1,23 @@
 package com.dbms.analyzer.javafx.controllers;
 
 import com.dbms.analyzer.model.CandidateKey;
+import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.model.Relation;
 import com.dbms.analyzer.service.BcnfDecompositionService;
 import com.dbms.analyzer.service.CandidateKeyService;
 import com.dbms.analyzer.service.ClosureService;
-import com.dbms.analyzer.service.RelationService;
+import com.dbms.analyzer.service.DecompositionAnalysisService;
 import com.dbms.analyzer.service.FdService;
+import com.dbms.analyzer.service.MinimalCoverService;
 import com.dbms.analyzer.service.NormalFormService;
+import com.dbms.analyzer.service.RelationService;
+import com.dbms.analyzer.service.ThreeNfService;
+
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -27,6 +34,12 @@ public class MainController {
     private final CandidateKeyService candidateKeyService;
     private final NormalFormService normalFormService;
     private final BcnfDecompositionService bcnfDecompositionService;
+    private final MinimalCoverService minimalCoverService;
+    private final ThreeNfService threeNfService;
+    private final DecompositionAnalysisService decompositionAnalysisService;
+
+    // Cache last decomposition for analysis actions
+    private Set<Relation> lastDecomposition;
 
     public MainController(
             RelationService relationService,
@@ -34,13 +47,19 @@ public class MainController {
             ClosureService closureService,
             CandidateKeyService candidateKeyService,
             NormalFormService normalFormService,
-            BcnfDecompositionService bcnfDecompositionService) {
+            BcnfDecompositionService bcnfDecompositionService,
+            MinimalCoverService minimalCoverService,
+            ThreeNfService threeNfService,
+            DecompositionAnalysisService decompositionAnalysisService) {
         this.relationService = relationService;
         this.fdService = fdService;
         this.closureService = closureService;
         this.candidateKeyService = candidateKeyService;
         this.normalFormService = normalFormService;
         this.bcnfDecompositionService = bcnfDecompositionService;
+        this.minimalCoverService = minimalCoverService;
+        this.threeNfService = threeNfService;
+        this.decompositionAnalysisService = decompositionAnalysisService;
     }
 
     @FXML
@@ -66,6 +85,10 @@ public class MainController {
         updateRelationDisplay();
         setStatus("Ready");
     }
+
+    // ---------------------------------------------------------------
+    // Relation & FD management
+    // ---------------------------------------------------------------
 
     @FXML
     private void handleCreateRelation() {
@@ -96,6 +119,42 @@ public class MainController {
             .filter(input -> !input.isEmpty())
             .ifPresent(this::addFunctionalDependency);
     }
+
+    @FXML
+    private void handleRemoveFd() {
+        if (!ensureRelation()) return;
+
+        String selected = fdListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("Select a functional dependency from the list to remove.");
+            return;
+        }
+
+        // Find and remove the matching FD
+        Set<FunctionalDependency> fds = fdService.getAllDependencies();
+        for (FunctionalDependency fd : fds) {
+            if (fd.toString().equals(selected)) {
+                fdService.removeFunctionalDependency(fd);
+                updateRelationDisplay();
+                setStatus("Functional dependency removed");
+                return;
+            }
+        }
+        showError("Could not find the selected FD.");
+    }
+
+    @FXML
+    private void handleClearAll() {
+        relationService.clear();
+        lastDecomposition = null;
+        resultTextArea.clear();
+        updateRelationDisplay();
+        setStatus("Session cleared");
+    }
+
+    // ---------------------------------------------------------------
+    // Analysis actions
+    // ---------------------------------------------------------------
 
     @FXML
     private void handleComputeClosure() {
@@ -183,26 +242,33 @@ public class MainController {
     }
 
     @FXML
+    private void handleMinimalCover() {
+        if (!ensureRelation()) return;
+
+        try {
+            List<String> steps = minimalCoverService.computeMinimalCoverWithSteps();
+            StringBuilder result = new StringBuilder();
+            steps.forEach(s -> result.append(s).append("\n"));
+            resultTextArea.setText(result.toString());
+            setStatus("Minimal cover computed");
+        } catch (RuntimeException e) {
+            showError(e.getMessage());
+        }
+    }
+
+    @FXML
     private void handleBcnfDecomposition() {
         if (!ensureRelation()) {
             return;
         }
 
         try {
-            Set<Relation> relations = bcnfDecompositionService.decomposeToBcnf();
-            StringBuilder result = new StringBuilder("BCNF Decomposition\n");
-            if (relations.size() == 1
-                    && relations.iterator().next().toString().equals(
-                        relationService.getCurrentRelation().toString())) {
-                result.append("Relation is already in BCNF.\n");
-            } else {
-                relations.stream()
-                    .map(Relation::toString)
-                    .sorted()
-                    .forEach(relation -> result.append("- ")
-                        .append(relation)
-                        .append("\n"));
-            }
+            List<String> explanation =
+                    bcnfDecompositionService.decomposeWithExplanation();
+            lastDecomposition = bcnfDecompositionService.decomposeToBcnf();
+
+            StringBuilder result = new StringBuilder();
+            explanation.forEach(line -> result.append(line).append("\n"));
 
             resultTextArea.setText(result.toString());
             setStatus("BCNF decomposition complete");
@@ -210,6 +276,59 @@ public class MainController {
             showError(e.getMessage());
         }
     }
+
+    @FXML
+    private void handleThreeNfSynthesis() {
+        if (!ensureRelation()) return;
+
+        try {
+            List<String> steps = threeNfService.synthesizeWithSteps();
+            lastDecomposition = threeNfService.synthesize();
+
+            StringBuilder result = new StringBuilder();
+            steps.forEach(s -> result.append(s).append("\n"));
+            resultTextArea.setText(result.toString());
+            setStatus("3NF synthesis complete");
+        } catch (RuntimeException e) {
+            showError(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleCheckDecomposition() {
+        if (!ensureRelation()) return;
+
+        if (lastDecomposition == null || lastDecomposition.isEmpty()) {
+            showError("Run a decomposition (BCNF or 3NF) first.");
+            return;
+        }
+
+        try {
+            StringBuilder result = new StringBuilder();
+
+            // Dependency preservation
+            List<String> depSteps =
+                    decompositionAnalysisService
+                            .checkDependencyPreservationWithSteps(lastDecomposition);
+            depSteps.forEach(s -> result.append(s).append("\n"));
+            result.append("\n");
+
+            // Lossless join
+            List<String> joinSteps =
+                    decompositionAnalysisService
+                            .checkLosslessJoinWithSteps(lastDecomposition);
+            joinSteps.forEach(s -> result.append(s).append("\n"));
+
+            resultTextArea.setText(result.toString());
+            setStatus("Decomposition analysis complete");
+        } catch (RuntimeException e) {
+            showError(e.getMessage());
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------
 
     private void updateRelationDisplay() {
         if (relationService.hasRelation()) {
@@ -229,6 +348,7 @@ public class MainController {
     private void createRelation(String input) {
         try {
             relationService.createRelation(input);
+            lastDecomposition = null;
             updateRelationDisplay();
             resultTextArea.clear();
             setStatus("Relation created");
@@ -239,6 +359,14 @@ public class MainController {
 
     private void addFunctionalDependency(String input) {
         try {
+            // Check for duplicate before adding
+            FunctionalDependency candidate =
+                    com.dbms.analyzer.algorithm.FdUtil.parseFD(input);
+            if (fdService.getAllDependencies().contains(candidate)) {
+                showError("Duplicate FD: " + candidate + " already exists.");
+                return;
+            }
+
             fdService.addFunctionalDependency(input);
             updateRelationDisplay();
             setStatus("Functional dependency added");

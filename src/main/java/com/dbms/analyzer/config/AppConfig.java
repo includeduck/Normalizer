@@ -6,6 +6,10 @@ import com.dbms.analyzer.algorithm.ClosureComputer;
 import com.dbms.analyzer.algorithm.CandidateKeyFinder;
 import com.dbms.analyzer.algorithm.NormalFormChecker;
 import com.dbms.analyzer.algorithm.BcnfDecomposer;
+import com.dbms.analyzer.algorithm.MinimalCoverComputer;
+import com.dbms.analyzer.algorithm.ThreeNfSynthesizer;
+import com.dbms.analyzer.algorithm.DependencyPreservationChecker;
+import com.dbms.analyzer.algorithm.LosslessJoinChecker;
 
 @Configuration
 public class AppConfig {
@@ -28,5 +32,25 @@ public class AppConfig {
     @Bean
     public BcnfDecomposer bcnfDecomposer() {
         return new BcnfDecomposer();
+    }
+
+    @Bean
+    public MinimalCoverComputer minimalCoverComputer() {
+        return new MinimalCoverComputer();
+    }
+
+    @Bean
+    public ThreeNfSynthesizer threeNfSynthesizer() {
+        return new ThreeNfSynthesizer();
+    }
+
+    @Bean
+    public DependencyPreservationChecker dependencyPreservationChecker() {
+        return new DependencyPreservationChecker();
+    }
+
+    @Bean
+    public LosslessJoinChecker losslessJoinChecker() {
+        return new LosslessJoinChecker();
     }
 }

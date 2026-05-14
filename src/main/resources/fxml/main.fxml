@@ -9,13 +9,28 @@
     <top>
         <VBox spacing="10" style="-fx-padding: 10;">
             <Label text="DBMS Normalization &amp; Functional Dependency Analyzer" styleClass="title"/>
-            <HBox spacing="10">
+
+            <!-- Row 1: Relation & FD management -->
+            <HBox spacing="8">
                 <Button text="Create Relation" onAction="#handleCreateRelation"/>
                 <Button text="Add FD" onAction="#handleAddFd"/>
+                <Button text="Remove FD" onAction="#handleRemoveFd"/>
+                <Button text="Clear All" onAction="#handleClearAll"/>
+            </HBox>
+
+            <!-- Row 2: Analysis actions -->
+            <HBox spacing="8">
                 <Button text="Compute Closure" onAction="#handleComputeClosure"/>
                 <Button text="Find Candidate Keys" onAction="#handleFindCandidateKeys"/>
                 <Button text="Analyze Normal Form" onAction="#handleAnalyzeNormalForm"/>
+                <Button text="Minimal Cover" onAction="#handleMinimalCover"/>
+            </HBox>
+
+            <!-- Row 3: Decomposition -->
+            <HBox spacing="8">
                 <Button text="BCNF Decomposition" onAction="#handleBcnfDecomposition"/>
+                <Button text="3NF Synthesis" onAction="#handleThreeNfSynthesis"/>
+                <Button text="Check Decomposition" onAction="#handleCheckDecomposition"/>
             </HBox>
         </VBox>
     </top>
@@ -32,7 +47,8 @@
 
             <VBox spacing="10" style="-fx-padding: 10;">
                 <Label text="Analysis Results:" styleClass="title"/>
-                <TextArea fx:id="resultTextArea" wrapText="true" prefHeight="400" editable="false"/>
+                <TextArea fx:id="resultTextArea" wrapText="true" prefHeight="400" editable="false"
+                          VBox.vgrow="ALWAYS"/>
             </VBox>
         </SplitPane>
     </center>
