@@ -32,7 +32,7 @@
 
             <VBox spacing="10" style="-fx-padding: 10;">
                 <Label text="Analysis Results:" styleClass="title"/>
-                <TextArea wrapText="true" prefHeight="400"/>
+                <TextArea fx:id="resultTextArea" wrapText="true" prefHeight="400" editable="false"/>
             </VBox>
         </SplitPane>
     </center>
