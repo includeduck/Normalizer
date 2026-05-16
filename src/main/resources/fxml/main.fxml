@@ -129,6 +129,12 @@
                 <TabPane fx:id="resultTabPane" tabClosingPolicy="UNAVAILABLE"
                          VBox.vgrow="ALWAYS">
                     <tabs>
+                        <Tab fx:id="tutorialTab" text="App Tutorial">
+                            <content>
+                                <TextArea fx:id="tutorialResultArea" wrapText="true"
+                                          editable="false"/>
+                            </content>
+                        </Tab>
                         <Tab fx:id="closureTab" text="Closure">
                             <content>
                                 <TextArea fx:id="closureResultArea" wrapText="true"

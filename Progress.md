@@ -49,6 +49,8 @@ Last updated: 2026-05-16
 - [x] Main screen visual design and spacing polished with a dedicated stylesheet.
 - [x] Header window mode controls added for windowed, maximized, and fullscreen states.
 - [x] Main stylesheet refreshed with a dark bluish-green desktop theme.
+- [x] Workflow panel compacted so all action sections fit on a 1920 x 1080 screen.
+- [x] App Tutorial result tab added with step-by-step usage guidance.
 
 ### Algorithms
 - [x] Attribute closure computation.

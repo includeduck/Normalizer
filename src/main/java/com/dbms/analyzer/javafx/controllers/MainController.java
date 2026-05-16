@@ -150,6 +150,8 @@ public class MainController {
     @FXML
     private TabPane resultTabPane;
     @FXML
+    private Tab tutorialTab;
+    @FXML
     private Tab closureTab;
     @FXML
     private Tab keysTab;
@@ -162,6 +164,8 @@ public class MainController {
     @FXML
     private Tab explanationTab;
 
+    @FXML
+    private TextArea tutorialResultArea;
     @FXML
     private TextArea closureResultArea;
     @FXML
@@ -186,6 +190,7 @@ public class MainController {
         fdListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> updateControls());
 
+        tutorialResultArea.setText(buildTutorialText());
         clearResultAreas();
         updateRelationDisplay();
         updateValidationVisibility();
@@ -755,7 +760,46 @@ public class MainController {
         minimalCoverResultArea.clear();
         decompositionResultArea.clear();
         explanationResultArea.clear();
-        selectTab(closureTab);
+        selectTab(tutorialTab);
+    }
+
+    private static String buildTutorialText() {
+        return String.join(System.lineSeparator(),
+            "App Tutorial",
+            "",
+            "1. Create a relation",
+            "Enter a schema in the Relation box, then choose Create / Replace.",
+            "Examples:",
+            "- R(A,B,C)",
+            "- Enrollment(student_id,course_id,grade)",
+            "",
+            "2. Add functional dependencies",
+            "After a relation exists, enter dependencies in the Functional Dependency box.",
+            "Use comma-separated attributes on either side of ->.",
+            "Examples:",
+            "- A -> B",
+            "- student_id,course_id -> grade",
+            "",
+            "3. Compute closures",
+            "Enter one or more attributes in the Closure box and choose Compute Closure.",
+            "The Closure tab shows the step-by-step expansion and final closure.",
+            "",
+            "4. Run analysis",
+            "Use Keys to find candidate keys, Normal Form to check 1NF/2NF/3NF/BCNF,",
+            "Minimal Cover to simplify dependencies, and Explain for a guided summary.",
+            "",
+            "5. Decompose the relation",
+            "Use BCNF or 3NF to generate decomposed relations.",
+            "Then choose Check Result to test dependency preservation and lossless join.",
+            "",
+            "6. Read the side summary",
+            "The Relation Summary panel always reflects the current relation, attributes,",
+            "functional dependencies, candidate keys, normal form, and latest decomposition.",
+            "",
+            "Tips",
+            "- Press Enter in Relation, Functional Dependency, or Closure fields to submit.",
+            "- Select an FD in the summary list before using Remove Selected.",
+            "- Clear resets the session but keeps this tutorial available.");
     }
 
     private static String formatSet(Collection<String> values) {
