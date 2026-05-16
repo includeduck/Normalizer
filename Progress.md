@@ -51,6 +51,7 @@ Last updated: 2026-05-16
 - [x] Main stylesheet refreshed with a dark bluish-green desktop theme.
 - [x] Workflow panel compacted so all action sections fit on a 1920 x 1080 screen.
 - [x] App Tutorial result tab added with step-by-step usage guidance.
+- [x] Workflow and summary panes made independently scrollable for smaller or resized windows.
 
 ### Algorithms
 - [x] Attribute closure computation.

@@ -34,94 +34,101 @@
             <VBox spacing="8" minWidth="310" prefWidth="350" styleClass="workflow-pane">
                 <Label text="Workflow" styleClass="pane-title"/>
 
-                <VBox spacing="6" styleClass="section">
-                    <Label text="Relation" styleClass="section-title"/>
-                    <TextField fx:id="relationInputField"
-                               promptText="R(A,B,C) or Enrollment(student_id,course_id,grade)"
-                               onAction="#handleCreateRelation"/>
-                    <Label fx:id="relationValidationLabel" wrapText="true" styleClass="validation-message"/>
-                    <HBox spacing="8">
-                        <Button fx:id="createRelationButton" text="_Create / Replace"
-                                mnemonicParsing="true" onAction="#handleCreateRelation"/>
-                        <Button fx:id="clearAllButton" text="C_lear"
-                                mnemonicParsing="true" onAction="#handleClearAll"
-                                styleClass="secondary-button"/>
-                    </HBox>
-                </VBox>
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" pannable="true"
+                            styleClass="panel-scroll" VBox.vgrow="ALWAYS">
+                    <content>
+                        <VBox spacing="8" styleClass="workflow-content">
+                            <VBox spacing="6" styleClass="section">
+                                <Label text="Relation" styleClass="section-title"/>
+                                <TextField fx:id="relationInputField"
+                                           promptText="R(A,B,C) or Enrollment(student_id,course_id,grade)"
+                                           onAction="#handleCreateRelation"/>
+                                <Label fx:id="relationValidationLabel" wrapText="true" styleClass="validation-message"/>
+                                <HBox spacing="8">
+                                    <Button fx:id="createRelationButton" text="_Create / Replace"
+                                            mnemonicParsing="true" onAction="#handleCreateRelation"/>
+                                    <Button fx:id="clearAllButton" text="C_lear"
+                                            mnemonicParsing="true" onAction="#handleClearAll"
+                                            styleClass="secondary-button"/>
+                                </HBox>
+                            </VBox>
 
-                <VBox spacing="6" styleClass="section">
-                    <Label text="Functional Dependency" styleClass="section-title"/>
-                    <TextField fx:id="fdInputField" promptText="A,B -> C"
-                               onAction="#handleAddFd"/>
-                    <Label fx:id="fdValidationLabel" wrapText="true" styleClass="validation-message"/>
-                    <HBox spacing="8">
-                        <Button fx:id="addFdButton" text="_Add FD"
-                                mnemonicParsing="true" onAction="#handleAddFd"/>
-                        <Button fx:id="removeFdButton" text="_Remove Selected"
-                                mnemonicParsing="true" onAction="#handleRemoveFd"
-                                styleClass="secondary-button"/>
-                    </HBox>
-                </VBox>
+                            <VBox spacing="6" styleClass="section">
+                                <Label text="Functional Dependency" styleClass="section-title"/>
+                                <TextField fx:id="fdInputField" promptText="A,B -> C"
+                                           onAction="#handleAddFd"/>
+                                <Label fx:id="fdValidationLabel" wrapText="true" styleClass="validation-message"/>
+                                <HBox spacing="8">
+                                    <Button fx:id="addFdButton" text="_Add FD"
+                                            mnemonicParsing="true" onAction="#handleAddFd"/>
+                                    <Button fx:id="removeFdButton" text="_Remove Selected"
+                                            mnemonicParsing="true" onAction="#handleRemoveFd"
+                                            styleClass="secondary-button"/>
+                                </HBox>
+                            </VBox>
 
-                <VBox spacing="6" styleClass="section">
-                    <Label text="Closure" styleClass="section-title"/>
-                    <TextField fx:id="closureInputField" promptText="A,B or student_id"
-                               onAction="#handleComputeClosure"/>
-                    <Label fx:id="closureValidationLabel" wrapText="true" styleClass="validation-message"/>
-                    <Button fx:id="computeClosureButton" text="Compute _Closure"
-                            mnemonicParsing="true" onAction="#handleComputeClosure"/>
-                </VBox>
+                            <VBox spacing="6" styleClass="section">
+                                <Label text="Closure" styleClass="section-title"/>
+                                <TextField fx:id="closureInputField" promptText="A,B or student_id"
+                                           onAction="#handleComputeClosure"/>
+                                <Label fx:id="closureValidationLabel" wrapText="true" styleClass="validation-message"/>
+                                <Button fx:id="computeClosureButton" text="Compute _Closure"
+                                        mnemonicParsing="true" onAction="#handleComputeClosure"/>
+                            </VBox>
 
-                <VBox spacing="6" styleClass="section">
-                    <Label text="Analysis" styleClass="section-title"/>
-                    <GridPane hgap="6" vgap="6">
-                        <columnConstraints>
-                            <ColumnConstraints percentWidth="50"/>
-                            <ColumnConstraints percentWidth="50"/>
-                        </columnConstraints>
+                            <VBox spacing="6" styleClass="section">
+                                <Label text="Analysis" styleClass="section-title"/>
+                                <GridPane hgap="6" vgap="6">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="50"/>
+                                        <ColumnConstraints percentWidth="50"/>
+                                    </columnConstraints>
 
-                        <Button fx:id="candidateKeysButton" text="_Keys"
-                                mnemonicParsing="true" onAction="#handleFindCandidateKeys"
-                                maxWidth="1.7976931348623157E308"
-                                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <Button fx:id="normalFormButton" text="_Normal Form"
-                                mnemonicParsing="true" onAction="#handleAnalyzeNormalForm"
-                                maxWidth="1.7976931348623157E308"
-                                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                        <Button fx:id="minimalCoverButton" text="_Minimal Cover"
-                                mnemonicParsing="true" onAction="#handleMinimalCover"
-                                maxWidth="1.7976931348623157E308"
-                                GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                        <Button fx:id="explanationButton" text="_Explain"
-                                mnemonicParsing="true" onAction="#handleShowExplanation"
-                                maxWidth="1.7976931348623157E308"
-                                GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                    </GridPane>
-                </VBox>
+                                    <Button fx:id="candidateKeysButton" text="_Keys"
+                                            mnemonicParsing="true" onAction="#handleFindCandidateKeys"
+                                            maxWidth="1.7976931348623157E308"
+                                            GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <Button fx:id="normalFormButton" text="_Normal Form"
+                                            mnemonicParsing="true" onAction="#handleAnalyzeNormalForm"
+                                            maxWidth="1.7976931348623157E308"
+                                            GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="minimalCoverButton" text="_Minimal Cover"
+                                            mnemonicParsing="true" onAction="#handleMinimalCover"
+                                            maxWidth="1.7976931348623157E308"
+                                            GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <Button fx:id="explanationButton" text="_Explain"
+                                            mnemonicParsing="true" onAction="#handleShowExplanation"
+                                            maxWidth="1.7976931348623157E308"
+                                            GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                </GridPane>
+                            </VBox>
 
-                <VBox spacing="6" styleClass="section">
-                    <Label text="Decomposition" styleClass="section-title"/>
-                    <GridPane hgap="6" vgap="6">
-                        <columnConstraints>
-                            <ColumnConstraints percentWidth="50"/>
-                            <ColumnConstraints percentWidth="50"/>
-                        </columnConstraints>
+                            <VBox spacing="6" styleClass="section">
+                                <Label text="Decomposition" styleClass="section-title"/>
+                                <GridPane hgap="6" vgap="6">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="50"/>
+                                        <ColumnConstraints percentWidth="50"/>
+                                    </columnConstraints>
 
-                        <Button fx:id="bcnfButton" text="_BCNF"
-                                mnemonicParsing="true" onAction="#handleBcnfDecomposition"
-                                maxWidth="1.7976931348623157E308"
-                                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                        <Button fx:id="threeNfButton" text="_3NF"
-                                mnemonicParsing="true" onAction="#handleThreeNfSynthesis"
-                                maxWidth="1.7976931348623157E308"
-                                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                        <Button fx:id="checkDecompositionButton" text="Check _Result"
-                                mnemonicParsing="true" onAction="#handleCheckDecomposition"
-                                maxWidth="1.7976931348623157E308"
-                                GridPane.columnIndex="0" GridPane.columnSpan="2"
-                                GridPane.rowIndex="1"/>
-                    </GridPane>
-                </VBox>
+                                    <Button fx:id="bcnfButton" text="_BCNF"
+                                            mnemonicParsing="true" onAction="#handleBcnfDecomposition"
+                                            maxWidth="1.7976931348623157E308"
+                                            GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <Button fx:id="threeNfButton" text="_3NF"
+                                            mnemonicParsing="true" onAction="#handleThreeNfSynthesis"
+                                            maxWidth="1.7976931348623157E308"
+                                            GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <Button fx:id="checkDecompositionButton" text="Check _Result"
+                                            mnemonicParsing="true" onAction="#handleCheckDecomposition"
+                                            maxWidth="1.7976931348623157E308"
+                                            GridPane.columnIndex="0" GridPane.columnSpan="2"
+                                            GridPane.rowIndex="1"/>
+                                </GridPane>
+                            </VBox>
+                        </VBox>
+                    </content>
+                </ScrollPane>
             </VBox>
 
             <VBox spacing="10" minWidth="460" styleClass="results-pane">
@@ -178,42 +185,49 @@
             <VBox spacing="12" minWidth="260" prefWidth="300" styleClass="summary-pane">
                 <Label text="Relation Summary" styleClass="pane-title"/>
 
-                <VBox spacing="4" styleClass="summary-group">
-                    <Label text="Relation" styleClass="summary-caption"/>
-                    <Label fx:id="relationLabel" text="No relation defined"
-                           wrapText="true" styleClass="summary-value"/>
-                </VBox>
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" pannable="true"
+                            styleClass="panel-scroll" VBox.vgrow="ALWAYS">
+                    <content>
+                        <VBox spacing="12" styleClass="summary-content">
+                            <VBox spacing="4" styleClass="summary-group">
+                                <Label text="Relation" styleClass="summary-caption"/>
+                                <Label fx:id="relationLabel" text="No relation defined"
+                                       wrapText="true" styleClass="summary-value"/>
+                            </VBox>
 
-                <VBox spacing="4" styleClass="summary-group">
-                    <Label text="Attributes" styleClass="summary-caption"/>
-                    <Label fx:id="attributeSummaryLabel" text="{}"
-                           wrapText="true" styleClass="summary-value"/>
-                </VBox>
+                            <VBox spacing="4" styleClass="summary-group">
+                                <Label text="Attributes" styleClass="summary-caption"/>
+                                <Label fx:id="attributeSummaryLabel" text="{}"
+                                       wrapText="true" styleClass="summary-value"/>
+                            </VBox>
 
-                <VBox spacing="4" styleClass="summary-group">
-                    <Label text="Functional Dependencies" styleClass="summary-caption"/>
-                    <Label fx:id="fdCountLabel" text="0 dependencies"
-                           wrapText="true" styleClass="summary-value"/>
-                    <ListView fx:id="fdListView" prefHeight="180" VBox.vgrow="ALWAYS"/>
-                </VBox>
+                            <VBox spacing="4" styleClass="summary-group">
+                                <Label text="Functional Dependencies" styleClass="summary-caption"/>
+                                <Label fx:id="fdCountLabel" text="0 dependencies"
+                                       wrapText="true" styleClass="summary-value"/>
+                                <ListView fx:id="fdListView" prefHeight="180" VBox.vgrow="ALWAYS"/>
+                            </VBox>
 
-                <VBox spacing="4" styleClass="summary-group">
-                    <Label text="Candidate Keys" styleClass="summary-caption"/>
-                    <Label fx:id="keySummaryLabel" text="Not computed"
-                           wrapText="true" styleClass="summary-value"/>
-                </VBox>
+                            <VBox spacing="4" styleClass="summary-group">
+                                <Label text="Candidate Keys" styleClass="summary-caption"/>
+                                <Label fx:id="keySummaryLabel" text="Not computed"
+                                       wrapText="true" styleClass="summary-value"/>
+                            </VBox>
 
-                <VBox spacing="4" styleClass="summary-group">
-                    <Label text="Current Normal Form" styleClass="summary-caption"/>
-                    <Label fx:id="normalFormSummaryLabel" text="Not analyzed"
-                           wrapText="true" styleClass="summary-value"/>
-                </VBox>
+                            <VBox spacing="4" styleClass="summary-group">
+                                <Label text="Current Normal Form" styleClass="summary-caption"/>
+                                <Label fx:id="normalFormSummaryLabel" text="Not analyzed"
+                                       wrapText="true" styleClass="summary-value"/>
+                            </VBox>
 
-                <VBox spacing="4" styleClass="summary-group">
-                    <Label text="Last Decomposition" styleClass="summary-caption"/>
-                    <Label fx:id="decompositionSummaryLabel" text="No decomposition run"
-                           wrapText="true" styleClass="summary-value"/>
-                </VBox>
+                            <VBox spacing="4" styleClass="summary-group">
+                                <Label text="Last Decomposition" styleClass="summary-caption"/>
+                                <Label fx:id="decompositionSummaryLabel" text="No decomposition run"
+                                       wrapText="true" styleClass="summary-value"/>
+                            </VBox>
+                        </VBox>
+                    </content>
+                </ScrollPane>
             </VBox>
         </SplitPane>
     </center>

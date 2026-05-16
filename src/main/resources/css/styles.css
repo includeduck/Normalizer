@@ -109,6 +109,25 @@
     -fx-min-height: 14px;
 }
 
+.panel-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.panel-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.panel-scroll .scroll-bar:vertical {
+    -fx-pref-width: 10px;
+}
+
+.workflow-content,
+.summary-content {
+    -fx-background-color: transparent;
+}
+
 .pane-title {
     -fx-font-size: 14px;
     -fx-font-weight: 700;
