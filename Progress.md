@@ -47,6 +47,8 @@ Last updated: 2026-05-16
 - [x] Result tabs are available for closure, keys, normal forms, minimal cover, decomposition, and explanations.
 - [x] Main actions support keyboard-friendly Enter submission and mnemonic shortcuts.
 - [x] Main screen visual design and spacing polished with a dedicated stylesheet.
+- [x] Header window mode controls added for windowed, maximized, and fullscreen states.
+- [x] Main stylesheet refreshed with a dark bluish-green desktop theme.
 
 ### Algorithms
 - [x] Attribute closure computation.

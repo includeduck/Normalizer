@@ -8,8 +8,24 @@
             fx:controller="com.dbms.analyzer.javafx.controllers.MainController">
     <top>
         <VBox spacing="4" styleClass="app-header">
-            <Label text="DBMS Normalization Analyzer" styleClass="app-title"/>
-            <Label text="Relation Workspace" styleClass="app-subtitle"/>
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="DBMS Normalization Analyzer" styleClass="app-title"/>
+                    <Label text="Relation Workspace" styleClass="app-subtitle"/>
+                </VBox>
+
+                <HBox alignment="CENTER_RIGHT" spacing="8" styleClass="window-controls">
+                    <Label text="Window Mode" styleClass="window-mode-label"/>
+                    <HBox spacing="0" styleClass="window-mode-control">
+                        <ToggleButton fx:id="windowedButton" text="Windowed"
+                                      selected="true" onAction="#handleWindowedMode"/>
+                        <ToggleButton fx:id="maximizedButton" text="Maximized"
+                                      onAction="#handleMaximizedMode"/>
+                        <ToggleButton fx:id="fullscreenButton" text="Fullscreen"
+                                      onAction="#handleFullscreenMode"/>
+                    </HBox>
+                </HBox>
+            </HBox>
         </VBox>
     </top>
 

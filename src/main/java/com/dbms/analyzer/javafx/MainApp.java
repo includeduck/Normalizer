@@ -1,9 +1,11 @@
 package com.dbms.analyzer.javafx;
 
 import com.dbms.analyzer.DbmsApplication;
+import com.dbms.analyzer.javafx.controllers.MainController;
 import com.dbms.analyzer.javafx.utils.JavaFxSpringInjector;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.springframework.boot.WebApplicationType;
@@ -29,8 +31,15 @@ public class MainApp extends Application {
             getClass().getResource("/fxml/main.fxml"));
         fxmlLoader.setControllerFactory(applicationContext::getBean);
 
-        Scene scene = new Scene(fxmlLoader.load());
+        Parent root = fxmlLoader.load();
+        MainController controller = fxmlLoader.getController();
+        controller.setStage(stage);
+
+        Scene scene = new Scene(root, 1280, 820);
         stage.setTitle("DBMS Normalization & Functional Dependency Analyzer");
+        stage.setMinWidth(1080);
+        stage.setMinHeight(720);
+        stage.setFullScreenExitHint("Press Esc to leave fullscreen");
         stage.setScene(scene);
         stage.show();
     }

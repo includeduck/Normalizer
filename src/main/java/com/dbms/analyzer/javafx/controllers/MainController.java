@@ -29,6 +29,8 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.stage.Stage;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -50,6 +52,7 @@ public class MainController {
     private final DecompositionAnalysisService decompositionAnalysisService;
     private final ExplanationService explanationService;
 
+    private Stage stage;
     private Set<Relation> lastDecomposition;
 
     public MainController(
@@ -73,6 +76,15 @@ public class MainController {
         this.threeNfService = threeNfService;
         this.decompositionAnalysisService = decompositionAnalysisService;
         this.explanationService = explanationService;
+    }
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
+        this.stage.fullScreenProperty().addListener(
+            (observable, oldValue, newValue) -> updateWindowModeButtons());
+        this.stage.maximizedProperty().addListener(
+            (observable, oldValue, newValue) -> updateWindowModeButtons());
+        updateWindowModeButtons();
     }
 
     @FXML
@@ -127,6 +139,13 @@ public class MainController {
     private Button threeNfButton;
     @FXML
     private Button checkDecompositionButton;
+
+    @FXML
+    private ToggleButton windowedButton;
+    @FXML
+    private ToggleButton maximizedButton;
+    @FXML
+    private ToggleButton fullscreenButton;
 
     @FXML
     private TabPane resultTabPane;
@@ -466,9 +485,60 @@ public class MainController {
         }
     }
 
+    @FXML
+    private void handleWindowedMode() {
+        if (stage == null) {
+            return;
+        }
+
+        stage.setFullScreen(false);
+        stage.setMaximized(false);
+        updateWindowModeButtons();
+        setStatus("Windowed mode", false);
+    }
+
+    @FXML
+    private void handleMaximizedMode() {
+        if (stage == null) {
+            return;
+        }
+
+        stage.setFullScreen(false);
+        stage.setMaximized(true);
+        updateWindowModeButtons();
+        setStatus("Maximized mode", false);
+    }
+
+    @FXML
+    private void handleFullscreenMode() {
+        if (stage == null) {
+            return;
+        }
+
+        stage.setFullScreen(true);
+        updateWindowModeButtons();
+        setStatus("Fullscreen mode", false);
+    }
+
     // ---------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------
+
+    private void updateWindowModeButtons() {
+        if (stage == null
+                || windowedButton == null
+                || maximizedButton == null
+                || fullscreenButton == null) {
+            return;
+        }
+
+        boolean fullscreen = stage.isFullScreen();
+        boolean maximized = !fullscreen && stage.isMaximized();
+
+        fullscreenButton.setSelected(fullscreen);
+        maximizedButton.setSelected(maximized);
+        windowedButton.setSelected(!fullscreen && !maximized);
+    }
 
     private void updateRelationDisplay() {
         refreshFdList();
