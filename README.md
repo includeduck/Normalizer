@@ -91,32 +91,31 @@ mvn javafx:run
 
 ### Creating a Relation
 
-1. Click "Create Relation" button
-2. Enter relation schema in format: `R(A,B,C,D)` or `Enrollment(student_id,course_id,grade)`
-3. The system validates syntax and stores the relation
+1. Enter a schema in the Relation field, such as `R(A,B,C,D)` or `Enrollment(student_id,course_id,grade)`
+2. Click "Create / Replace" or press Enter in the field
+3. The summary pane updates with the active relation
 
 ### Adding Functional Dependencies
 
-1. Click "Add FD" button
-2. Enter dependencies in format: `AB -> CD` or comma-separated multi-character attributes like `student_id, course_id -> grade`
-3. The system validates all attributes exist in the relation
+1. Enter a dependency in the Functional Dependency field
+2. Use compact form like `AB -> CD` or comma-separated multi-character attributes like `student_id, course_id -> grade`
+3. Click "Add FD" or press Enter in the field
 
 ### Computing Attribute Closure
 
-1. Click "Compute Closure" button
-2. Enter attributes to compute: `ABC` or `student_id, course_id`
-3. View step-by-step closure computation
-4. See final closure result
+1. Enter attributes in the Closure field, such as `ABC` or `student_id, course_id`
+2. Click "Compute Closure" or press Enter in the field
+3. View step-by-step closure computation in the Closure tab
 
 ### Finding Candidate Keys
 
-1. Click "Find Candidate Keys" button
+1. Click "Keys"
 2. System automatically finds all minimal superkeys
-3. View prime and non-prime attributes
+3. View prime and non-prime attributes in the Keys tab and summary pane
 
 ### Analyzing Normal Forms
 
-1. Click "Analyze Normal Form" button
+1. Click "Normal Form"
 2. System checks 1NF, 2NF, 3NF, and BCNF
 3. View the highest normal form satisfied
 4. See any violations and explanations

@@ -3,6 +3,8 @@ package com.dbms.analyzer.service;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Service
 public class ExplanationService {
@@ -44,10 +46,11 @@ public class ExplanationService {
         candidateKeyService.findAllCandidateKeys().forEach(key ->
             explanation.add("  Candidate Key: " + key));
 
-        explanation.add("\nPrime attributes: " + 
-            candidateKeyService.getPrimeAttributes());
-        explanation.add("Non-prime attributes: " + 
-            candidateKeyService.getNonPrimeAttributes());
+        explanation.add("");
+        explanation.add("Prime attributes: "
+            + formatSet(candidateKeyService.getPrimeAttributes()));
+        explanation.add("Non-prime attributes: "
+            + formatSet(candidateKeyService.getNonPrimeAttributes()));
 
         return explanation;
     }
@@ -89,12 +92,18 @@ public class ExplanationService {
 
         explanation.add("Relation: " + 
             relationService.getCurrentRelation());
-        explanation.add("Attributes: " + relationService.getAttributes());
+        explanation.add("Attributes: " + formatSet(relationService.getAttributes()));
         explanation.add("Functional Dependencies:");
         
-        fdService.getAllDependencies().forEach(fd ->
-            explanation.add("  " + fd));
+        fdService.getAllDependencies().stream()
+            .map(Object::toString)
+            .sorted()
+            .forEach(fd -> explanation.add("  " + fd));
 
         return explanation;
+    }
+
+    private String formatSet(Set<String> values) {
+        return "{" + String.join(", ", new TreeSet<>(values)) + "}";
     }
 }

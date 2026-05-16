@@ -2,6 +2,7 @@ package com.dbms.analyzer.algorithm;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import com.dbms.analyzer.model.FunctionalDependency;
 
 public class ClosureComputer {
@@ -42,7 +43,7 @@ public class ClosureComputer {
             Set<FunctionalDependency> functionalDependencies) {
         java.util.List<String> steps = new java.util.ArrayList<>();
         Set<String> closure = new HashSet<>(attributeSet);
-        steps.add("Initial closure: " + closure);
+        steps.add("Initial closure: " + formatSet(closure));
         
         boolean changed = true;
         int iteration = 0;
@@ -53,15 +54,19 @@ public class ClosureComputer {
             for (FunctionalDependency fd : functionalDependencies) {
                 if (closure.containsAll(fd.getLeftSide()) && 
                     !closure.containsAll(fd.getRightSide())) {
-                    steps.add("Iteration " + iteration + ": Apply FD " + fd + 
-                             " -> Add " + fd.getRightSide());
+                    steps.add("Iteration " + iteration + ": Apply FD " + fd
+                             + " -> Add " + formatSet(fd.getRightSide()));
                     closure.addAll(fd.getRightSide());
                     changed = true;
                 }
             }
         }
         
-        steps.add("Final closure: " + closure);
+        steps.add("Final closure: " + formatSet(closure));
         return steps;
+    }
+
+    private String formatSet(Set<String> values) {
+        return "{" + String.join(", ", new TreeSet<>(values)) + "}";
     }
 }

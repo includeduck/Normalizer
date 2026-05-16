@@ -1,128 +1,238 @@
 /* Main Application Styles */
 .root {
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    -fx-font-size: 12px;
-    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+    -fx-text-fill: #263238;
+    -fx-background-color: #f4f6f8;
 }
 
-/* Button Styles */
-.button {
-    -fx-padding: 10px 20px;
+.app-root {
+    -fx-background-color: #f4f6f8;
+}
+
+.app-header {
+    -fx-padding: 16px 20px 14px 20px;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d9e1e8;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.app-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1d2733;
+}
+
+.app-subtitle {
     -fx-font-size: 12px;
-    -fx-background-color: #2196F3;
-    -fx-text-fill: white;
-    -fx-border-radius: 4;
+    -fx-text-fill: #60717f;
+}
+
+.workspace-split {
+    -fx-background-color: transparent;
+    -fx-padding: 12px;
+}
+
+.split-pane-divider {
+    -fx-background-color: #d9e1e8;
+    -fx-padding: 0 1px 0 1px;
+}
+
+.workflow-pane,
+.results-pane,
+.summary-pane {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d9e1e8;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 14px;
+}
+
+.pane-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1d2733;
+}
+
+.section {
+    -fx-padding: 12px;
+    -fx-background-color: #f8fafb;
+    -fx-border-color: #e3e9ee;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+}
+
+.section-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #334451;
+}
+
+.summary-group {
+    -fx-padding: 0 0 2px 0;
+}
+
+.summary-caption {
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #687a89;
+}
+
+.summary-value {
+    -fx-font-size: 12px;
+    -fx-text-fill: #263238;
+}
+
+.button {
+    -fx-padding: 8px 12px;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-background-color: #0f766e;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: transparent;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
     -fx-cursor: hand;
 }
 
 .button:hover {
-    -fx-background-color: #1976D2;
+    -fx-background-color: #0b635d;
 }
 
 .button:pressed {
-    -fx-background-color: #1565C0;
+    -fx-background-color: #084f4a;
 }
 
-/* TextField Styles */
+.button:disabled {
+    -fx-opacity: 0.45;
+    -fx-cursor: default;
+}
+
+.secondary-button {
+    -fx-background-color: #eef2f5;
+    -fx-text-fill: #334451;
+    -fx-border-color: #ccd6de;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #e1e8ee;
+}
+
 .text-field {
-    -fx-padding: 8px;
-    -fx-border-color: #CCCCCC;
-    -fx-border-width: 1;
-    -fx-border-radius: 4;
+    -fx-padding: 8px 10px;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #c8d3dc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-prompt-text-fill: #8997a3;
 }
 
 .text-field:focused {
-    -fx-border-color: #2196F3;
-    -fx-border-width: 2;
+    -fx-border-color: #0f766e;
+    -fx-effect: dropshadow(three-pass-box, #b7dad6, 4, 0, 0, 0);
 }
 
-/* TextArea Styles */
-.text-area {
-    -fx-control-inner-background: white;
-    -fx-padding: 8px;
-    -fx-font-family: "Monaco", "Courier New", monospace;
+.validation-message {
+    -fx-min-height: 18px;
     -fx-font-size: 11px;
+    -fx-text-fill: #687a89;
 }
 
-/* ListView Styles */
+.validation-error {
+    -fx-text-fill: #b42318;
+}
+
+.validation-ok {
+    -fx-text-fill: #0f766e;
+}
+
+.status-bar {
+    -fx-padding: 9px 16px;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d9e1e8;
+    -fx-border-width: 1px 0 0 0;
+}
+
+.status-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #60717f;
+}
+
+.status-ok {
+    -fx-text-fill: #0f766e;
+}
+
+.status-error {
+    -fx-text-fill: #b42318;
+}
+
+.text-area {
+    -fx-control-inner-background: #fbfcfd;
+    -fx-background-color: #fbfcfd;
+    -fx-border-color: #c8d3dc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 12px;
+    -fx-text-fill: #1d2733;
+}
+
 .list-view {
-    -fx-border-color: #CCCCCC;
-    -fx-border-width: 1;
+    -fx-background-color: #fbfcfd;
+    -fx-border-color: #c8d3dc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
 }
 
 .list-cell {
-    -fx-padding: 5px;
-    -fx-border-color: transparent;
+    -fx-padding: 7px 8px;
+    -fx-background-color: transparent;
+    -fx-text-fill: #263238;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: #edf7f6;
 }
 
 .list-cell:filled:selected {
-    -fx-background-color: #2196F3;
-    -fx-text-fill: white;
+    -fx-background-color: #0f766e;
+    -fx-text-fill: #ffffff;
 }
 
-/* Label Styles */
-.label {
-    -fx-text-fill: #333333;
-    -fx-font-size: 12px;
-}
-
-.label.title {
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #1976D2;
-}
-
-/* ComboBox Styles */
-.combo-box {
-    -fx-padding: 8px;
-    -fx-border-color: #CCCCCC;
-    -fx-border-width: 1;
-    -fx-border-radius: 4;
-}
-
-/* TreeView Styles */
-.tree-view {
-    -fx-border-color: #CCCCCC;
-    -fx-border-width: 1;
-}
-
-.tree-cell {
-    -fx-padding: 5px;
-}
-
-/* VBox and HBox */
-.vbox, .hbox {
-    -fx-spacing: 10px;
-    -fx-padding: 10px;
-}
-
-/* TabPane Styles */
 .tab-pane {
-    -fx-tab-min-width: 100px;
-    -fx-tab-min-height: 40px;
+    -fx-tab-min-height: 34px;
+}
+
+.tab-pane .tab-header-area {
+    -fx-padding: 0 0 6px 0;
 }
 
 .tab {
-    -fx-padding: 10px;
-    -fx-font-size: 12px;
+    -fx-background-color: #eef2f5;
+    -fx-background-radius: 6px 6px 0 0;
+    -fx-border-color: #d9e1e8;
+    -fx-border-width: 1px 1px 0 1px;
+    -fx-border-radius: 6px 6px 0 0;
+    -fx-padding: 7px 11px;
 }
 
 .tab:selected {
-    -fx-background-color: #2196F3;
-    -fx-text-fill: white;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #0f766e #d9e1e8 #ffffff #d9e1e8;
+    -fx-border-width: 3px 1px 0 1px;
 }
 
-/* Separator Styles */
-.separator {
-    -fx-text-fill: #CCCCCC;
+.tab .tab-label {
+    -fx-text-fill: #4a5a66;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
 }
 
-/* ScrollBar Styles */
-.scroll-bar {
-    -fx-padding: 5px;
-}
-
-.scroll-bar:vertical .increment-button,
-.scroll-bar:vertical .decrement-button {
-    -fx-padding: 0;
+.tab:selected .tab-label {
+    -fx-text-fill: #0f766e;
 }

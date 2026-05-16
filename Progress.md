@@ -33,7 +33,7 @@ Last updated: 2026-05-16
 - [x] Candidate key computation is wired from the main screen.
 - [x] Normal form analysis button is wired from the main screen.
 - [x] BCNF decomposition button is wired from the main screen.
-- [x] Main result panel is bound and displays action results/errors.
+- [x] Main result tabs are bound and display action results/errors.
 - [x] Status label updates after main actions.
 - [x] FD removal from the main screen via list selection.
 - [x] Session clear/reset from the main screen.
@@ -41,6 +41,12 @@ Last updated: 2026-05-16
 - [x] Minimal cover computation wired from the main screen.
 - [x] 3NF synthesis wired from the main screen.
 - [x] Decomposition analysis (dep preservation + lossless join) wired from the main screen.
+- [x] Main workflow uses embedded relation, FD, and closure forms instead of prompt dialogs.
+- [x] Inline validation messages are shown beside relation, FD, and closure inputs.
+- [x] Relation summary panel shows attributes, FDs, candidate keys, current normal form, and last decomposition.
+- [x] Result tabs are available for closure, keys, normal forms, minimal cover, decomposition, and explanations.
+- [x] Main actions support keyboard-friendly Enter submission and mnemonic shortcuts.
+- [x] Main screen visual design and spacing polished with a dedicated stylesheet.
 
 ### Algorithms
 - [x] Attribute closure computation.
@@ -81,13 +87,11 @@ Last updated: 2026-05-16
 ## Partially Implemented
 
 ### UI
-- [x] Main screen can run the full workflow through simple input dialogs.
-- [x] Buttons organized into logical rows (management, analysis, decomposition).
-- [ ] Dedicated relation dialog is not integrated into the main workflow.
-- [ ] Dedicated FD dialog is not integrated into the main workflow.
-- [ ] Dedicated closure, candidate key, normal form, BCNF, and explanation screens are still mostly standalone stubs.
-- [ ] Main screen layout is functional but not polished.
-- [ ] Error handling is currently text-based in the result panel.
+- [x] Main screen can run the full workflow through embedded forms.
+- [x] Buttons/actions are organized into relation, FD, closure, analysis, and decomposition sections.
+- [x] Relation, FD, closure, candidate key, normal form, BCNF, and explanation workflows are integrated into the main workspace.
+- [x] Main screen layout is polished with workflow, result, and summary panes.
+- [x] Error handling uses inline validation labels and a status bar.
 
 ## Remaining Work
 
@@ -98,13 +102,6 @@ Last updated: 2026-05-16
 - [ ] Add support for MVDs and 4NF/5NF (stretch goal).
 
 ### JavaFX Application
-- [ ] Replace simple `TextInputDialog` flows with proper embedded forms or modal FXML dialogs.
-- [ ] Add validation messages next to fields.
-- [ ] Add relation summary panel with attributes, FDs, keys, and current normal form.
-- [ ] Add result tabs for closure, keys, normal forms, decomposition, and explanations.
-- [ ] Add keyboard-friendly navigation.
-- [ ] Improve visual design and spacing.
-- [ ] Add deterministic sorted rendering for all sets.
 - [ ] Add startup sample data or examples for development/demo mode.
 
 ### Tests

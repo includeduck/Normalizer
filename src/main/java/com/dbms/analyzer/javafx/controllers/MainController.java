@@ -1,5 +1,6 @@
 package com.dbms.analyzer.javafx.controllers;
 
+import com.dbms.analyzer.algorithm.FdUtil;
 import com.dbms.analyzer.model.CandidateKey;
 import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.model.Relation;
@@ -7,26 +8,36 @@ import com.dbms.analyzer.service.BcnfDecompositionService;
 import com.dbms.analyzer.service.CandidateKeyService;
 import com.dbms.analyzer.service.ClosureService;
 import com.dbms.analyzer.service.DecompositionAnalysisService;
+import com.dbms.analyzer.service.ExplanationService;
 import com.dbms.analyzer.service.FdService;
 import com.dbms.analyzer.service.MinimalCoverService;
 import com.dbms.analyzer.service.NormalFormService;
 import com.dbms.analyzer.service.RelationService;
 import com.dbms.analyzer.service.ThreeNfService;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.TextField;
 import org.springframework.stereotype.Controller;
 
 @Controller
 public class MainController {
+
+    private static final String VALIDATION_ERROR = "validation-error";
+    private static final String VALIDATION_OK = "validation-ok";
+    private static final String STATUS_ERROR = "status-error";
+    private static final String STATUS_OK = "status-ok";
 
     private final RelationService relationService;
     private final FdService fdService;
@@ -37,8 +48,8 @@ public class MainController {
     private final MinimalCoverService minimalCoverService;
     private final ThreeNfService threeNfService;
     private final DecompositionAnalysisService decompositionAnalysisService;
+    private final ExplanationService explanationService;
 
-    // Cache last decomposition for analysis actions
     private Set<Relation> lastDecomposition;
 
     public MainController(
@@ -50,7 +61,8 @@ public class MainController {
             BcnfDecompositionService bcnfDecompositionService,
             MinimalCoverService minimalCoverService,
             ThreeNfService threeNfService,
-            DecompositionAnalysisService decompositionAnalysisService) {
+            DecompositionAnalysisService decompositionAnalysisService,
+            ExplanationService explanationService) {
         this.relationService = relationService;
         this.fdService = fdService;
         this.closureService = closureService;
@@ -60,11 +72,35 @@ public class MainController {
         this.minimalCoverService = minimalCoverService;
         this.threeNfService = threeNfService;
         this.decompositionAnalysisService = decompositionAnalysisService;
+        this.explanationService = explanationService;
     }
 
     @FXML
-    private Label relationLabel;
+    private TextField relationInputField;
+    @FXML
+    private TextField fdInputField;
+    @FXML
+    private TextField closureInputField;
 
+    @FXML
+    private Label relationValidationLabel;
+    @FXML
+    private Label fdValidationLabel;
+    @FXML
+    private Label closureValidationLabel;
+
+    @FXML
+    private Label relationLabel;
+    @FXML
+    private Label attributeSummaryLabel;
+    @FXML
+    private Label fdCountLabel;
+    @FXML
+    private Label keySummaryLabel;
+    @FXML
+    private Label normalFormSummaryLabel;
+    @FXML
+    private Label decompositionSummaryLabel;
     @FXML
     private Label statusLabel;
 
@@ -72,18 +108,68 @@ public class MainController {
     private ListView<String> fdListView;
 
     @FXML
-    private TextArea resultTextArea;
+    private Button addFdButton;
+    @FXML
+    private Button removeFdButton;
+    @FXML
+    private Button computeClosureButton;
+    @FXML
+    private Button candidateKeysButton;
+    @FXML
+    private Button normalFormButton;
+    @FXML
+    private Button minimalCoverButton;
+    @FXML
+    private Button explanationButton;
+    @FXML
+    private Button bcnfButton;
+    @FXML
+    private Button threeNfButton;
+    @FXML
+    private Button checkDecompositionButton;
 
-    private static String formatSet(Collection<String> values) {
-        return values.stream()
-            .sorted()
-            .collect(Collectors.joining(", ", "{", "}"));
-    }
+    @FXML
+    private TabPane resultTabPane;
+    @FXML
+    private Tab closureTab;
+    @FXML
+    private Tab keysTab;
+    @FXML
+    private Tab normalFormTab;
+    @FXML
+    private Tab minimalCoverTab;
+    @FXML
+    private Tab decompositionTab;
+    @FXML
+    private Tab explanationTab;
+
+    @FXML
+    private TextArea closureResultArea;
+    @FXML
+    private TextArea keysResultArea;
+    @FXML
+    private TextArea normalFormResultArea;
+    @FXML
+    private TextArea minimalCoverResultArea;
+    @FXML
+    private TextArea decompositionResultArea;
+    @FXML
+    private TextArea explanationResultArea;
 
     @FXML
     public void initialize() {
+        relationInputField.textProperty().addListener(
+            (observable, oldValue, newValue) -> clearValidation(relationValidationLabel));
+        fdInputField.textProperty().addListener(
+            (observable, oldValue, newValue) -> clearValidation(fdValidationLabel));
+        closureInputField.textProperty().addListener(
+            (observable, oldValue, newValue) -> clearValidation(closureValidationLabel));
+        fdListView.getSelectionModel().selectedItemProperty().addListener(
+            (observable, oldValue, newValue) -> updateControls());
+
+        clearResultAreas();
         updateRelationDisplay();
-        setStatus("Ready");
+        setStatus("Ready", false);
     }
 
     // ---------------------------------------------------------------
@@ -92,64 +178,82 @@ public class MainController {
 
     @FXML
     private void handleCreateRelation() {
-        TextInputDialog dialog = new TextInputDialog("R(A,B,C)");
-        dialog.setTitle("Create Relation");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Relation schema (e.g., R(A,B) or R(student_id,course_id)):");
+        String input = relationInputField.getText().trim();
+        if (input.isEmpty()) {
+            setValidation(
+                relationValidationLabel,
+                "Enter a relation schema like R(A,B,C).",
+                true);
+            relationInputField.requestFocus();
+            setStatus("Relation schema required", true);
+            return;
+        }
 
-        dialog.showAndWait()
-            .map(String::trim)
-            .filter(input -> !input.isEmpty())
-            .ifPresent(this::createRelation);
+        createRelation(input);
     }
 
     @FXML
     private void handleAddFd() {
-        if (!ensureRelation()) {
+        if (!ensureRelation(fdValidationLabel)) {
             return;
         }
 
-        TextInputDialog dialog = new TextInputDialog("A -> B");
-        dialog.setTitle("Add Functional Dependency");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Functional dependency (e.g., A,B -> C):");
+        String input = fdInputField.getText().trim();
+        if (input.isEmpty()) {
+            setValidation(
+                fdValidationLabel,
+                "Enter a dependency like A,B -> C.",
+                true);
+            fdInputField.requestFocus();
+            setStatus("Functional dependency required", true);
+            return;
+        }
 
-        dialog.showAndWait()
-            .map(String::trim)
-            .filter(input -> !input.isEmpty())
-            .ifPresent(this::addFunctionalDependency);
+        addFunctionalDependency(input);
     }
 
     @FXML
     private void handleRemoveFd() {
-        if (!ensureRelation()) return;
-
-        String selected = fdListView.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showError("Select a functional dependency from the list to remove.");
+        if (!ensureRelation(fdValidationLabel)) {
             return;
         }
 
-        // Find and remove the matching FD
-        Set<FunctionalDependency> fds = fdService.getAllDependencies();
-        for (FunctionalDependency fd : fds) {
+        String selected = fdListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            setValidation(
+                fdValidationLabel,
+                "Select a dependency in the summary list first.",
+                true);
+            setStatus("No dependency selected", true);
+            return;
+        }
+
+        for (FunctionalDependency fd : fdService.getAllDependencies()) {
             if (fd.toString().equals(selected)) {
                 fdService.removeFunctionalDependency(fd);
+                lastDecomposition = null;
                 updateRelationDisplay();
-                setStatus("Functional dependency removed");
+                setValidation(fdValidationLabel, "Dependency removed.", false);
+                setStatus("Functional dependency removed", false);
                 return;
             }
         }
-        showError("Could not find the selected FD.");
+
+        setValidation(fdValidationLabel, "Selected dependency could not be found.", true);
+        setStatus("Remove failed", true);
     }
 
     @FXML
     private void handleClearAll() {
         relationService.clear();
         lastDecomposition = null;
-        resultTextArea.clear();
+        relationInputField.clear();
+        fdInputField.clear();
+        closureInputField.clear();
+        clearValidations();
+        clearResultAreas();
         updateRelationDisplay();
-        setStatus("Session cleared");
+        setStatus("Session cleared", false);
     }
 
     // ---------------------------------------------------------------
@@ -158,24 +262,27 @@ public class MainController {
 
     @FXML
     private void handleComputeClosure() {
-        if (!ensureRelation()) {
+        if (!ensureRelation(closureValidationLabel)) {
             return;
         }
 
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Compute Closure");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Attribute set (e.g., A,B or student_id):");
+        String input = closureInputField.getText().trim();
+        if (input.isEmpty()) {
+            setValidation(
+                closureValidationLabel,
+                "Enter one or more attributes.",
+                true);
+            closureInputField.requestFocus();
+            setStatus("Closure input required", true);
+            return;
+        }
 
-        dialog.showAndWait()
-            .map(String::trim)
-            .filter(input -> !input.isEmpty())
-            .ifPresent(this::computeClosure);
+        computeClosure(input);
     }
 
     @FXML
     private void handleFindCandidateKeys() {
-        if (!ensureRelation()) {
+        if (!ensureRelation(null)) {
             return;
         }
 
@@ -196,16 +303,18 @@ public class MainController {
                 .append("\nNon-Prime Attributes: ")
                 .append(formatSet(candidateKeyService.getNonPrimeAttributes()));
 
-            resultTextArea.setText(result.toString());
-            setStatus("Candidate keys computed");
+            keysResultArea.setText(result.toString());
+            selectTab(keysTab);
+            updateRelationDisplay();
+            setStatus("Candidate keys computed", false);
         } catch (RuntimeException e) {
-            showError(e.getMessage());
+            showActionError(e.getMessage(), keysResultArea, keysTab);
         }
     }
 
     @FXML
     private void handleAnalyzeNormalForm() {
-        if (!ensureRelation()) {
+        if (!ensureRelation(null)) {
             return;
         }
 
@@ -234,31 +343,34 @@ public class MainController {
                 result.append("\n").append(analysis.getExplanation());
             }
 
-            resultTextArea.setText(result.toString());
-            setStatus("Normal form analysis complete");
+            normalFormResultArea.setText(result.toString());
+            selectTab(normalFormTab);
+            updateRelationDisplay();
+            setStatus("Normal form analysis complete", false);
         } catch (RuntimeException e) {
-            showError(e.getMessage());
+            showActionError(e.getMessage(), normalFormResultArea, normalFormTab);
         }
     }
 
     @FXML
     private void handleMinimalCover() {
-        if (!ensureRelation()) return;
+        if (!ensureRelation(null)) {
+            return;
+        }
 
         try {
             List<String> steps = minimalCoverService.computeMinimalCoverWithSteps();
-            StringBuilder result = new StringBuilder();
-            steps.forEach(s -> result.append(s).append("\n"));
-            resultTextArea.setText(result.toString());
-            setStatus("Minimal cover computed");
+            minimalCoverResultArea.setText(renderLines(steps));
+            selectTab(minimalCoverTab);
+            setStatus("Minimal cover computed", false);
         } catch (RuntimeException e) {
-            showError(e.getMessage());
+            showActionError(e.getMessage(), minimalCoverResultArea, minimalCoverTab);
         }
     }
 
     @FXML
     private void handleBcnfDecomposition() {
-        if (!ensureRelation()) {
+        if (!ensureRelation(null)) {
             return;
         }
 
@@ -267,62 +379,90 @@ public class MainController {
                     bcnfDecompositionService.decomposeWithExplanation();
             lastDecomposition = bcnfDecompositionService.decomposeToBcnf();
 
-            StringBuilder result = new StringBuilder();
-            explanation.forEach(line -> result.append(line).append("\n"));
-
-            resultTextArea.setText(result.toString());
-            setStatus("BCNF decomposition complete");
+            decompositionResultArea.setText(renderLines(explanation));
+            selectTab(decompositionTab);
+            updateRelationDisplay();
+            setStatus("BCNF decomposition complete", false);
         } catch (RuntimeException e) {
-            showError(e.getMessage());
+            showActionError(e.getMessage(), decompositionResultArea, decompositionTab);
         }
     }
 
     @FXML
     private void handleThreeNfSynthesis() {
-        if (!ensureRelation()) return;
+        if (!ensureRelation(null)) {
+            return;
+        }
 
         try {
             List<String> steps = threeNfService.synthesizeWithSteps();
             lastDecomposition = threeNfService.synthesize();
 
-            StringBuilder result = new StringBuilder();
-            steps.forEach(s -> result.append(s).append("\n"));
-            resultTextArea.setText(result.toString());
-            setStatus("3NF synthesis complete");
+            decompositionResultArea.setText(renderLines(steps));
+            selectTab(decompositionTab);
+            updateRelationDisplay();
+            setStatus("3NF synthesis complete", false);
         } catch (RuntimeException e) {
-            showError(e.getMessage());
+            showActionError(e.getMessage(), decompositionResultArea, decompositionTab);
         }
     }
 
     @FXML
     private void handleCheckDecomposition() {
-        if (!ensureRelation()) return;
+        if (!ensureRelation(null)) {
+            return;
+        }
 
         if (lastDecomposition == null || lastDecomposition.isEmpty()) {
-            showError("Run a decomposition (BCNF or 3NF) first.");
+            showActionError(
+                "Run a decomposition (BCNF or 3NF) first.",
+                explanationResultArea,
+                explanationTab);
             return;
         }
 
         try {
             StringBuilder result = new StringBuilder();
 
-            // Dependency preservation
             List<String> depSteps =
                     decompositionAnalysisService
                             .checkDependencyPreservationWithSteps(lastDecomposition);
             depSteps.forEach(s -> result.append(s).append("\n"));
             result.append("\n");
 
-            // Lossless join
             List<String> joinSteps =
                     decompositionAnalysisService
                             .checkLosslessJoinWithSteps(lastDecomposition);
             joinSteps.forEach(s -> result.append(s).append("\n"));
 
-            resultTextArea.setText(result.toString());
-            setStatus("Decomposition analysis complete");
+            explanationResultArea.setText(result.toString());
+            selectTab(explanationTab);
+            setStatus("Decomposition analysis complete", false);
         } catch (RuntimeException e) {
-            showError(e.getMessage());
+            showActionError(e.getMessage(), explanationResultArea, explanationTab);
+        }
+    }
+
+    @FXML
+    private void handleShowExplanation() {
+        if (!ensureRelation(null)) {
+            return;
+        }
+
+        try {
+            List<String> explanation = new ArrayList<>();
+            explanation.addAll(explanationService.explainRelation());
+            explanation.add("");
+            explanation.addAll(explanationService.explainCandidateKeys());
+            explanation.add("");
+            explanation.addAll(explanationService.explainNormalForm());
+
+            explanationResultArea.setText(renderLines(explanation));
+            selectTab(explanationTab);
+            updateRelationDisplay();
+            setStatus("Explanation refreshed", false);
+        } catch (RuntimeException e) {
+            showActionError(e.getMessage(), explanationResultArea, explanationTab);
         }
     }
 
@@ -331,48 +471,125 @@ public class MainController {
     // ---------------------------------------------------------------
 
     private void updateRelationDisplay() {
-        if (relationService.hasRelation()) {
-            relationLabel.setText(
-                relationService.getCurrentRelation().toString());
-            fdListView.getItems().clear();
-            fdService.getAllDependencies().stream()
-                .map(Object::toString)
-                .sorted()
-                .forEach(fdListView.getItems()::add);
-        } else {
-            relationLabel.setText("No relation defined");
-            fdListView.getItems().clear();
+        refreshFdList();
+        refreshSummary();
+        updateControls();
+    }
+
+    private void refreshFdList() {
+        fdListView.getItems().clear();
+        if (!relationService.hasRelation()) {
+            return;
         }
+
+        fdService.getAllDependencies().stream()
+            .map(Object::toString)
+            .sorted()
+            .forEach(fdListView.getItems()::add);
+    }
+
+    private void refreshSummary() {
+        if (!relationService.hasRelation()) {
+            relationLabel.setText("No relation defined");
+            attributeSummaryLabel.setText("{}");
+            fdCountLabel.setText("0 dependencies");
+            keySummaryLabel.setText("Not computed");
+            normalFormSummaryLabel.setText("Not analyzed");
+            decompositionSummaryLabel.setText("No decomposition run");
+            return;
+        }
+
+        Relation relation = relationService.getCurrentRelation();
+        Set<String> attributes = relationService.getAttributes();
+        Set<FunctionalDependency> fds = fdService.getAllDependencies();
+
+        relationLabel.setText(relation.toString());
+        attributeSummaryLabel.setText(formatSet(attributes));
+        fdCountLabel.setText(formatCount(fds.size(), "dependency", "dependencies"));
+
+        try {
+            Set<CandidateKey> keys = candidateKeyService.findAllCandidateKeys();
+            keySummaryLabel.setText(formatKeys(keys));
+        } catch (RuntimeException e) {
+            keySummaryLabel.setText("Unavailable");
+        }
+
+        try {
+            normalFormSummaryLabel.setText(
+                normalFormService.analyzeNormalForm()
+                    .getHighestNormalForm()
+                    .toString());
+        } catch (RuntimeException e) {
+            normalFormSummaryLabel.setText("Unavailable");
+        }
+
+        if (lastDecomposition == null || lastDecomposition.isEmpty()) {
+            decompositionSummaryLabel.setText("No decomposition run");
+        } else {
+            decompositionSummaryLabel.setText(
+                formatCount(lastDecomposition.size(), "relation", "relations")
+                    + ": "
+                    + lastDecomposition.stream()
+                        .map(Relation::toString)
+                        .sorted()
+                        .collect(Collectors.joining("; ")));
+        }
+    }
+
+    private void updateControls() {
+        boolean hasRelation = relationService.hasRelation();
+        addFdButton.setDisable(!hasRelation);
+        removeFdButton.setDisable(
+            !hasRelation || fdListView.getSelectionModel().getSelectedItem() == null);
+        computeClosureButton.setDisable(!hasRelation);
+        candidateKeysButton.setDisable(!hasRelation);
+        normalFormButton.setDisable(!hasRelation);
+        minimalCoverButton.setDisable(!hasRelation);
+        explanationButton.setDisable(!hasRelation);
+        bcnfButton.setDisable(!hasRelation);
+        threeNfButton.setDisable(!hasRelation);
+        checkDecompositionButton.setDisable(
+            !hasRelation || lastDecomposition == null || lastDecomposition.isEmpty());
     }
 
     private void createRelation(String input) {
         try {
             relationService.createRelation(input);
             lastDecomposition = null;
+            fdInputField.clear();
+            closureInputField.clear();
+            clearResultAreas();
             updateRelationDisplay();
-            resultTextArea.clear();
-            setStatus("Relation created");
+            setValidation(relationValidationLabel, "Relation ready.", false);
+            setStatus("Relation created", false);
         } catch (IllegalArgumentException e) {
-            showError(e.getMessage());
+            setValidation(relationValidationLabel, e.getMessage(), true);
+            setStatus("Relation could not be created", true);
         }
     }
 
     private void addFunctionalDependency(String input) {
         try {
-            // Check for duplicate before adding
             FunctionalDependency candidate =
-                    com.dbms.analyzer.algorithm.FdUtil.parseFD(
-                        input, relationService.getAttributes());
+                    FdUtil.parseFD(input, relationService.getAttributes());
             if (fdService.getAllDependencies().contains(candidate)) {
-                showError("Duplicate FD: " + candidate + " already exists.");
+                setValidation(
+                    fdValidationLabel,
+                    "Duplicate FD: " + candidate + " already exists.",
+                    true);
+                setStatus("Duplicate dependency", true);
                 return;
             }
 
             fdService.addFunctionalDependency(input);
+            lastDecomposition = null;
+            fdInputField.clear();
             updateRelationDisplay();
-            setStatus("Functional dependency added");
+            setValidation(fdValidationLabel, "Dependency added.", false);
+            setStatus("Functional dependency added", false);
         } catch (RuntimeException e) {
-            showError(e.getMessage());
+            setValidation(fdValidationLabel, e.getMessage(), true);
+            setStatus("Dependency could not be added", true);
         }
     }
 
@@ -387,28 +604,99 @@ public class MainController {
             steps.forEach(step -> result.append(step).append("\n"));
             result.append("\nFinal Closure: ").append(formatSet(closure));
 
-            resultTextArea.setText(result.toString());
-            setStatus("Closure computed");
+            closureResultArea.setText(result.toString());
+            selectTab(closureTab);
+            setValidation(closureValidationLabel, "Closure computed.", false);
+            setStatus("Closure computed", false);
         } catch (RuntimeException e) {
-            showError(e.getMessage());
+            setValidation(closureValidationLabel, e.getMessage(), true);
+            showActionError(e.getMessage(), closureResultArea, closureTab);
         }
     }
 
-    private boolean ensureRelation() {
+    private boolean ensureRelation(Label validationLabel) {
         if (relationService.hasRelation()) {
             return true;
         }
 
-        showError("Create a relation before running this action.");
+        if (validationLabel != null) {
+            setValidation(validationLabel, "Create a relation first.", true);
+        }
+        setValidation(relationValidationLabel, "Create a relation before running this action.", true);
+        relationInputField.requestFocus();
+        setStatus("Create a relation first", true);
         return false;
     }
 
-    private void showError(String message) {
-        resultTextArea.setText("Error: " + message);
-        setStatus("Error");
+    private void showActionError(String message, TextArea area, Tab tab) {
+        area.setText("Error: " + message);
+        selectTab(tab);
+        setStatus(message, true);
     }
 
-    private void setStatus(String message) {
+    private void selectTab(Tab tab) {
+        resultTabPane.getSelectionModel().select(tab);
+    }
+
+    private void setValidation(Label label, String message, boolean error) {
+        label.setText(message == null ? "" : message);
+        label.getStyleClass().removeAll(VALIDATION_ERROR, VALIDATION_OK);
+        if (message != null && !message.isBlank()) {
+            label.getStyleClass().add(error ? VALIDATION_ERROR : VALIDATION_OK);
+        }
+    }
+
+    private void clearValidation(Label label) {
+        setValidation(label, "", false);
+    }
+
+    private void clearValidations() {
+        clearValidation(relationValidationLabel);
+        clearValidation(fdValidationLabel);
+        clearValidation(closureValidationLabel);
+    }
+
+    private void setStatus(String message, boolean error) {
         statusLabel.setText("Status: " + message);
+        statusLabel.getStyleClass().removeAll(STATUS_ERROR, STATUS_OK);
+        statusLabel.getStyleClass().add(error ? STATUS_ERROR : STATUS_OK);
+    }
+
+    private void clearResultAreas() {
+        closureResultArea.clear();
+        keysResultArea.clear();
+        normalFormResultArea.clear();
+        minimalCoverResultArea.clear();
+        decompositionResultArea.clear();
+        explanationResultArea.clear();
+        selectTab(closureTab);
+    }
+
+    private static String formatSet(Collection<String> values) {
+        return values.stream()
+            .sorted()
+            .collect(Collectors.joining(", ", "{", "}"));
+    }
+
+    private static String formatKeys(Set<CandidateKey> keys) {
+        if (keys.isEmpty()) {
+            return "None";
+        }
+
+        return keys.stream()
+            .map(CandidateKey::toString)
+            .sorted()
+            .collect(Collectors.joining(", "));
+    }
+
+    private static String formatCount(
+            int count,
+            String singular,
+            String plural) {
+        return count + " " + (count == 1 ? singular : plural);
+    }
+
+    private static String renderLines(List<String> lines) {
+        return String.join(System.lineSeparator(), lines);
     }
 }
