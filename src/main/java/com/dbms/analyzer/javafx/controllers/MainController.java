@@ -188,6 +188,7 @@ public class MainController {
 
         clearResultAreas();
         updateRelationDisplay();
+        updateValidationVisibility();
         setStatus("Ready", false);
     }
 
@@ -710,8 +711,11 @@ public class MainController {
 
     private void setValidation(Label label, String message, boolean error) {
         label.setText(message == null ? "" : message);
+        boolean hasMessage = message != null && !message.isBlank();
+        label.setManaged(hasMessage);
+        label.setVisible(hasMessage);
         label.getStyleClass().removeAll(VALIDATION_ERROR, VALIDATION_OK);
-        if (message != null && !message.isBlank()) {
+        if (hasMessage) {
             label.getStyleClass().add(error ? VALIDATION_ERROR : VALIDATION_OK);
         }
     }
@@ -724,6 +728,18 @@ public class MainController {
         clearValidation(relationValidationLabel);
         clearValidation(fdValidationLabel);
         clearValidation(closureValidationLabel);
+    }
+
+    private void updateValidationVisibility() {
+        updateValidationVisibility(relationValidationLabel);
+        updateValidationVisibility(fdValidationLabel);
+        updateValidationVisibility(closureValidationLabel);
+    }
+
+    private void updateValidationVisibility(Label label) {
+        boolean hasMessage = label.getText() != null && !label.getText().isBlank();
+        label.setManaged(hasMessage);
+        label.setVisible(hasMessage);
     }
 
     private void setStatus(String message, boolean error) {

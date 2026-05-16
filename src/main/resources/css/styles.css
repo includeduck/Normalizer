@@ -14,7 +14,7 @@
 }
 
 .app-header {
-    -fx-padding: 16px 20px 15px 20px;
+    -fx-padding: 12px 18px 11px 18px;
     -fx-background-color: #0a2428;
     -fx-border-color: #1d4d51;
     -fx-border-width: 0 0 1px 0;
@@ -74,7 +74,7 @@
 
 .workspace-split {
     -fx-background-color: transparent;
-    -fx-padding: 14px;
+    -fx-padding: 10px;
 }
 
 .split-pane-divider {
@@ -90,7 +90,23 @@
     -fx-border-width: 1px;
     -fx-border-radius: 8px;
     -fx-background-radius: 8px;
-    -fx-padding: 14px;
+    -fx-padding: 12px;
+}
+
+.workflow-pane .section {
+    -fx-padding: 9px 10px;
+}
+
+.workflow-pane .text-field {
+    -fx-padding: 6px 9px;
+}
+
+.workflow-pane .button {
+    -fx-padding: 6px 10px;
+}
+
+.workflow-pane .validation-message {
+    -fx-min-height: 14px;
 }
 
 .pane-title {
