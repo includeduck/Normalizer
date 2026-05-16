@@ -95,7 +95,7 @@ public class MainController {
         TextInputDialog dialog = new TextInputDialog("R(A,B,C)");
         dialog.setTitle("Create Relation");
         dialog.setHeaderText(null);
-        dialog.setContentText("Relation schema:");
+        dialog.setContentText("Relation schema (e.g., R(A,B) or R(student_id,course_id)):");
 
         dialog.showAndWait()
             .map(String::trim)
@@ -112,7 +112,7 @@ public class MainController {
         TextInputDialog dialog = new TextInputDialog("A -> B");
         dialog.setTitle("Add Functional Dependency");
         dialog.setHeaderText(null);
-        dialog.setContentText("Functional dependency:");
+        dialog.setContentText("Functional dependency (e.g., A,B -> C):");
 
         dialog.showAndWait()
             .map(String::trim)
@@ -165,7 +165,7 @@ public class MainController {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Compute Closure");
         dialog.setHeaderText(null);
-        dialog.setContentText("Attribute set:");
+        dialog.setContentText("Attribute set (e.g., A,B or student_id):");
 
         dialog.showAndWait()
             .map(String::trim)
@@ -361,7 +361,8 @@ public class MainController {
         try {
             // Check for duplicate before adding
             FunctionalDependency candidate =
-                    com.dbms.analyzer.algorithm.FdUtil.parseFD(input);
+                    com.dbms.analyzer.algorithm.FdUtil.parseFD(
+                        input, relationService.getAttributes());
             if (fdService.getAllDependencies().contains(candidate)) {
                 showError("Duplicate FD: " + candidate + " already exists.");
                 return;

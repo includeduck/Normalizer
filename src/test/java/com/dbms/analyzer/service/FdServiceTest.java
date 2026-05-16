@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.dbms.analyzer.model.FunctionalDependency;
+import java.util.Set;
+
 public class FdServiceTest {
 
     private FdService fdService;
@@ -21,6 +24,37 @@ public class FdServiceTest {
     public void testAddValidFD() {
         fdService.addFunctionalDependency("A -> B");
         assertEquals(1, fdService.getAllDependencies().size());
+    }
+
+    @Test
+    public void testAddMultiCharacterFD() {
+        relationService.createRelation(
+            "Enrollment(student_id,course_id,grade)");
+
+        fdService.addFunctionalDependency("student_id, course_id -> grade");
+
+        assertTrue(fdService.getAllDependencies().contains(
+            new FunctionalDependency(
+                Set.of("student_id", "course_id"),
+                Set.of("grade"))));
+    }
+
+    @Test
+    public void testAddFDForCompactMultiCharacterAttribute() {
+        relationService.createRelation("R(AB,C)");
+
+        fdService.addFunctionalDependency("AB -> C");
+
+        assertTrue(fdService.getAllDependencies().contains(
+            new FunctionalDependency(Set.of("AB"), Set.of("C"))));
+    }
+
+    @Test
+    public void testAddFDKeepsSingleCharacterShorthand() {
+        fdService.addFunctionalDependency("AB -> C");
+
+        assertTrue(fdService.getAllDependencies().contains(
+            new FunctionalDependency(Set.of("A", "B"), Set.of("C"))));
     }
 
     @Test

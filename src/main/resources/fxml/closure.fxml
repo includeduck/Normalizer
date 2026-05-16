@@ -9,10 +9,10 @@
     
     <Label text="Compute Attribute Closure" styleClass="title"/>
     
-    <Label text="Enter attributes to compute closure: ABC" wrapText="true"/>
+    <Label text="Enter attributes to compute closure: A,B" wrapText="true"/>
     
     <HBox spacing="10">
-        <TextField fx:id="attributeInputField" promptText="e.g., AB" HBox.hgrow="ALWAYS"/>
+        <TextField fx:id="attributeInputField" promptText="e.g., student_id, course_id" HBox.hgrow="ALWAYS"/>
         <Button text="Compute" onAction="#handleComputeClosure" prefWidth="100"/>
     </HBox>
     

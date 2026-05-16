@@ -23,7 +23,8 @@ public class FdService {
             throw new IllegalStateException("No relation defined");
         }
 
-        FunctionalDependency fd = FdUtil.parseFD(fdString);
+        FunctionalDependency fd = FdUtil.parseFD(
+            fdString, relationService.getAttributes());
 
         if (!FdUtil.validateFdAttributes(
             fd, relationService.getAttributes())) {
@@ -70,7 +71,8 @@ public class FdService {
      */
     public boolean validateFdString(String fdString) {
         try {
-            FunctionalDependency fd = FdUtil.parseFD(fdString);
+            FunctionalDependency fd = FdUtil.parseFD(
+                fdString, relationService.getAttributes());
             return FdUtil.validateFdAttributes(
                 fd, relationService.getAttributes());
         } catch (Exception e) {

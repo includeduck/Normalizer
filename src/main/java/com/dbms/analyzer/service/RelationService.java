@@ -2,7 +2,6 @@ package com.dbms.analyzer.service;
 
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.model.Relation;
-import com.dbms.analyzer.algorithm.FdUtil;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,6 +24,10 @@ public class RelationService {
         }
 
         String relationName = schemaString.substring(0, paren).trim();
+        if (relationName.isEmpty()) {
+            throw new IllegalArgumentException("Relation name must be non-empty");
+        }
+
         String attributesStr = schemaString.substring(
             paren + 1, schemaString.length() - 1);
 
@@ -33,6 +36,10 @@ public class RelationService {
             String trimmed = attr.trim();
             if (trimmed.isEmpty()) {
                 throw new IllegalArgumentException("Empty attribute name");
+            }
+            if (trimmed.chars().anyMatch(Character::isWhitespace)) {
+                throw new IllegalArgumentException(
+                    "Attribute names cannot contain whitespace: " + trimmed);
             }
             if (!attributes.add(trimmed)) {
                 throw new IllegalArgumentException(

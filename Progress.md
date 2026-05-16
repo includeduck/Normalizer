@@ -1,6 +1,6 @@
 # Progress
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Implemented
 
@@ -21,6 +21,8 @@ Last updated: 2026-05-15
 - [x] Algorithm beans defined in `AppConfig`.
 - [x] Service layer converted to constructor injection for core services.
 - [x] Spring context test added to verify core app/controller wiring.
+- [x] Attribute parsing supports comma-separated multi-character names while preserving single-letter shorthand.
+- [x] Relation creation validates empty names and rejects whitespace inside attribute names.
 
 ### Main JavaFX Workflow
 - [x] Main screen loads through Spring-managed FXML controller.
@@ -69,9 +71,10 @@ Last updated: 2026-05-15
 - [x] 3NF synthesis tests pass (4 tests).
 - [x] Dependency preservation tests pass (4 tests).
 - [x] Lossless join tests pass (5 tests).
-- [x] FD parser edge case tests pass (14 tests).
+- [x] FD parser edge case tests pass (19 tests).
+- [x] Closure service multi-character attribute tests pass (2 tests).
 - [x] BCNF decomposition tests pass (3 tests).
-- [x] `mvn test` passes (59 tests, 0 failures).
+- [x] `mvn test` passes (72 tests, 0 failures).
 - [x] `mvn -DskipTests package` passes.
 - [x] `mvn javafx:run` reaches desktop app startup and remains alive.
 
@@ -89,8 +92,6 @@ Last updated: 2026-05-15
 ## Remaining Work
 
 ### Core Backend
-- [ ] Normalize attribute handling so multi-character attribute names are supported consistently.
-- [ ] Add relation validation for empty relation names.
 - [ ] Decide whether `InMemorySessionRepository` should replace direct state in `RelationService`.
 
 ### Normalization Algorithms
@@ -125,6 +126,7 @@ mvn test
 mvn -DskipTests package
 mvn javafx:run
 ```
+
 
 ## Known Environment Notes
 

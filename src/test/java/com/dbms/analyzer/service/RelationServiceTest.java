@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Set;
+
 public class RelationServiceTest {
 
     private RelationService relationService;
@@ -21,6 +23,16 @@ public class RelationServiceTest {
     }
 
     @Test
+    public void testCreateRelationWithMultiCharacterAttributes() {
+        relationService.createRelation(
+            "Enrollment(student_id,course_id,grade)");
+
+        assertEquals(
+            Set.of("student_id", "course_id", "grade"),
+            relationService.getAttributes());
+    }
+
+    @Test
     public void testCreateRelationInvalidFormat() {
         assertThrows(IllegalArgumentException.class, () ->
             relationService.createRelation("R[A,B,C]"));
@@ -30,6 +42,18 @@ public class RelationServiceTest {
     public void testCreateRelationDuplicateAttributes() {
         assertThrows(IllegalArgumentException.class, () ->
             relationService.createRelation("R(A,B,A)"));
+    }
+
+    @Test
+    public void testCreateRelationEmptyName() {
+        assertThrows(IllegalArgumentException.class, () ->
+            relationService.createRelation("(A,B,C)"));
+    }
+
+    @Test
+    public void testCreateRelationRejectsWhitespaceInAttributeName() {
+        assertThrows(IllegalArgumentException.class, () ->
+            relationService.createRelation("R(student id,course_id)"));
     }
 
     @Test

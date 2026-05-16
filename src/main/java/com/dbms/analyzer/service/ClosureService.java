@@ -24,7 +24,7 @@ public class ClosureService {
 
     /**
      * Computes the closure of a set of attributes
-     * @param attributeString A string like "ABC"
+     * @param attributeString A string like "ABC" or "student_id, course_id"
      * @return The closure as a set
      */
     public Set<String> computeClosure(String attributeString) 
@@ -34,10 +34,11 @@ public class ClosureService {
             throw new IllegalStateException("No relation defined");
         }
 
-        Set<String> attributeSet = FdUtil.stringToAttributes(attributeString);
-        
-        // Validate attributes exist
         Set<String> relationAttrs = relationService.getAttributes();
+        Set<String> attributeSet =
+            FdUtil.stringToAttributes(attributeString, relationAttrs);
+
+        // Validate attributes exist
         if (!relationAttrs.containsAll(attributeSet)) {
             throw new IllegalArgumentException(
                 "Unknown attributes in input");
@@ -57,10 +58,11 @@ public class ClosureService {
             throw new IllegalStateException("No relation defined");
         }
 
-        Set<String> attributeSet = FdUtil.stringToAttributes(attributeString);
-        
-        // Validate attributes exist
         Set<String> relationAttrs = relationService.getAttributes();
+        Set<String> attributeSet =
+            FdUtil.stringToAttributes(attributeString, relationAttrs);
+
+        // Validate attributes exist
         if (!relationAttrs.containsAll(attributeSet)) {
             throw new IllegalArgumentException("Unknown attributes in input");
         }

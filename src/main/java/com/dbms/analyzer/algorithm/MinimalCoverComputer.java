@@ -203,6 +203,6 @@ public class MinimalCoverComputer {
     }
 
     private String formatSet(Set<String> values) {
-        return String.join("", new TreeSet<>(values));
+        return String.join(",", new TreeSet<>(values));
     }
 }

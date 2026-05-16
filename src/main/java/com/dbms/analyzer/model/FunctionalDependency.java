@@ -34,9 +34,9 @@ public class FunctionalDependency {
      */
     @Override
     public String toString() {
-        return String.join("", new TreeSet<>(leftSide))
+        return String.join(",", new TreeSet<>(leftSide))
                 + " -> "
-                + String.join("", new TreeSet<>(rightSide));
+                + String.join(",", new TreeSet<>(rightSide));
     }
 
     @Override

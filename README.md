@@ -92,19 +92,19 @@ mvn javafx:run
 ### Creating a Relation
 
 1. Click "Create Relation" button
-2. Enter relation schema in format: `R(A,B,C,D)`
+2. Enter relation schema in format: `R(A,B,C,D)` or `Enrollment(student_id,course_id,grade)`
 3. The system validates syntax and stores the relation
 
 ### Adding Functional Dependencies
 
 1. Click "Add FD" button
-2. Enter dependencies in format: `AB -> CD` or `A -> BC`
+2. Enter dependencies in format: `AB -> CD` or comma-separated multi-character attributes like `student_id, course_id -> grade`
 3. The system validates all attributes exist in the relation
 
 ### Computing Attribute Closure
 
 1. Click "Compute Closure" button
-2. Enter attributes to compute: `ABC`
+2. Enter attributes to compute: `ABC` or `student_id, course_id`
 3. View step-by-step closure computation
 4. See final closure result
 
