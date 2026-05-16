@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
@@ -40,6 +41,30 @@ public class MainController {
     private static final String VALIDATION_OK = "validation-ok";
     private static final String STATUS_ERROR = "status-error";
     private static final String STATUS_OK = "status-ok";
+    private static final List<SampleRelation> SAMPLE_RELATIONS = List.of(
+        new SampleRelation(
+            "Student Course Grades",
+            "Enrollment(student_id,course_id,instructor,advisor,grade)",
+            List.of(
+                "student_id,course_id -> grade",
+                "course_id -> instructor",
+                "student_id -> advisor"),
+            "student_id,course_id"),
+        new SampleRelation(
+            "Employee Departments",
+            "Employee(employee_id,employee_name,department_id,department_name,manager_id)",
+            List.of(
+                "employee_id -> employee_name,department_id",
+                "department_id -> department_name,manager_id"),
+            "employee_id"),
+        new SampleRelation(
+            "Library Loans",
+            "Loan(member_id,isbn,loan_date,member_name,book_title,due_date)",
+            List.of(
+                "member_id -> member_name",
+                "isbn -> book_title",
+                "member_id,isbn,loan_date -> due_date"),
+            "member_id,isbn,loan_date"));
 
     private final RelationService relationService;
     private final FdService fdService;
@@ -118,6 +143,8 @@ public class MainController {
 
     @FXML
     private ListView<String> fdListView;
+    @FXML
+    private ComboBox<String> sampleComboBox;
 
     @FXML
     private Button addFdButton;
@@ -189,6 +216,11 @@ public class MainController {
             (observable, oldValue, newValue) -> clearValidation(closureValidationLabel));
         fdListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> updateControls());
+        sampleComboBox.getItems().setAll(
+            SAMPLE_RELATIONS.stream()
+                .map(SampleRelation::name)
+                .collect(Collectors.toList()));
+        sampleComboBox.getSelectionModel().selectFirst();
 
         tutorialResultArea.setText(buildTutorialText());
         clearResultAreas();
@@ -279,6 +311,38 @@ public class MainController {
         clearResultAreas();
         updateRelationDisplay();
         setStatus("Session cleared", false);
+    }
+
+    @FXML
+    private void handleLoadSample() {
+        String selectedSample = sampleComboBox.getSelectionModel().getSelectedItem();
+        SampleRelation sample = SAMPLE_RELATIONS.stream()
+            .filter(candidate -> candidate.name().equals(selectedSample))
+            .findFirst()
+            .orElse(SAMPLE_RELATIONS.get(0));
+
+        try {
+            relationService.createRelation(sample.schema());
+            for (String dependency : sample.dependencies()) {
+                fdService.addFunctionalDependency(dependency);
+            }
+
+            lastDecomposition = null;
+            relationInputField.setText(sample.schema());
+            fdInputField.clear();
+            closureInputField.setText(sample.closureSeed());
+            clearValidations();
+            clearResultAreas();
+            updateRelationDisplay();
+            setValidation(
+                relationValidationLabel,
+                "Loaded example: " + sample.name() + ".",
+                false);
+            setStatus("Example loaded", false);
+        } catch (RuntimeException e) {
+            setValidation(relationValidationLabel, e.getMessage(), true);
+            setStatus("Example could not be loaded", true);
+        }
     }
 
     // ---------------------------------------------------------------
@@ -769,6 +833,7 @@ public class MainController {
             "",
             "1. Create a relation",
             "Enter a schema in the Relation box, then choose Create / Replace.",
+            "You can also choose a built-in example and select Load Example.",
             "Examples:",
             "- R(A,B,C)",
             "- Enrollment(student_id,course_id,grade)",
@@ -800,6 +865,13 @@ public class MainController {
             "- Press Enter in Relation, Functional Dependency, or Closure fields to submit.",
             "- Select an FD in the summary list before using Remove Selected.",
             "- Clear resets the session but keeps this tutorial available.");
+    }
+
+    private record SampleRelation(
+            String name,
+            String schema,
+            List<String> dependencies,
+            String closureSeed) {
     }
 
     private static String formatSet(Collection<String> values) {

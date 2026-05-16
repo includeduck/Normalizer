@@ -45,6 +45,14 @@
                                            onAction="#handleCreateRelation"/>
                                 <Label fx:id="relationValidationLabel" wrapText="true" styleClass="validation-message"/>
                                 <HBox spacing="8">
+                                    <ComboBox fx:id="sampleComboBox" promptText="Choose example"
+                                              maxWidth="1.7976931348623157E308"
+                                              HBox.hgrow="ALWAYS"/>
+                                    <Button fx:id="loadSampleButton" text="Load E_xample"
+                                            mnemonicParsing="true" onAction="#handleLoadSample"
+                                            styleClass="secondary-button"/>
+                                </HBox>
+                                <HBox spacing="8">
                                     <Button fx:id="createRelationButton" text="_Create / Replace"
                                             mnemonicParsing="true" onAction="#handleCreateRelation"/>
                                     <Button fx:id="clearAllButton" text="C_lear"

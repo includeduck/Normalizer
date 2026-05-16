@@ -1,6 +1,6 @@
 # Progress
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Implemented
 
@@ -52,6 +52,7 @@ Last updated: 2026-05-16
 - [x] Workflow panel compacted so all action sections fit on a 1920 x 1080 screen.
 - [x] App Tutorial result tab added with step-by-step usage guidance.
 - [x] Workflow and summary panes made independently scrollable for smaller or resized windows.
+- [x] Built-in sample examples added for student/course, employee/department, and library loan workflows.
 
 ### Algorithms
 - [x] Attribute closure computation.
@@ -68,6 +69,7 @@ Last updated: 2026-05-16
 - [x] 3NF synthesis (minimal cover → relation per FD → candidate key relation → remove subsumed).
 - [x] Dependency preservation checking (projected FD closure equivalence).
 - [x] Lossless join checking (binary superkey shortcut + general chase algorithm).
+- [x] Project scope confirmed through BCNF; 4NF/5NF support is not planned.
 
 ### Models
 - [x] Deterministic `toString()` for `Relation`, `FunctionalDependency`, and `CandidateKey` (sorted attributes).
@@ -103,11 +105,8 @@ Last updated: 2026-05-16
 ### Core Backend
 - [ ] Decide whether `InMemorySessionRepository` should replace direct state in `RelationService`.
 
-### Normalization Algorithms
-- [ ] Add support for MVDs and 4NF/5NF (stretch goal).
-
 ### JavaFX Application
-- [ ] Add startup sample data or examples for development/demo mode.
+- [x] Add startup sample data or examples for development/demo mode.
 
 ### Tests
 - [ ] Add service tests using Spring context where useful.
@@ -115,6 +114,7 @@ Last updated: 2026-05-16
 
 ### Packaging And Tooling
 - [ ] Decide whether `.idea` files should stay local-only or be committed intentionally.
+- [x] Add PowerShell and batch scripts that generate `Normalizer.exe` via `jpackage`.
 - [ ] Add Maven Wrapper (`mvnw`) for consistent local setup.
 - [ ] Add formatting/checkstyle configuration.
 - [ ] Add CI workflow for tests.
