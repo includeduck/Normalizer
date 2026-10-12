@@ -3,6 +3,7 @@ package com.dbms.analyzer.service;
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.algorithm.FdUtil;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -25,10 +26,11 @@ public class FdService {
         FunctionalDependency fd = FdUtil.parseFD(
             fdString, relationService.getAttributes());
 
-        if (!FdUtil.validateFdAttributes(
-            fd, relationService.getAttributes())) {
-            throw new IllegalArgumentException(
-                "FD references undefined attributes");
+        List<String> unknown =
+            FdUtil.unknownAttributes(fd, relationService.getAttributes());
+        if (!unknown.isEmpty()) {
+            throw new IllegalArgumentException(FdUtil.unknownAttributesMessage(
+                unknown, relationService.getAttributes()));
         }
 
         relationService.replaceCurrentRelation(

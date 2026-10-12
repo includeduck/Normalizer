@@ -38,11 +38,7 @@ public class ClosureService {
         Set<String> attributeSet =
             FdUtil.stringToAttributes(attributeString, relationAttrs);
 
-        // Validate attributes exist
-        if (!relationAttrs.containsAll(attributeSet)) {
-            throw new IllegalArgumentException(
-                "Unknown attributes in input");
-        }
+        requireKnownAttributes(attributeSet, relationAttrs);
 
         return closureComputer.computeClosure(
             attributeSet, fdService.getAllDependencies());
@@ -62,12 +58,19 @@ public class ClosureService {
         Set<String> attributeSet =
             FdUtil.stringToAttributes(attributeString, relationAttrs);
 
-        // Validate attributes exist
-        if (!relationAttrs.containsAll(attributeSet)) {
-            throw new IllegalArgumentException("Unknown attributes in input");
-        }
+        requireKnownAttributes(attributeSet, relationAttrs);
 
         return closureComputer.computeClosureWithSteps(
             attributeSet, fdService.getAllDependencies());
+    }
+
+    private static void requireKnownAttributes(
+            Set<String> attributes, Set<String> relationAttributes) {
+        List<String> unknown =
+            FdUtil.unknownAttributes(attributes, relationAttributes);
+        if (!unknown.isEmpty()) {
+            throw new IllegalArgumentException(
+                FdUtil.unknownAttributesMessage(unknown, relationAttributes));
+        }
     }
 }

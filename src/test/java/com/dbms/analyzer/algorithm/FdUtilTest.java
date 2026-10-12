@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
 import java.util.Set;
 
 public class FdUtilTest {
@@ -89,8 +90,11 @@ public class FdUtilTest {
 
     @Test
     public void testStringToAttributesWithDigits() {
-        Set<String> attrs = FdUtil.stringToAttributes("A1B");
-        assertEquals(Set.of("A", "1", "B"), attrs);
+        // Without a relation, only a run of uppercase letters is shorthand;
+        // "1" is not a valid attribute name, so "A1B" is one name
+        assertEquals(Set.of("A1B"), FdUtil.stringToAttributes("A1B"));
+        assertEquals(Set.of("A1", "B"),
+                FdUtil.stringToAttributes("A1B", Set.of("A1", "B", "C")));
     }
 
     @Test
@@ -117,5 +121,68 @@ public class FdUtilTest {
         FunctionalDependency fd = new FunctionalDependency(
                 Set.of("A"), Set.of("D"));
         assertFalse(FdUtil.validateFdAttributes(fd, Set.of("A", "B", "C")));
+    }
+
+    @Test
+    public void testLowercaseCompactInputIsSplitLikeUppercase() {
+        // BUG-012: "ab -> c" used to be read as the single attribute "ab"
+        FunctionalDependency fd = FdUtil.parseFD("ab -> c", Set.of("a", "b", "c"));
+        assertEquals(Set.of("a", "b"), fd.getLeftSide());
+        assertEquals(Set.of("c"), fd.getRightSide());
+    }
+
+    @Test
+    public void testCompactInputSplitsIntoMultiCharacterAttributes() {
+        FunctionalDependency fd = FdUtil.parseFD(
+                "A1B2 -> C", Set.of("A1", "B2", "C"));
+        assertEquals(Set.of("A1", "B2"), fd.getLeftSide());
+    }
+
+    @Test
+    public void testAmbiguousCompactInputIsRejected() {
+        // ABC could be A,B,C or AB,C
+        IllegalArgumentException error = assertThrows(
+                IllegalArgumentException.class,
+                () -> FdUtil.parseFD("ABC -> D", Set.of("A", "B", "AB", "C", "D")));
+        assertTrue(error.getMessage().contains("Ambiguous"), error.getMessage());
+        assertTrue(error.getMessage().contains("commas"), error.getMessage());
+
+        // Separators remove the ambiguity
+        assertEquals(Set.of("AB", "C"), FdUtil.parseFD(
+                "AB, C -> D", Set.of("A", "B", "AB", "C", "D")).getLeftSide());
+    }
+
+    @Test
+    public void testExactAttributeNameWinsOverSplitting() {
+        assertEquals(Set.of("AB"),
+                FdUtil.stringToAttributes("AB", Set.of("A", "B", "AB")));
+    }
+
+    @Test
+    public void testInvalidNamesAreRejectedEverywhere() {
+        // BUG-011: the FD parser and the schema parser now share one grammar
+        assertThrows(IllegalArgumentException.class,
+                () -> FdUtil.stringToAttributes("A$", Set.of("A")));
+        assertThrows(IllegalArgumentException.class,
+                () -> FdUtil.stringToAttributes("A, B$", Set.of("A", "B")));
+        assertThrows(IllegalArgumentException.class,
+                () -> FdUtil.stringToAttributes("1st", null));
+        assertTrue(FdUtil.isValidName("student_id2"));
+        assertFalse(FdUtil.isValidName("C->D"));
+    }
+
+    @Test
+    public void testSplittingWithManyDeadEndsIsFast() {
+        String input = "A".repeat(60) + "B";
+        assertTimeoutPreemptively(java.time.Duration.ofSeconds(2), () ->
+                FdUtil.stringToAttributes(input, Set.of("A", "AA", "AAA", "C")));
+    }
+
+    @Test
+    public void testUnknownAttributeMessageNamesTheAttribute() {
+        String message = FdUtil.unknownAttributesMessage(
+                List.of("ab"), Set.of("a", "b"));
+        assertTrue(message.contains("'ab'"), message);
+        assertTrue(message.contains("a, b"), message);
     }
 }

@@ -69,4 +69,12 @@ public class FdServiceTest {
         assertThrows(IllegalArgumentException.class, () ->
             fdService.addFunctionalDependency("A -> D"));
     }
+
+    @Test
+    public void testUnknownAttributeErrorNamesTheAttribute() {
+        IllegalArgumentException error = assertThrows(
+            IllegalArgumentException.class,
+            () -> fdService.addFunctionalDependency("A -> D"));
+        assertTrue(error.getMessage().contains("'D'"), error.getMessage());
+    }
 }

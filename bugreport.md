@@ -45,8 +45,8 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-008](#bug-008) | Medium | Results depend on `HashSet` iteration order (BCNF split, minimal cover, chosen 3NF key) | Fixed (`135f690`) |
 | [BUG-009](#bug-009) | Medium | `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted | Fixed |
 | [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Fixed (`f4f9c8d`) |
-| [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Open |
-| [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Open |
+| [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Fixed |
+| [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Fixed |
 | [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | Fixed |
 | [BUG-014](#bug-014) | Low | `FunctionalDependency.hashCode()` is additive, so `X→Y` and `Y→X` always collide | Open |
 | [BUG-015](#bug-015) | Low | Removing an FD in the UI matches it by `toString()` | Open |
@@ -235,7 +235,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-011"></a>
 ### BUG-011 — Relation schema parser accepts attribute names that can never be used in an FD
 
-- **Severity:** Medium · **Status:** Open · **Verified**
+- **Severity:** Medium · **Status:** Fixed · **Verified**
+- **Regression test:** `RelationServiceTest.testAttributeNamesFollowTheFdGrammar`, `FdUtilTest.testInvalidNamesAreRejectedEverywhere`
+- **Resolution:** One name grammar, `[A-Za-z_][A-Za-z0-9_]*` (`FdUtil.isValidName`/`requireValidName`), is enforced for the relation name and attributes in `RelationService.createRelation`, and for every attribute token the FD/closure parser accepts. Errors name the bad token. Behaviour change: digit-only names such as `1` are no longer valid attributes.
 - **Location:** [RelationService.java:35](src/main/java/com/dbms/analyzer/service/RelationService.java:35)
 
 **Description.** Attribute names are only checked for being non-empty and free of whitespace. `R(A,(B,C->D)` is accepted and gives attributes `A`, `(B` and `C->D`. An FD can never reference `C->D`, because `->` is the FD separator. The relation name is not validated either. The schema grammar and the FD grammar in `FdUtil` disagree.
@@ -247,7 +249,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-012"></a>
 ### BUG-012 — FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors
 
-- **Severity:** Medium · **Status:** Open · **Verified**
+- **Severity:** Medium · **Status:** Fixed · **Verified**
+- **Regression test:** `FdUtilTest.testLowercaseCompactInputIsSplitLikeUppercase`, `testCompactInputSplitsIntoMultiCharacterAttributes`, `testAmbiguousCompactInputIsRejected`, `testExactAttributeNameWinsOverSplitting`, `testSplittingWithManyDeadEndsIsFast`, `FdServiceTest.testUnknownAttributeErrorNamesTheAttribute`
+- **Resolution:** Input without separators is resolved against the relation: an exact attribute name wins; otherwise it is split into a sequence of the relation's attribute names, the same way for upper and lower case (`ab` on `R(a,b)`, `A1B` on `R(A1,B)`). If it splits more than one way (`ABC` on `R(A,B,AB,C)`), it is rejected with a message asking for commas. The split search remembers dead ends, so it stays fast. Unknown-attribute errors in `FdService` and `ClosureService` now name the attributes and list the relation's attributes. The duplicate regex patterns are gone; without a relation for context, only runs of uppercase letters are treated as shorthand. README updated.
 - **Location:** [FdUtil.java:12](src/main/java/com/dbms/analyzer/algorithm/FdUtil.java:12) (`attributeTokens`)
 
 **Description.**

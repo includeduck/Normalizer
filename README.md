@@ -102,6 +102,8 @@ dbms-normalizer/
 ### ➕ Adding Functional Dependencies
 1. Enter a dependency in the Functional Dependency field.
 2. Use compact form like `AB -> CD` or comma-separated multi-character attributes like `student_id, course_id -> grade`.
+   - Compact input is split into the relation's attribute names (`ab` on `R(a,b)`, `A1B` on `R(A1,B)`). If it could be split more than one way, you'll be asked to use commas.
+   - Relation and attribute names must start with a letter or underscore and contain only letters, digits and underscores.
 3. Click **Add FD** or press `Enter`.
 
 ### 🔍 Computing Attribute Closure

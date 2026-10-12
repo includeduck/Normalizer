@@ -80,4 +80,18 @@ public class RelationServiceTest {
         relationService.clear();
         assertFalse(relationService.hasRelation());
     }
+
+    @Test
+    public void testAttributeNamesFollowTheFdGrammar() {
+        // BUG-011: "(B" and "C->D" were accepted but could never be used in an FD
+        assertThrows(IllegalArgumentException.class,
+            () -> relationService.createRelation("R(A,(B,C->D)"));
+        assertThrows(IllegalArgumentException.class,
+            () -> relationService.createRelation("R(A,B$)"));
+        assertThrows(IllegalArgumentException.class,
+            () -> relationService.createRelation("My-Relation(A,B)"));
+
+        relationService.createRelation("Order_2(id_1,_note)");
+        assertEquals(Set.of("id_1", "_note"), relationService.getAttributes());
+    }
 }

@@ -2,6 +2,7 @@ package com.dbms.analyzer.service;
 
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.algorithm.AnalysisLimits;
+import com.dbms.analyzer.algorithm.FdUtil;
 import com.dbms.analyzer.model.Relation;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,6 +29,7 @@ public class RelationService {
         if (relationName.isEmpty()) {
             throw new IllegalArgumentException("Relation name must be non-empty");
         }
+        FdUtil.requireValidName(relationName, "relation");
 
         String attributesStr = schemaString.substring(
             paren + 1, schemaString.length() - 1);
@@ -42,6 +44,9 @@ public class RelationService {
                 throw new IllegalArgumentException(
                     "Attribute names cannot contain whitespace: " + trimmed);
             }
+            // Same grammar the FD parser accepts, so every attribute can be
+            // referenced in an FD
+            FdUtil.requireValidName(trimmed, "attribute");
             if (!attributes.add(trimmed)) {
                 throw new IllegalArgumentException(
                     "Duplicate attribute: " + trimmed);
