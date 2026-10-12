@@ -40,7 +40,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-003](#bug-003) | Critical | Candidate-key search overflows at ≥ 31 attributes and returns **no keys** | Open |
 | [BUG-004](#bug-004) | High | Exponential key search, repeated ~7× on the UI thread: 13 s freeze at 16 attributes, out of memory at 23 | Open |
 | [BUG-005](#bug-005) | High | `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback | Open |
-| [BUG-006](#bug-006) | Critical | 3NF synthesis emits duplicate relations | Open |
+| [BUG-006](#bug-006) | Critical | 3NF synthesis emits duplicate relations | Fixed |
 | [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Open |
 | [BUG-008](#bug-008) | Medium | Results depend on `HashSet` iteration order (BCNF split, minimal cover, chosen 3NF key) | Open |
 | [BUG-009](#bug-009) | Medium | `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted | Open |
@@ -154,7 +154,8 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-006"></a>
 ### BUG-006 — 3NF synthesis emits duplicate relations
 
-- **Severity:** Critical · **Status:** Open · **Verified**
+- **Severity:** Critical · **Status:** Fixed · **Verified**
+- **Regression test:** `ThreeNfSynthesizerTest.testIdenticalSchemasAreMergedIntoOne`
 - **Location:** [ThreeNfSynthesizer.java:92](src/main/java/com/dbms/analyzer/algorithm/ThreeNfSynthesizer.java:92) (step 4), and again in `synthesizeWithSteps`
 
 **Description.** Step 4 only removes a schema that is a **strict** subset of another (`containsAll && !reverse containsAll`). Two identical schemas never subsume each other, so both survive.

@@ -76,4 +76,26 @@ public class ThreeNfSynthesizerTest {
         assertFalse(steps.isEmpty());
         assertTrue(steps.get(0).contains("3NF"));
     }
+
+    @Test
+    public void testIdenticalSchemasAreMergedIntoOne() {
+        // BUG-006: A -> B and B -> A both produce schema {A,B}
+        Relation r = new Relation("R", Set.of("A", "B"));
+        r.addFunctionalDependency(
+                new FunctionalDependency(Set.of("A"), Set.of("B")));
+        r.addFunctionalDependency(
+                new FunctionalDependency(Set.of("B"), Set.of("A")));
+
+        Set<Relation> result = synthesizer.synthesize(r);
+        assertEquals(1, result.size());
+        assertEquals(Set.of("A", "B"),
+                result.iterator().next().getAttributes());
+
+        List<String> steps = synthesizer.synthesizeWithSteps(r);
+        long finalRelations = steps.stream()
+                .dropWhile(s -> !s.startsWith("Final 3NF decomposition"))
+                .filter(s -> s.startsWith("  R_3NF_"))
+                .count();
+        assertEquals(1, finalRelations);
+    }
 }

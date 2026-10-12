@@ -89,13 +89,15 @@ public class ThreeNfSynthesizer {
             schemaFds.add(new LinkedHashSet<>());
         }
 
-        // Step 4: remove subsumed schemas
+        // Step 4: remove subsumed schemas (a strict subset of another, or a
+        // duplicate of an earlier one)
         List<Integer> toRemove = new ArrayList<>();
         for (int i = 0; i < schemas.size(); i++) {
             for (int j = 0; j < schemas.size(); j++) {
                 if (i != j
                         && schemas.get(j).containsAll(schemas.get(i))
-                        && !schemas.get(i).containsAll(schemas.get(j))) {
+                        && (j < i
+                            || !schemas.get(i).containsAll(schemas.get(j)))) {
                     toRemove.add(i);
                     break;
                 }
@@ -190,7 +192,8 @@ public class ThreeNfSynthesizer {
             for (int j = 0; j < schemas.size(); j++) {
                 if (i != j
                         && schemas.get(j).containsAll(schemas.get(i))
-                        && !schemas.get(i).containsAll(schemas.get(j))) {
+                        && (j < i
+                            || !schemas.get(i).containsAll(schemas.get(j)))) {
                     toRemove.add(i);
                     steps.add("  Removing R(" + String.join(",", schemas.get(i))
                             + ") — subsumed by R("
