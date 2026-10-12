@@ -2,6 +2,7 @@ name: Java CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
@@ -21,8 +22,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run tests
-        run: mvn test
-
-      - name: Build project
-        run: mvn clean package
+      # verify compiles, runs every test once and packages the jar
+      - name: Build and test
+        run: mvn -B verify

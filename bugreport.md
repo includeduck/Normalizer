@@ -55,9 +55,9 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-018](#bug-018) | Low | Closure and decompositions are computed twice per click | Fixed (`cbc67e5`) |
 | [BLD-001](#bld-001) | Low | `build-exe.ps1` hard-codes the artifact name and version | Open |
 | [BLD-002](#bld-002) | Low | `jlink --add-modules ALL-MODULE-PATH` bundles the whole JDK | Open |
-| [BLD-003](#bld-003) | Low | CI runs the test suite twice; PR branches build twice | Open |
-| [BLD-004](#bld-004) | Low | Shipped config has DEBUG logging and meaningless properties | Open |
-| [BLD-005](#bld-005) | Low | `.gitignore` ignores every `*.ini`; no `.gitattributes` (mixed line endings) | Open |
+| [BLD-003](#bld-003) | Low | CI runs the test suite twice; PR branches build twice | Fixed |
+| [BLD-004](#bld-004) | Low | Shipped config has DEBUG logging and meaningless properties | Fixed |
+| [BLD-005](#bld-005) | Low | `.gitignore` ignores every `*.ini`; no `.gitattributes` (mixed line endings) | Fixed |
 | [CQ-001](#cq-001) | Medium | ~20 dead source/resource files (old controllers, FXML, components, repository) | Fixed (`5345b5f`) |
 | [CQ-002](#cq-002) | Low | Dependency injection is only half applied | Fixed |
 | [CQ-003](#cq-003) | Low | Every algorithm is written twice (plain + "with steps") | Fixed |
@@ -404,19 +404,25 @@ No `--module-path` is passed, so `ALL-MODULE-PATH` resolves to every JDK module.
 
 <a id="bld-003"></a>
 ### BLD-003 — CI runs the test suite twice; PR branches build twice
-- **Severity:** Low · **Status:** Open · **By inspection** · [.github/workflows/ci.yml](.github/workflows/ci.yml)
+- **Severity:** Low · **Status:** Fixed · **By inspection** · [.github/workflows/ci.yml](.github/workflows/ci.yml)
+- **Regression test:** n/a (CI config)
+- **Resolution:** The workflow runs one `mvn -B verify` step (tests run once, jar is packaged), and `push` is limited to `main`, so PR branches build only through `pull_request`.
 
 `mvn test` followed by `mvn clean package` runs every test twice. The triggers `on: push` + `on: pull_request` both fire for a PR's branch. `-B` (batch mode) is missing, so logs are noisy. **Fix:** a single `mvn -B verify` step, with `push` limited to `branches: [main]`. Optionally upload the jar as an artifact.
 
 <a id="bld-004"></a>
 ### BLD-004 — Shipped config has DEBUG logging and meaningless properties
-- **Severity:** Low · **Status:** Open · **By inspection** · [application.properties](src/main/resources/application.properties)
+- **Severity:** Low · **Status:** Fixed · **By inspection** · [application.properties](src/main/resources/application.properties)
+- **Regression test:** n/a (config)
+- **Resolution:** `com.dbms.analyzer` logs at INFO by default. Removed `spring.application.version`, `javafx.preloader`, `javafx.launch.noPreloaderStage`, `app.title` and `app.version`: none were read by anything.
 
 `logging.level.com.dbms.analyzer=DEBUG` ships in the release build. `spring.application.version`, `javafx.preloader` and `javafx.launch.noPreloaderStage` are not real Spring or JavaFX properties and do nothing. `app.title`/`app.version` are never read; the title is hard-coded again in `MainApp`. **Fix:** set INFO by default, delete the dead keys, and either read `app.title` or delete it.
 
 <a id="bld-005"></a>
 ### BLD-005 — `.gitignore` ignores every `*.ini`; no `.gitattributes`
-- **Severity:** Low · **Status:** Open · **By inspection** · [.gitignore](.gitignore)
+- **Severity:** Low · **Status:** Fixed · **By inspection** · [.gitignore](.gitignore)
+- **Regression test:** n/a (repo config; `git add --renormalize .` changed nothing)
+- **Resolution:** Removed the blanket `*.ini` ignore (`Desktop.ini` is still ignored by name). Added `.gitattributes` with `* text=auto`, plus CRLF for `.bat`/`.cmd`/`.ps1`. The index was already all LF, so renormalizing changed no files.
 
 A blanket `*.ini` rule will silently hide any future config file. There is no `.gitattributes`: the root and `MarkDown/` copies of the docs have identical content and differ only in line endings (see DOC-001). **Fix:** narrow the ignore rule (e.g. `Desktop.ini`, which is already listed) and add `* text=auto`.
 
