@@ -22,7 +22,7 @@ function Assert-CommandExists {
 
     $command = Get-Command $Name -ErrorAction SilentlyContinue
     if (-not $command) {
-        throw "Required command '$Name' was not found on PATH. Use JDK 21+ and Maven before running this script."
+        throw "Required command '$Name' was not found on PATH. Use JDK 21+ before running this script."
     }
 
     return $command.Source
@@ -45,7 +45,13 @@ function Remove-ProjectBuildPath {
     }
 }
 
-$mvn = Assert-CommandExists "mvn"
+# Prefer the project's Maven Wrapper; fall back to a Maven on PATH
+$wrapper = Join-Path $projectRoot "mvnw.cmd"
+if (Test-Path -LiteralPath $wrapper) {
+    $mvn = $wrapper
+} else {
+    $mvn = Assert-CommandExists "mvn"
+}
 $jpackage = Assert-CommandExists "jpackage"
 $jlink = Assert-CommandExists "jlink"
 $jdeps = Assert-CommandExists "jdeps"

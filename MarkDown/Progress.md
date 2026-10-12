@@ -7,10 +7,12 @@ Known defects and their fixes are tracked in [`bugreport.md`](../bugreport.md); 
 ## Implemented
 
 ### Project Setup
-- [x] Maven project builds with a Java 21 target (`mvn -B verify`).
+- [x] Maven project builds with a Java 21 target (`./mvnw -B verify`).
+- [x] Maven Wrapper (`mvnw`, `mvnw.cmd`) pins Maven 3.9.16; CI and `build-exe.ps1` use it.
+- [x] Mockito is loaded as a test Java agent (`-javaagent` in Surefire), so tests no longer warn about self-attaching or dynamic agent loading.
 - [x] Spring Boot (non-web) provides dependency injection; JavaFX controls and FXML from Maven.
-- [x] `mvn javafx:run` launches the app; the desktop launcher starts JavaFX first and boots Spring inside its lifecycle.
-- [x] GitHub Actions CI runs `mvn -B verify` on pushes to `main` and on pull requests.
+- [x] `./mvnw javafx:run` launches the app; the desktop launcher starts JavaFX first and boots Spring inside its lifecycle.
+- [x] GitHub Actions CI runs `./mvnw -B verify` on pushes to `main` and on pull requests.
 - [x] `.gitattributes` keeps text files LF in the repository (CRLF for Windows scripts).
 - [x] `build-exe.bat` / `build-exe.ps1` build `Normalizer.exe` with `jpackage`, reading the version from `pom.xml` and bundling only the JDK modules the app needs.
 - [x] IntelliJ `.idea/` settings stay local (ignored by git).
@@ -45,7 +47,7 @@ Known defects and their fixes are tracked in [`bugreport.md`](../bugreport.md); 
 - [x] Project scope is through BCNF; 4NF/5NF support is not planned.
 
 ### Tests And Verification
-- [x] 123 tests, all passing (`mvn -B verify`).
+- [x] 123 tests, all passing (`./mvnw -B verify`).
 - [x] Seeded random tests against brute-force oracles for keys, BCNF, 3NF, minimal cover, normal forms and order independence.
 - [x] Textbook examples with exact expected answers.
 - [x] Performance tests at the 20-attribute limit.
@@ -56,9 +58,7 @@ Known defects and their fixes are tracked in [`bugreport.md`](../bugreport.md); 
 ## Remaining Work
 
 ### Tooling
-- [ ] Add Maven Wrapper (`mvnw`) for consistent local setup.
 - [ ] Add formatting/checkstyle configuration.
-- [ ] Add Mockito as a test Java agent: tests print "Mockito is currently self-attaching", which future JDKs will block.
 - [ ] Optionally run JavaFX from the module path in the packaged app, to remove its "unsupported configuration" start-up warning.
 - [ ] Optionally run `MainControllerUiTest` in CI (needs a virtual display, e.g. xvfb).
 
@@ -72,14 +72,14 @@ Known defects and their fixes are tracked in [`bugreport.md`](../bugreport.md); 
 ## Development Commands
 
 ```bash
-mvn -B verify          # build and run all tests
-mvn javafx:run         # run the application
+./mvnw -B verify       # build and run all tests (mvnw.cmd on Windows)
+./mvnw javafx:run      # run the application
 build-exe.bat          # build target/dist/Normalizer/Normalizer.exe (Windows)
 ```
 
 ## Environment Notes
 
-- Building needs JDK 21 or newer; this machine builds with JDK 25.
+- Building needs JDK 21 or newer; this machine builds with JDK 25. Maven comes from the wrapper.
 - `build-exe.bat` needs `jpackage`, `jlink` and `jdeps` from that JDK on `PATH`.
 - The packaged app can also be started from its bundled runtime for console output:
   `target/dist/Normalizer/runtime/bin/java -cp "target/dist/Normalizer/app/*" com.dbms.analyzer.Launcher`

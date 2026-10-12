@@ -51,6 +51,7 @@ Normalizer/
 ├── AGENTS.md                                 # Instructions for AI agents
 ├── MarkDown/                                 # Use cases, progress, project structure
 ├── build-exe.bat / build-exe.ps1             # Windows .exe packaging
+├── mvnw / mvnw.cmd, .mvn/wrapper/            # Maven Wrapper (pins the Maven version)
 ├── src/
 │   ├── main/
 │   │   ├── java/com/dbms/analyzer/
@@ -72,8 +73,7 @@ Normalizer/
 ### 📋 Prerequisites
 
 - **Java 21** or higher
-- **Maven 3.6.3** or higher
-> *Note: No separate JavaFX SDK is required; Maven resolves JavaFX modules automatically.*
+> *Note: Maven itself is not required: the included Maven Wrapper (`mvnw` / `mvnw.cmd`) downloads the pinned Maven version on first use. No separate JavaFX SDK is required either; Maven resolves JavaFX modules automatically.*
 
 ### ⚙️ Build Instructions
 
@@ -83,20 +83,20 @@ Normalizer/
    cd Normalizer
    ```
 
-2. **Build the project and run the tests:**
+2. **Build the project and run the tests** (on Windows use `mvnw.cmd`):
    ```bash
-   mvn -B verify
+   ./mvnw -B verify
    ```
    `MainControllerUiTest` opens the real window, so it runs only where a display is available and is skipped otherwise (for example in CI).
 
 3. **Run the tests only:**
    ```bash
-   mvn test
+   ./mvnw test
    ```
 
 4. **Run the application:**
    ```bash
-   mvn javafx:run
+   ./mvnw javafx:run
    ```
 
 5. **Build a Windows executable** (optional, needs a JDK 21+ with `jpackage`):
@@ -230,7 +230,7 @@ The project's scope is normalization up to BCNF; 4NF/5NF and multi-valued depend
 Contributions are welcome! Please ensure:
 1. Code follows project structure.
 2. Unit tests are included for new features; algorithm changes need tests that check correctness, not just that a result exists.
-3. `mvn -B verify` passes.
+3. `./mvnw -B verify` passes.
 4. `bugreport.md` is updated in the same commit when a change fixes, finds or affects an issue (see [AGENTS.md](AGENTS.md)).
 5. JavaFX UI remains user-friendly.
 

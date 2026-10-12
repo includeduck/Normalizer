@@ -22,6 +22,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # verify compiles, runs every test once and packages the jar
+      # verify compiles, runs every test once and packages the jar;
+      # the wrapper pins the Maven version from .mvn/wrapper
       - name: Build and test
-        run: mvn -B verify
+        run: ./mvnw -B verify

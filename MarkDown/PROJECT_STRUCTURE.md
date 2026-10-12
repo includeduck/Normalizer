@@ -22,6 +22,7 @@ dbms-normalizer/
 ├── AGENTS.md                                   # Instructions for AI agents
 ├── MarkDown/                                   # UC.md, Progress.md, this file
 ├── build-exe.bat / build-exe.ps1               # Windows .exe packaging (jpackage)
+├── mvnw / mvnw.cmd, .mvn/wrapper/              # Maven Wrapper (pins Maven 3.9.16)
 ├── .github/workflows/ci.yml                    # CI: build and test (main and PRs)
 │
 └── src/
@@ -139,8 +140,8 @@ Business logic between the UI and the algorithms. Each service works on the curr
 ## Build & Execution
 
 ```bash
-mvn -B verify          # build and run all tests
-mvn javafx:run         # run the application
+./mvnw -B verify       # build and run all tests (mvnw.cmd on Windows)
+./mvnw javafx:run      # run the application
 build-exe.bat          # build target/dist/Normalizer/Normalizer.exe (Windows)
 ```
 
@@ -192,6 +193,6 @@ Models:
 ## Quick Start for Developers
 
 1. Read `bugreport.md` and `AGENTS.md`
-2. Run `mvn -B verify`
-3. Run `mvn javafx:run`
+2. Run `./mvnw -B verify`
+3. Run `./mvnw javafx:run`
 4. Add tests for new features in `src/test/`, and update `bugreport.md` in the same commit
