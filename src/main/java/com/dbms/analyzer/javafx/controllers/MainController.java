@@ -1,6 +1,7 @@
 package com.dbms.analyzer.javafx.controllers;
 
 import com.dbms.analyzer.algorithm.FdUtil;
+import com.dbms.analyzer.algorithm.NormalFormChecker;
 import com.dbms.analyzer.model.CandidateKey;
 import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.model.Relation;
@@ -413,7 +414,7 @@ public class MainController {
             result.append("Highest Normal Form: ")
                 .append(analysis.getHighestNormalForm())
                 .append("\n\n");
-            result.append("1NF: ").append(normalFormService.is1NF()).append("\n");
+            result.append("1NF: ").append(NormalFormChecker.FIRST_NF_ASSUMPTION).append("\n");
             result.append("2NF: ").append(normalFormService.is2NF()).append("\n");
             result.append("3NF: ").append(normalFormService.is3NF()).append("\n");
             result.append("BCNF: ").append(normalFormService.isBCNF()).append("\n");
@@ -848,7 +849,8 @@ public class MainController {
             "The Closure tab shows the step-by-step expansion and final closure.",
             "",
             "4. Run analysis",
-            "Use Keys to find candidate keys, Normal Form to check 1NF/2NF/3NF/BCNF,",
+            "Use Keys to find candidate keys, Normal Form to check 2NF/3NF/BCNF",
+            "(1NF is assumed: every attribute is treated as atomic),",
             "Minimal Cover to simplify dependencies, and Explain for a guided summary.",
             "",
             "5. Decompose the relation",

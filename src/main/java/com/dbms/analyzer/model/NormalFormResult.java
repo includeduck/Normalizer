@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class NormalFormResult {
     public enum NormalForm {
-        NONE, FIRST_NF, SECOND_NF, THIRD_NF, BCNF
+        FIRST_NF, SECOND_NF, THIRD_NF, BCNF
     }
 
     private NormalForm highestNormalForm;

@@ -2,6 +2,7 @@ package com.dbms.analyzer.service;
 
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.algorithm.FdOrder;
+import com.dbms.analyzer.algorithm.NormalFormChecker;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -54,7 +55,7 @@ public class ExplanationService {
         var result = normalFormService.analyzeNormalForm();
         
         explanation.add("Normal Form Analysis:");
-        explanation.add("  1NF satisfied: " + normalFormService.is1NF());
+        explanation.add("  1NF: " + NormalFormChecker.FIRST_NF_ASSUMPTION);
         explanation.add("  2NF satisfied: " + normalFormService.is2NF());
         explanation.add("  3NF satisfied: " + normalFormService.is3NF());
         explanation.add("  BCNF satisfied: " + normalFormService.isBCNF());

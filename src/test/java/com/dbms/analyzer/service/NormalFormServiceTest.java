@@ -44,7 +44,6 @@ public class NormalFormServiceTest {
         NormalFormResult result = assertTimeoutPreemptively(
             Duration.ofSeconds(5), () -> {
                 NormalFormResult analysis = normalFormService.analyzeNormalForm();
-                normalFormService.is1NF();
                 normalFormService.is2NF();
                 normalFormService.is3NF();
                 normalFormService.isBCNF();
@@ -69,5 +68,21 @@ public class NormalFormServiceTest {
         assertEquals(java.util.Set.of("A"),
             candidateKeyService.findAllCandidateKeys().iterator().next()
                 .getAttributes());
+    }
+
+    @Test
+    public void testOneNfIsPresentedAsAnAssumption() {
+        // BUG-007: 1NF used to be shown as a passed check ("1NF satisfied: true")
+        relationService.createRelation("R(A,B,C)");
+        fdService.addFunctionalDependency("A -> B");
+        ExplanationService explanationService = new ExplanationService(
+            relationService, fdService, candidateKeyService, normalFormService);
+
+        java.util.List<String> lines = explanationService.explainNormalForm();
+
+        assertTrue(lines.contains(
+            "  1NF: " + com.dbms.analyzer.algorithm.NormalFormChecker.FIRST_NF_ASSUMPTION),
+            lines.toString());
+        assertTrue(lines.stream().noneMatch(line -> line.contains("1NF satisfied")));
     }
 }

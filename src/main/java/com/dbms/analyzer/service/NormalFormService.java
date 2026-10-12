@@ -78,17 +78,4 @@ public class NormalFormService {
             fdService.getAllDependencies(),
             candidateKeyService.findAllCandidateKeys());
     }
-
-    /**
-     * Checks if relation satisfies 1NF
-     */
-    public boolean is1NF() {
-        if (!relationService.hasRelation()) {
-            throw new IllegalStateException("No relation defined");
-        }
-
-        return normalFormChecker.is1NF(
-            relationService.getAttributes(),
-            fdService.getAllDependencies());
-    }
 }

@@ -23,7 +23,7 @@ This application helps students, instructors, and database learners analyze rela
 - 🔗 **Functional Dependency Management**: Add and validate functional dependencies.
 - 🧮 **Attribute Closure Computation**: Calculate closure of attribute sets with step-by-step explanations.
 - 🔑 **Candidate Key Detection**: Find all candidate keys and identify prime attributes.
-- 📊 **Normal Form Analysis**: Detect the highest normal form (1NF, 2NF, 3NF, BCNF) satisfied by a relation.
+- 📊 **Normal Form Analysis**: Detect the highest normal form (2NF, 3NF, BCNF) satisfied by a relation. 1NF is assumed: every attribute is treated as atomic.
 - ✂️ **BCNF Decomposition**: Recursively decompose relations to achieve BCNF.
 - 🎓 **Educational Explanations**: View detailed algorithm steps and reasoning.
 
@@ -118,7 +118,7 @@ dbms-normalizer/
 
 ### 📏 Analyzing Normal Forms
 1. Click **Normal Form**.
-2. System checks 1NF, 2NF, 3NF, and BCNF.
+2. System checks 2NF, 3NF, and BCNF (1NF is assumed).
 3. View the highest normal form satisfied along with any violations and explanations.
 
 ### 🪓 BCNF Decomposition
@@ -145,7 +145,7 @@ Generates all subsets of attributes, computes closures, identifies superkeys, an
 <br>
 Implements checks for:
 <ul>
-  <li><b>1NF:</b> All attributes are atomic</li>
+  <li><b>1NF:</b> Assumed, not checked: the tool treats every attribute as atomic</li>
   <li><b>2NF:</b> No partial dependencies on candidate keys</li>
   <li><b>3NF:</b> No transitive dependencies</li>
   <li><b>BCNF:</b> Every FD's left side is a superkey</li>

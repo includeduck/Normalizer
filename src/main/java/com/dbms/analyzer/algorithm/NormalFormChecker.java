@@ -16,13 +16,12 @@ public class NormalFormChecker {
     }
 
     /**
-     * Checks if relation satisfies 1NF
-     * Simplified: Always true for our purposes (atomic attributes)
+     * 1NF is not checked: the tool has no way to describe non-atomic
+     * attributes, so every relation is assumed to be in 1NF. This is shown
+     * to the user as an assumption rather than as a check result.
      */
-    public boolean is1NF(Set<String> attributes, 
-                        Set<FunctionalDependency> functionalDependencies) {
-        return true;
-    }
+    public static final String FIRST_NF_ASSUMPTION =
+        "assumed (the tool treats every attribute as atomic)";
 
     /**
      * Checks if relation satisfies 2NF
@@ -80,7 +79,8 @@ public class NormalFormChecker {
             attributes, functionalDependencies, candidateKeys);
         if (!twoNfViolations.isEmpty()) {
             violations.addAll(twoNfViolations);
-            explanation = "2NF violation detected";
+            explanation = "2NF violation detected (1NF is "
+                + FIRST_NF_ASSUMPTION + ")";
             return new NormalFormResult(
                 NormalFormResult.NormalForm.FIRST_NF, violations, explanation);
         }

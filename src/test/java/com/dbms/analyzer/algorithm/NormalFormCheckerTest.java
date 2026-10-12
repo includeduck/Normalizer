@@ -14,17 +14,6 @@ public class NormalFormCheckerTest {
         new NormalFormChecker();
 
     @Test
-    public void test1NF() {
-        Set<String> attributes = new HashSet<>();
-        attributes.add("A");
-        attributes.add("B");
-        
-        Set<FunctionalDependency> fds = new HashSet<>();
-        
-        assertTrue(normalFormChecker.is1NF(attributes, fds));
-    }
-
-    @Test
     public void testBCNFViolation() {
         Set<String> attributes = new HashSet<>();
         attributes.add("A");

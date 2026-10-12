@@ -41,7 +41,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-004](#bug-004) | High | Exponential key search, repeated ~7× on the UI thread: 13 s freeze at 16 attributes, out of memory at 23 | Fixed (`e932846`) |
 | [BUG-005](#bug-005) | High | `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback | Fixed (`caef5f5`) |
 | [BUG-006](#bug-006) | Critical | 3NF synthesis emits duplicate relations | Fixed (`c22fb93`) |
-| [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Open |
+| [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Fixed |
 | [BUG-008](#bug-008) | Medium | Results depend on `HashSet` iteration order (BCNF split, minimal cover, chosen 3NF key) | Fixed (`135f690`) |
 | [BUG-009](#bug-009) | Medium | `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted | Fixed |
 | [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Fixed (`f4f9c8d`) |
@@ -176,7 +176,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-007"></a>
 ### BUG-007 — 1NF is hard-coded `true` but presented as a real check
 
-- **Severity:** Medium · **Status:** Open · **By inspection**
+- **Severity:** Medium · **Status:** Fixed · **By inspection**
+- **Regression test:** `NormalFormServiceTest.testOneNfIsPresentedAsAnAssumption`
+- **Resolution:** The always-true `is1NF()` methods were removed (checker and service). The UI, the explanation and the tutorial text now show "1NF: assumed (the tool treats every attribute as atomic)" from `NormalFormChecker.FIRST_NF_ASSUMPTION`, and the 2NF-violation explanation repeats it. The unused `NormalForm.NONE` constant was removed. README updated.
 - **Location:** [NormalFormChecker.java:23](src/main/java/com/dbms/analyzer/algorithm/NormalFormChecker.java:23); README "1NF: All attributes are atomic"
 
 **Description.** `is1NF` always returns `true`, and `NormalForm.NONE` is never produced. The UI prints `1NF: true` as if it had been checked. The tool has no way to model non-atomic attributes, so this is a modelling assumption, not a check.
