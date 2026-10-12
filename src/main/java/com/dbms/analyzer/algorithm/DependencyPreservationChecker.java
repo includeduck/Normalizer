@@ -31,7 +31,7 @@ public class DependencyPreservationChecker {
     private final ClosureComputer closureComputer;
 
     public DependencyPreservationChecker() {
-        this.closureComputer = new ClosureComputer();
+        this(new ClosureComputer());
     }
 
     public DependencyPreservationChecker(ClosureComputer closureComputer) {

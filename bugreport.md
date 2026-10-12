@@ -59,8 +59,8 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BLD-004](#bld-004) | Low | Shipped config has DEBUG logging and meaningless properties | Open |
 | [BLD-005](#bld-005) | Low | `.gitignore` ignores every `*.ini`; no `.gitattributes` (mixed line endings) | Open |
 | [CQ-001](#cq-001) | Medium | ~20 dead source/resource files (old controllers, FXML, components, repository) | Fixed (`5345b5f`) |
-| [CQ-002](#cq-002) | Low | Dependency injection is only half applied | Open |
-| [CQ-003](#cq-003) | Low | Every algorithm is written twice (plain + "with steps") | Open |
+| [CQ-002](#cq-002) | Low | Dependency injection is only half applied | Fixed |
+| [CQ-003](#cq-003) | Low | Every algorithm is written twice (plain + "with steps") | Fixed |
 | [CQ-004](#cq-004) | Low | `MainController` is a 904-line god class; the service layer is mostly pass-through | Open |
 | [CQ-005](#cq-005) | Low | Defensive copies in getters run inside the hot closure loop | Fixed |
 | [CQ-006](#cq-006) | Low | Stale "backward compatibility" APIs with no callers | Fixed (`5345b5f`) |
@@ -439,13 +439,17 @@ Medium because dead code misleads future maintainers, AI agents especially, into
 
 <a id="cq-002"></a>
 ### CQ-002 — Dependency injection is only half applied
-- **Severity:** Low · **Status:** Open · **By inspection** · [AppConfig.java](src/main/java/com/dbms/analyzer/config/AppConfig.java)
+- **Severity:** Low · **Status:** Fixed · **By inspection** · [AppConfig.java](src/main/java/com/dbms/analyzer/config/AppConfig.java)
+- **Regression test:** `DbmsApplicationContextTest.algorithmBeansShareTheirCollaborators`
+- **Resolution:** Every algorithm that uses a helper takes it through a constructor (`NormalFormChecker`, `MinimalCoverComputer`, `FdProjector`, `BcnfDecomposer`, `ThreeNfSynthesizer`, `DependencyPreservationChecker`, `LosslessJoinChecker`). `AppConfig` wires one shared instance of each, including a new `FdProjector` bean. The no-argument constructors remain and delegate with defaults, for tests and simple use. Spring was kept: it is now used consistently, and removing it would be a larger change with no functional gain.
 
 `AppConfig` registers a `ClosureComputer` bean, but `BcnfDecomposer`, `CandidateKeyFinder`, `NormalFormChecker`, `ThreeNfSynthesizer` and others each create their own with `new ClosureComputer()` / `new MinimalCoverComputer()`, so the bean graph is a fiction. More broadly, Spring Boot buys little in a single-window desktop app with ~10 stateless helpers, while costing start-up time and package size. **Fix:** either inject through constructors everywhere, or drop Spring and wire the objects in `MainApp`.
 
 <a id="cq-003"></a>
 ### CQ-003 — Every algorithm is written twice
-- **Severity:** Low · **Status:** Open · **By inspection**
+- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Regression test:** existing trace and result tests (all unchanged and passing), e.g. `LosslessJoinCheckerTest`, `MinimalCoverComputerTest.testWithStepsShowsEachStepAndTheResult`
+- **Resolution:** Each algorithm now has one implementation that records a trace only when given a step list: `ClosureComputer.compute`, `LosslessJoinChecker.check` (binary test and chase), `MinimalCoverComputer.compute`, plus the earlier `DependencyPreservationChecker.reachableAcross`, `BcnfDecomposer.decomposeWithTrace` and `ThreeNfSynthesizer.synthesizeWithTrace`. The plain methods delegate to these.
 
 `computeClosure`/`computeClosureWithSteps`, `chaseAlgorithm`/`chaseAlgorithmWithSteps`, `binaryCheck`/`binaryCheckWithSteps`, `synthesize`/`synthesizeWithSteps`, plus the minimal cover and dependency preservation pairs. They have already diverged (BUG-009). **Fix:** one implementation per algorithm that returns a result together with a list of structured trace events; the UI renders the trace.
 

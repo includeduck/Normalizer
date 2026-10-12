@@ -27,20 +27,22 @@ public class ThreeNfSynthesizer {
 
     private final MinimalCoverComputer minimalCoverComputer;
     private final CandidateKeyFinder candidateKeyFinder;
-    private final FdProjector fdProjector = new FdProjector();
+    private final FdProjector fdProjector;
 
     /** The 3NF relations together with the readable trace that produced them. */
     public record Synthesis(Set<Relation> relations, List<String> steps) {
     }
 
     public ThreeNfSynthesizer() {
-        this(new MinimalCoverComputer(), new CandidateKeyFinder());
+        this(new MinimalCoverComputer(), new CandidateKeyFinder(), new FdProjector());
     }
 
     public ThreeNfSynthesizer(MinimalCoverComputer minimalCoverComputer,
-                              CandidateKeyFinder candidateKeyFinder) {
+                              CandidateKeyFinder candidateKeyFinder,
+                              FdProjector fdProjector) {
         this.minimalCoverComputer = minimalCoverComputer;
         this.candidateKeyFinder = candidateKeyFinder;
+        this.fdProjector = fdProjector;
     }
 
     /**

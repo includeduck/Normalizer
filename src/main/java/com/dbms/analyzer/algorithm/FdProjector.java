@@ -17,7 +17,11 @@ public class FdProjector {
     private final MinimalCoverComputer minimalCoverComputer;
 
     public FdProjector() {
-        this.minimalCoverComputer = new MinimalCoverComputer();
+        this(new MinimalCoverComputer());
+    }
+
+    public FdProjector(MinimalCoverComputer minimalCoverComputer) {
+        this.minimalCoverComputer = minimalCoverComputer;
     }
 
     /**

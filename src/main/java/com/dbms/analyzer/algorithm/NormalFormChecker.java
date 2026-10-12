@@ -12,7 +12,11 @@ public class NormalFormChecker {
     private final ClosureComputer closureComputer;
 
     public NormalFormChecker() {
-        this.closureComputer = new ClosureComputer();
+        this(new ClosureComputer());
+    }
+
+    public NormalFormChecker(ClosureComputer closureComputer) {
+        this.closureComputer = closureComputer;
     }
 
     /**

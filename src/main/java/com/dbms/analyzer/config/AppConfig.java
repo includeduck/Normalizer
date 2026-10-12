@@ -10,8 +10,13 @@ import com.dbms.analyzer.algorithm.MinimalCoverComputer;
 import com.dbms.analyzer.algorithm.ThreeNfSynthesizer;
 import com.dbms.analyzer.algorithm.DependencyPreservationChecker;
 import com.dbms.analyzer.algorithm.LosslessJoinChecker;
+import com.dbms.analyzer.algorithm.FdProjector;
 
 @Configuration
+/**
+ * Wires the algorithm classes with shared, stateless collaborators. Each
+ * algorithm also has a no-argument constructor for tests and simple use.
+ */
 public class AppConfig {
 
     @Bean
@@ -25,32 +30,42 @@ public class AppConfig {
     }
 
     @Bean
-    public NormalFormChecker normalFormChecker() {
-        return new NormalFormChecker();
+    public NormalFormChecker normalFormChecker(ClosureComputer closureComputer) {
+        return new NormalFormChecker(closureComputer);
     }
 
     @Bean
-    public BcnfDecomposer bcnfDecomposer() {
-        return new BcnfDecomposer();
+    public MinimalCoverComputer minimalCoverComputer(ClosureComputer closureComputer) {
+        return new MinimalCoverComputer(closureComputer);
     }
 
     @Bean
-    public MinimalCoverComputer minimalCoverComputer() {
-        return new MinimalCoverComputer();
+    public FdProjector fdProjector(MinimalCoverComputer minimalCoverComputer) {
+        return new FdProjector(minimalCoverComputer);
     }
 
     @Bean
-    public ThreeNfSynthesizer threeNfSynthesizer() {
-        return new ThreeNfSynthesizer();
+    public BcnfDecomposer bcnfDecomposer(FdProjector fdProjector) {
+        return new BcnfDecomposer(fdProjector);
     }
 
     @Bean
-    public DependencyPreservationChecker dependencyPreservationChecker() {
-        return new DependencyPreservationChecker();
+    public ThreeNfSynthesizer threeNfSynthesizer(
+            MinimalCoverComputer minimalCoverComputer,
+            CandidateKeyFinder candidateKeyFinder,
+            FdProjector fdProjector) {
+        return new ThreeNfSynthesizer(
+            minimalCoverComputer, candidateKeyFinder, fdProjector);
     }
 
     @Bean
-    public LosslessJoinChecker losslessJoinChecker() {
-        return new LosslessJoinChecker();
+    public DependencyPreservationChecker dependencyPreservationChecker(
+            ClosureComputer closureComputer) {
+        return new DependencyPreservationChecker(closureComputer);
+    }
+
+    @Bean
+    public LosslessJoinChecker losslessJoinChecker(ClosureComputer closureComputer) {
+        return new LosslessJoinChecker(closureComputer);
     }
 }

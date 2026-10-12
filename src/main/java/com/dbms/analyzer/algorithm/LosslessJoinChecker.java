@@ -4,10 +4,9 @@ import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.model.Relation;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -21,13 +20,16 @@ import java.util.TreeSet;
  *   holds under the FD set F (i.e. R1 ∩ R2 is a superkey for R1 or R2).
  *
  * For n-way decompositions, the general chase algorithm is used.
+ *
+ * Each check has a single implementation; a trace is recorded only when
+ * a step list is passed in.
  */
 public class LosslessJoinChecker {
 
     private final ClosureComputer closureComputer;
 
     public LosslessJoinChecker() {
-        this.closureComputer = new ClosureComputer();
+        this(new ClosureComputer());
     }
 
     public LosslessJoinChecker(ClosureComputer closureComputer) {
@@ -46,17 +48,7 @@ public class LosslessJoinChecker {
             Set<String> originalAttributes,
             Set<FunctionalDependency> fds,
             Set<Relation> decomposedRelations) {
-
-        List<Relation> relations = new ArrayList<>(decomposedRelations);
-        relations.sort(java.util.Comparator.comparing(Relation::getName));
-
-        // Binary shortcut
-        if (relations.size() == 2) {
-            return binaryCheck(relations.get(0), relations.get(1), fds);
-        }
-
-        // General chase algorithm
-        return chaseAlgorithm(originalAttributes, fds, relations);
+        return check(originalAttributes, fds, decomposedRelations, null);
     }
 
     /**
@@ -70,17 +62,23 @@ public class LosslessJoinChecker {
         List<String> steps = new ArrayList<>();
         steps.add("=== Lossless Join Check ===");
         steps.add("");
+        check(originalAttributes, fds, decomposedRelations, steps);
+        return steps;
+    }
+
+    private boolean check(
+            Set<String> originalAttributes,
+            Set<FunctionalDependency> fds,
+            Set<Relation> decomposedRelations,
+            List<String> steps) {
 
         List<Relation> relations = new ArrayList<>(decomposedRelations);
-        relations.sort(java.util.Comparator.comparing(Relation::getName));
+        relations.sort(Comparator.comparing(Relation::getName));
 
         if (relations.size() == 2) {
-            return binaryCheckWithSteps(
-                    relations.get(0), relations.get(1), fds, steps);
+            return binaryCheck(relations.get(0), relations.get(1), fds, steps);
         }
-
-        return chaseAlgorithmWithSteps(
-                originalAttributes, fds, relations, steps);
+        return chase(originalAttributes, fds, relations, steps);
     }
 
     // ---------------------------------------------------------------
@@ -88,136 +86,97 @@ public class LosslessJoinChecker {
     // ---------------------------------------------------------------
 
     private boolean binaryCheck(Relation r1, Relation r2,
-                                Set<FunctionalDependency> fds) {
-        Set<String> intersection = new HashSet<>(r1.getAttributes());
-        intersection.retainAll(r2.getAttributes());
-
-        if (intersection.isEmpty()) return false;
-
-        Set<String> closure = closureComputer.computeClosure(intersection, fds);
-        return closure.containsAll(r1.getAttributes())
-                || closure.containsAll(r2.getAttributes());
-    }
-
-    private List<String> binaryCheckWithSteps(
-            Relation r1, Relation r2,
-            Set<FunctionalDependency> fds,
-            List<String> steps) {
-
+                                Set<FunctionalDependency> fds,
+                                List<String> steps) {
         Set<String> attrs1 = r1.getAttributes();
         Set<String> attrs2 = r2.getAttributes();
-
-        steps.add("Binary decomposition detected — using shortcut.");
-        steps.add("R1 = " + formatSet(attrs1));
-        steps.add("R2 = " + formatSet(attrs2));
-        steps.add("");
+        trace(steps, "Binary decomposition detected — using shortcut.");
+        trace(steps, "R1 = " + formatSet(attrs1));
+        trace(steps, "R2 = " + formatSet(attrs2));
+        trace(steps, "");
 
         Set<String> intersection = new HashSet<>(attrs1);
         intersection.retainAll(attrs2);
-        steps.add("R1 ∩ R2 = " + formatSet(intersection));
+        trace(steps, "R1 ∩ R2 = " + formatSet(intersection));
 
         if (intersection.isEmpty()) {
-            steps.add("Intersection is empty → decomposition is LOSSY.");
-            return steps;
+            trace(steps, "Intersection is empty → decomposition is LOSSY.");
+            return false;
         }
 
         Set<String> closure = closureComputer.computeClosure(intersection, fds);
-        steps.add("Closure of " + formatSet(intersection) + " = "
+        trace(steps, "Closure of " + formatSet(intersection) + " = "
                 + formatSet(closure));
-        steps.add("");
+        trace(steps, "");
 
-        boolean lossless = closure.containsAll(attrs1)
-                || closure.containsAll(attrs2);
-
-        if (closure.containsAll(attrs1)) {
-            steps.add(formatSet(intersection) + " → "
+        boolean determinesR1 = closure.containsAll(attrs1);
+        boolean determinesR2 = closure.containsAll(attrs2);
+        if (determinesR1) {
+            trace(steps, formatSet(intersection) + " → "
                     + formatSet(attrs1) + " holds (superkey of R1).");
         }
-        if (closure.containsAll(attrs2)) {
-            steps.add(formatSet(intersection) + " → "
+        if (determinesR2) {
+            trace(steps, formatSet(intersection) + " → "
                     + formatSet(attrs2) + " holds (superkey of R2).");
         }
 
-        steps.add("");
-        steps.add(lossless
+        boolean lossless = determinesR1 || determinesR2;
+        trace(steps, "");
+        trace(steps, lossless
                 ? "Result: Decomposition is LOSSLESS."
                 : "Result: Decomposition is LOSSY.");
-
-        return steps;
+        return lossless;
     }
 
     // ---------------------------------------------------------------
     // General chase algorithm for n-way decomposition
     // ---------------------------------------------------------------
 
-    private boolean chaseAlgorithm(
-            Set<String> originalAttributes,
-            Set<FunctionalDependency> fds,
-            List<Relation> relations) {
-
-        List<String> attrList = new ArrayList<>(new TreeSet<>(originalAttributes));
-        int rows = relations.size();
-        int cols = attrList.size();
-
-        // Initialize the tabloid
-        // table[i][j] = "a_j" if attribute j is in Ri, else "b_ij"
-        String[][] table = initTable(attrList, relations);
-
-        // Chase
-        boolean changed = true;
-        while (changed) {
-            changed = false;
-            for (FunctionalDependency fd : FdOrder.sorted(fds)) {
-                changed |= applyFd(table, attrList, fd, rows);
-            }
-        }
-
-        // Check if any row has all "a" values
-        return hasDistinguishedRow(table, cols, rows);
-    }
-
-    private List<String> chaseAlgorithmWithSteps(
+    private boolean chase(
             Set<String> originalAttributes,
             Set<FunctionalDependency> fds,
             List<Relation> relations,
             List<String> steps) {
 
         List<String> attrList = new ArrayList<>(new TreeSet<>(originalAttributes));
+        List<FunctionalDependency> orderedFds = FdOrder.sorted(fds);
         int rows = relations.size();
         int cols = attrList.size();
 
-        steps.add("Using chase algorithm for " + rows + "-way decomposition.");
-        steps.add("Attributes: " + attrList);
-        steps.add("");
+        trace(steps, "Using chase algorithm for " + rows + "-way decomposition.");
+        trace(steps, "Attributes: " + attrList);
+        trace(steps, "");
 
+        // table[i][j] = "a_j" if attribute j is in Ri, else "b_ij"
         String[][] table = initTable(attrList, relations);
-        steps.add("Initial tabloid:");
-        appendTable(steps, table, attrList, relations, rows, cols);
+        if (steps != null) {
+            steps.add("Initial tabloid:");
+            appendTable(steps, table, attrList, rows, cols);
+        }
 
         boolean changed = true;
         int iteration = 0;
         while (changed) {
             changed = false;
             iteration++;
-            for (FunctionalDependency fd : FdOrder.sorted(fds)) {
-                boolean applied = applyFd(table, attrList, fd, rows);
-                if (applied) {
+            for (FunctionalDependency fd : orderedFds) {
+                if (applyFd(table, attrList, fd, rows)) {
                     changed = true;
-                    steps.add("Iteration " + iteration + ": Applied " + fd);
+                    trace(steps, "Iteration " + iteration + ": Applied " + fd);
                 }
             }
         }
 
-        steps.add("");
-        steps.add("Final tabloid:");
-        appendTable(steps, table, attrList, relations, rows, cols);
-
         boolean lossless = hasDistinguishedRow(table, cols, rows);
-        steps.add(lossless
-                ? "Result: Found a row with all distinguished symbols → LOSSLESS."
-                : "Result: No distinguished row found → LOSSY.");
-
-        return steps;
+        if (steps != null) {
+            steps.add("");
+            steps.add("Final tabloid:");
+            appendTable(steps, table, attrList, rows, cols);
+            steps.add(lossless
+                    ? "Result: Found a row with all distinguished symbols → LOSSLESS."
+                    : "Result: No distinguished row found → LOSSY.");
+        }
+        return lossless;
     }
 
     private String[][] initTable(List<String> attrList,
@@ -269,21 +228,15 @@ public class LosslessJoinChecker {
                 }
                 if (!agree) continue;
 
-                // Equate RHS columns
+                // Equate RHS columns, preferring distinguished "a" symbols
                 for (int col : rhsCols) {
                     if (!table[i][col].equals(table[j][col])) {
-                        // Prefer "a" values
-                        if (table[i][col].startsWith("a")) {
-                            table[j][col] = table[i][col];
-                            changed = true;
-                        } else if (table[j][col].startsWith("a")) {
+                        if (table[j][col].startsWith("a")) {
                             table[i][col] = table[j][col];
-                            changed = true;
                         } else {
-                            // Both are "b" — pick the smaller one
                             table[j][col] = table[i][col];
-                            changed = true;
                         }
+                        changed = true;
                     }
                 }
             }
@@ -306,8 +259,7 @@ public class LosslessJoinChecker {
     }
 
     private void appendTable(List<String> steps, String[][] table,
-                             List<String> attrList, List<Relation> relations,
-                             int rows, int cols) {
+                             List<String> attrList, int rows, int cols) {
         StringBuilder header = new StringBuilder("  ");
         for (String attr : attrList) {
             header.append(String.format("%-8s", attr));
@@ -320,6 +272,12 @@ public class LosslessJoinChecker {
                 row.append(String.format("%-8s", table[i][j]));
             }
             steps.add(row.toString());
+        }
+    }
+
+    private static void trace(List<String> steps, String line) {
+        if (steps != null) {
+            steps.add(line);
         }
     }
 

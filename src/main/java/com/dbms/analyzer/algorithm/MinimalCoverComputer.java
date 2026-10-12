@@ -22,7 +22,7 @@ public class MinimalCoverComputer {
     private final ClosureComputer closureComputer;
 
     public MinimalCoverComputer() {
-        this.closureComputer = new ClosureComputer();
+        this(new ClosureComputer());
     }
 
     public MinimalCoverComputer(ClosureComputer closureComputer) {
@@ -37,18 +37,7 @@ public class MinimalCoverComputer {
      */
     public Set<FunctionalDependency> computeMinimalCover(
             Set<FunctionalDependency> fds) {
-
-        // Step 1: Decompose RHS to singletons
-        List<FunctionalDependency> decomposed = decomposeRightSides(fds);
-
-        // Step 2: Remove extraneous LHS attributes
-        List<FunctionalDependency> reduced = removeExtraneousAttributes(decomposed);
-
-        // Step 3: Remove redundant FDs
-        List<FunctionalDependency> minimal = removeRedundantFds(reduced);
-
-        // Recombine FDs with the same LHS for cleaner output
-        return recombine(minimal);
+        return compute(fds, null);
     }
 
     /**
@@ -64,31 +53,39 @@ public class MinimalCoverComputer {
         steps.add("the list, so when several minimal covers exist, the one shown");
         steps.add("keeps the FDs that come earlier.");
         steps.add("");
-
-        // Step 1
-        List<FunctionalDependency> decomposed = decomposeRightSides(fds);
-        steps.add("Step 1: Decompose RHS to singletons");
-        decomposed.forEach(fd -> steps.add("  " + formatFd(fd)));
-        steps.add("");
-
-        // Step 2
-        List<FunctionalDependency> reduced = removeExtraneousAttributes(decomposed);
-        steps.add("Step 2: Remove extraneous LHS attributes");
-        reduced.forEach(fd -> steps.add("  " + formatFd(fd)));
-        steps.add("");
-
-        // Step 3
-        List<FunctionalDependency> minimal = removeRedundantFds(reduced);
-        steps.add("Step 3: Remove redundant FDs");
-        minimal.forEach(fd -> steps.add("  " + formatFd(fd)));
-        steps.add("");
-
-        // Recombine
-        Set<FunctionalDependency> result = recombine(minimal);
-        steps.add("Final minimal cover:");
-        result.forEach(fd -> steps.add("  " + formatFd(fd)));
-
+        compute(fds, steps);
         return steps;
+    }
+
+    /** The single implementation; records a trace when {@code steps} is non-null. */
+    private Set<FunctionalDependency> compute(
+            Set<FunctionalDependency> fds, List<String> steps) {
+
+        List<FunctionalDependency> decomposed = decomposeRightSides(fds);
+        traceStep(steps, "Step 1: Decompose RHS to singletons", decomposed);
+
+        List<FunctionalDependency> reduced = removeExtraneousAttributes(decomposed);
+        traceStep(steps, "Step 2: Remove extraneous LHS attributes", reduced);
+
+        List<FunctionalDependency> minimal = removeRedundantFds(reduced);
+        traceStep(steps, "Step 3: Remove redundant FDs", minimal);
+
+        // Recombine FDs with the same LHS for cleaner output
+        Set<FunctionalDependency> result = recombine(minimal);
+        if (steps != null) {
+            steps.add("Final minimal cover:");
+            result.forEach(fd -> steps.add("  " + formatFd(fd)));
+        }
+        return result;
+    }
+
+    private void traceStep(List<String> steps, String title,
+                           List<FunctionalDependency> fds) {
+        if (steps != null) {
+            steps.add(title);
+            fds.forEach(fd -> steps.add("  " + formatFd(fd)));
+            steps.add("");
+        }
     }
 
     // ---------------------------------------------------------------

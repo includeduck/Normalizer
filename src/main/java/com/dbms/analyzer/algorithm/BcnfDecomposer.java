@@ -30,7 +30,11 @@ public class BcnfDecomposer {
     private final FdProjector fdProjector;
 
     public BcnfDecomposer() {
-        this.fdProjector = new FdProjector();
+        this(new FdProjector());
+    }
+
+    public BcnfDecomposer(FdProjector fdProjector) {
+        this.fdProjector = fdProjector;
     }
 
     /** The BCNF relations together with the readable trace that produced them. */
