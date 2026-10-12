@@ -464,11 +464,10 @@ public class MainController {
         }
 
         try {
-            List<String> explanation =
-                    bcnfDecompositionService.decomposeWithExplanation();
-            lastDecomposition = bcnfDecompositionService.decomposeToBcnf();
+            var decomposition = bcnfDecompositionService.decomposeWithTrace();
+            lastDecomposition = decomposition.relations();
 
-            decompositionResultArea.setText(renderLines(explanation));
+            decompositionResultArea.setText(renderLines(decomposition.explanation()));
             selectTab(decompositionTab);
             updateRelationDisplay();
             setStatus("BCNF decomposition complete", false);
@@ -484,10 +483,10 @@ public class MainController {
         }
 
         try {
-            List<String> steps = threeNfService.synthesizeWithSteps();
-            lastDecomposition = threeNfService.synthesize();
+            var synthesis = threeNfService.synthesizeWithTrace();
+            lastDecomposition = synthesis.relations();
 
-            decompositionResultArea.setText(renderLines(steps));
+            decompositionResultArea.setText(renderLines(synthesis.steps()));
             selectTab(decompositionTab);
             updateRelationDisplay();
             setStatus("3NF synthesis complete", false);
@@ -735,14 +734,13 @@ public class MainController {
 
     private void computeClosure(String input) {
         try {
-            var closure = closureService.computeClosure(input);
+            // The trace ends with the final closure, so one computation suffices
             var steps = closureService.computeClosureWithSteps(input);
             StringBuilder result = new StringBuilder("Closure Input: ")
                 .append(input)
                 .append("\n\n");
 
             steps.forEach(step -> result.append(step).append("\n"));
-            result.append("\nFinal Closure: ").append(formatSet(closure));
 
             closureResultArea.setText(result.toString());
             selectTab(closureTab);

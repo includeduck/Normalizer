@@ -43,7 +43,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-006](#bug-006) | Critical | 3NF synthesis emits duplicate relations | Fixed (`c22fb93`) |
 | [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Open |
 | [BUG-008](#bug-008) | Medium | Results depend on `HashSet` iteration order (BCNF split, minimal cover, chosen 3NF key) | Fixed (`135f690`) |
-| [BUG-009](#bug-009) | Medium | `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted | Open |
+| [BUG-009](#bug-009) | Medium | `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted | Fixed |
 | [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Fixed (`f4f9c8d`) |
 | [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Open |
 | [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Open |
@@ -52,7 +52,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-015](#bug-015) | Low | Removing an FD in the UI matches it by `toString()` | Open |
 | [BUG-016](#bug-016) | Low | A failed "Load Example" leaves a half-built relation and a stale UI | Open |
 | [BUG-017](#bug-017) | Low | "Check Result" overwrites the Explanation tab | Open |
-| [BUG-018](#bug-018) | Low | Closure and decompositions are computed twice per click | Open |
+| [BUG-018](#bug-018) | Low | Closure and decompositions are computed twice per click | Fixed |
 | [BLD-001](#bld-001) | Low | `build-exe.ps1` hard-codes the artifact name and version | Open |
 | [BLD-002](#bld-002) | Low | `jlink --add-modules ALL-MODULE-PATH` bundles the whole JDK | Open |
 | [BLD-003](#bld-003) | Low | CI runs the test suite twice; PR branches build twice | Open |
@@ -207,7 +207,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-009"></a>
 ### BUG-009 — `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted
 
-- **Severity:** Medium · **Status:** Open · **By inspection**
+- **Severity:** Medium · **Status:** Fixed · **By inspection**
+- **Regression test:** `ThreeNfSynthesizerTest.testTraceDescribesExactlyTheReturnedRelations`, `testResultRelationsCarryProjectedFds`, `BcnfDecomposerTest.testTraceAndResultComeFromTheSameRun`
+- **Resolution:** `ThreeNfSynthesizer` has one implementation, `synthesizeWithTrace`, returning a `Synthesis(relations, steps)` record; `synthesize` and `synthesizeWithSteps` delegate to it. `BcnfDecomposer.decomposeWithTrace` returns a `Decomposition(relations, explanation)` record the same way. The services expose only these `…WithTrace()` methods, and `MainController` stores the relations from the run it displays. 3NF relations now carry a minimal cover of the true projection of F⁺ (shared `FdProjector`, extracted from the BCNF code), and the trace lists those FDs. This also resolves the 3NF note under BUG-001.
 - **Location:** [ThreeNfSynthesizer.java:133](src/main/java/com/dbms/analyzer/algorithm/ThreeNfSynthesizer.java:133); [MainController.java:488](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:488)
 
 **Description.** These are two hand-copied implementations of the same algorithm. The `WithSteps` copy does not attach FDs to the resulting relations, and the two could start disagreeing on other details at any time. The UI shows the trace from one run (`synthesizeWithSteps`) and then stores the result of a separate run (`synthesize`) for **Check Result**. The same split exists for BCNF ([MainController.java:469](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:469)). Combined with BUG-008, nothing guarantees that the decomposition being checked is the one on screen.
@@ -315,7 +317,9 @@ Output from the decomposition check goes into `explanationResultArea`, replacing
 <a id="bug-018"></a>
 ### BUG-018 — Closure and decompositions are computed twice per click
 
-- **Severity:** Low · **Status:** Open · **By inspection**
+- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Regression test:** covered by the BUG-009 tests (single run per decomposition)
+- **Resolution:** Decompositions run once per click (BUG-009). The closure action now only calls `computeClosureWithSteps`, whose trace already ends with the final closure. `ClosureService.computeClosure` remains as the service's result method and is used by its tests.
 - **Location:** [MainController.java:739](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:739), [MainController.java:469](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:469), [MainController.java:488](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:488)
 
 `computeClosure` and `computeClosureWithSteps` both run for one click, and so do the plain and traced versions of BCNF and 3NF. This wastes work and is the cause of BUG-009's mismatch risk. The fix is the same as for CQ-003.

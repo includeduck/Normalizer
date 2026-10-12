@@ -54,12 +54,7 @@ public class CandidateKeyFinder {
             return candidateKeys;
         }
 
-        List<Integer> optionalBits = new ArrayList<>();
-        for (int bit = 0; bit < Long.SIZE - 1; bit++) {
-            if ((optional & (1L << bit)) != 0) {
-                optionalBits.add(bit);
-            }
-        }
+        List<Integer> optionalBits = FdBitIndex.bitsOf(optional);
 
         int m = optionalBits.size();
         List<Long> foundKeys = new ArrayList<>();
@@ -67,16 +62,14 @@ public class CandidateKeyFinder {
             // Gosper's hack: iterate all m-bit combinations with `size` bits set
             long combination = (1L << size) - 1;
             while (combination < (1L << m)) {
-                long candidate = core | expand(combination, optionalBits);
+                long candidate = core | FdBitIndex.expand(combination, optionalBits);
 
                 if (!containsAnyKey(candidate, foundKeys)
                         && FdBitIndex.isSubset(all, index.closure(candidate))) {
                     foundKeys.add(candidate);
                 }
 
-                long lowest = combination & -combination;
-                long ripple = combination + lowest;
-                combination = ripple | (((ripple ^ combination) >>> 2) / lowest);
+                combination = FdBitIndex.nextCombination(combination);
             }
         }
 
@@ -84,16 +77,6 @@ public class CandidateKeyFinder {
             candidateKeys.add(new CandidateKey(index.toSet(key)));
         }
         return candidateKeys;
-    }
-
-    private static long expand(long combination, List<Integer> bits) {
-        long mask = 0L;
-        for (int i = 0; i < bits.size(); i++) {
-            if ((combination & (1L << i)) != 0) {
-                mask |= 1L << bits.get(i);
-            }
-        }
-        return mask;
     }
 
     private static boolean containsAnyKey(long candidate, List<Long> keys) {

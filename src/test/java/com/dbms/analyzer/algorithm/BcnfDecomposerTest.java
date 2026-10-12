@@ -99,6 +99,25 @@ public class BcnfDecomposerTest {
     }
 
     @Test
+    public void testTraceAndResultComeFromTheSameRun() {
+        // BUG-009: the UI used to display one run and keep another
+        Relation relation = new Relation("R", Set.of("A", "B", "C", "D"),
+            Set.of(fd("A", "B"), fd("B", "C"), fd("C", "D")));
+
+        BcnfDecomposer.Decomposition decomposition =
+            bcnfDecomposer.decomposeWithTrace(relation);
+
+        assertEquals(bcnfDecomposer.decomposeToBcnf(relation),
+            decomposition.relations());
+        assertEquals(bcnfDecomposer.decomposeWithExplanation(relation),
+            decomposition.explanation());
+        for (Relation r : decomposition.relations()) {
+            assertTrue(decomposition.explanation().stream()
+                .anyMatch(line -> line.equals("  " + r)), r.toString());
+        }
+    }
+
+    @Test
     public void testStepNumbersAreSequential() {
         // BUG-010: numbering used to repeat and skip
         Relation relation = new Relation("R",

@@ -27,10 +27,14 @@ import com.dbms.analyzer.model.DecompositionStep;
  */
 public class BcnfDecomposer {
 
-    private final MinimalCoverComputer minimalCoverComputer;
+    private final FdProjector fdProjector;
 
     public BcnfDecomposer() {
-        this.minimalCoverComputer = new MinimalCoverComputer();
+        this.fdProjector = new FdProjector();
+    }
+
+    /** The BCNF relations together with the readable trace that produced them. */
+    public record Decomposition(Set<Relation> relations, List<String> explanation) {
     }
 
     /**
@@ -59,6 +63,14 @@ public class BcnfDecomposer {
      * Produces a readable step-by-step trace.
      */
     public List<String> decomposeWithExplanation(Relation relation) {
+        return decomposeWithTrace(relation).explanation();
+    }
+
+    /**
+     * Decomposes once and returns both the result and its trace, so callers
+     * never display one run and use another.
+     */
+    public Decomposition decomposeWithTrace(Relation relation) {
         List<String> explanation = new ArrayList<>();
         List<DecompositionStep> stepLog = new ArrayList<>();
 
@@ -96,7 +108,7 @@ public class BcnfDecomposer {
             }
         }
 
-        return explanation;
+        return new Decomposition(result, explanation);
     }
 
     // ---------------------------------------------------------------
@@ -131,7 +143,7 @@ public class BcnfDecomposer {
 
         if (determinant == NO_VIOLATION) {
             bcnfRelations.add(new Relation(
-                    name, index.toSet(schema), projectFds(schema, index)));
+                    name, index.toSet(schema), fdProjector.project(schema, index)));
             return;
         }
 
@@ -183,16 +195,16 @@ public class BcnfDecomposer {
             return NO_VIOLATION;
         }
 
-        List<Integer> bits = bitsOf(schema);
+        List<Integer> bits = FdBitIndex.bitsOf(schema);
         int n = bits.size();
         for (int size = 1; size < n; size++) {
             long combination = (1L << size) - 1;
             while (combination < (1L << n)) {
-                long candidate = expand(combination, bits);
+                long candidate = FdBitIndex.expand(combination, bits);
                 if (violates(candidate, schema, index)) {
                     return candidate;
                 }
-                combination = nextCombination(combination);
+                combination = FdBitIndex.nextCombination(combination);
             }
         }
         return NO_VIOLATION;
@@ -201,87 +213,6 @@ public class BcnfDecomposer {
     private static boolean violates(long determinant, long schema, FdBitIndex index) {
         long closure = index.closure(determinant) & schema;
         return (closure & ~determinant) != 0 && closure != schema;
-    }
-
-    // ---------------------------------------------------------------
-    // FD projection
-    // ---------------------------------------------------------------
-
-    /**
-     * Projects F⁺ onto a schema and returns a minimal cover of the result.
-     *
-     * Subsets are visited smallest first; X → A is kept only if no smaller
-     * determinant of A has been found inside X, so only minimal
-     * determinants are passed on to the minimal-cover step.
-     */
-    private Set<FunctionalDependency> projectFds(long schema, FdBitIndex index) {
-        List<Integer> bits = bitsOf(schema);
-        int n = bits.size();
-        List<long[]> minimalDeterminants = new ArrayList<>(); // {determinant, attribute}
-        Set<FunctionalDependency> projected = new LinkedHashSet<>();
-
-        for (int size = 1; size < n; size++) {
-            long combination = (1L << size) - 1;
-            while (combination < (1L << n)) {
-                long candidate = expand(combination, bits);
-                long gained = index.closure(candidate) & schema & ~candidate;
-
-                for (int bit : bits) {
-                    long attribute = 1L << bit;
-                    if ((gained & attribute) != 0
-                            && !hasSmallerDeterminant(
-                                candidate, attribute, minimalDeterminants)) {
-                        minimalDeterminants.add(new long[] {candidate, attribute});
-                        projected.add(new FunctionalDependency(
-                                index.toSet(candidate), index.toSet(attribute)));
-                    }
-                }
-                combination = nextCombination(combination);
-            }
-        }
-
-        return minimalCoverComputer.computeMinimalCover(projected);
-    }
-
-    private static boolean hasSmallerDeterminant(
-            long candidate, long attribute, List<long[]> minimalDeterminants) {
-        for (long[] entry : minimalDeterminants) {
-            if (entry[1] == attribute && FdBitIndex.isSubset(entry[0], candidate)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // ---------------------------------------------------------------
-    // Bitmask helpers
-    // ---------------------------------------------------------------
-
-    private static List<Integer> bitsOf(long mask) {
-        List<Integer> bits = new ArrayList<>();
-        for (int bit = 0; bit < Long.SIZE - 1; bit++) {
-            if ((mask & (1L << bit)) != 0) {
-                bits.add(bit);
-            }
-        }
-        return bits;
-    }
-
-    private static long expand(long combination, List<Integer> bits) {
-        long mask = 0L;
-        for (int i = 0; i < bits.size(); i++) {
-            if ((combination & (1L << i)) != 0) {
-                mask |= 1L << bits.get(i);
-            }
-        }
-        return mask;
-    }
-
-    /** Gosper's hack: next integer with the same number of set bits. */
-    private static long nextCombination(long combination) {
-        long lowest = combination & -combination;
-        long ripple = combination + lowest;
-        return ripple | (((ripple ^ combination) >>> 2) / lowest);
     }
 
     // ---------------------------------------------------------------

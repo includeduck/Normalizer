@@ -105,4 +105,36 @@ final class FdBitIndex {
     static boolean isSubset(long subset, long superset) {
         return (subset & ~superset) == 0;
     }
+
+    /** Positions of the set bits of {@code mask}, ascending. */
+    static List<Integer> bitsOf(long mask) {
+        List<Integer> bits = new ArrayList<>();
+        for (int bit = 0; bit < Long.SIZE - 1; bit++) {
+            if ((mask & (1L << bit)) != 0) {
+                bits.add(bit);
+            }
+        }
+        return bits;
+    }
+
+    /**
+     * Maps a combination over {@code bits.size()} positions back onto the
+     * attribute bits it selects.
+     */
+    static long expand(long combination, List<Integer> bits) {
+        long mask = 0L;
+        for (int i = 0; i < bits.size(); i++) {
+            if ((combination & (1L << i)) != 0) {
+                mask |= 1L << bits.get(i);
+            }
+        }
+        return mask;
+    }
+
+    /** Gosper's hack: next integer with the same number of set bits. */
+    static long nextCombination(long combination) {
+        long lowest = combination & -combination;
+        long ripple = combination + lowest;
+        return ripple | (((ripple ^ combination) >>> 2) / lowest);
+    }
 }
