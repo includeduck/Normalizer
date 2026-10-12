@@ -5,10 +5,10 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-12 (all medium issues fixed) |
+| **Last updated** | 2026-10-12 (all issues from the review fixed) |
 | **Last full review at commit** | `6b6ad65` (Add CI Pipeline) |
-| **Test suite** | 112 tests, all passing (78 at the review, when none of them caught the bugs below) |
-| **Open issues** | 18 (0 critical, 0 high, 0 medium, 18 low) · 19 fixed |
+| **Test suite** | 123 tests, all passing (78 at the review, when none of them caught the bugs below) |
+| **Open issues** | 0 · 37 fixed |
 
 ---
 
@@ -48,29 +48,29 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Fixed (`65954c6`) |
 | [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Fixed (`65954c6`) |
 | [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | Fixed (`ddb03b7`) |
-| [BUG-014](#bug-014) | Low | `FunctionalDependency.hashCode()` is additive, so `X→Y` and `Y→X` always collide | Fixed |
-| [BUG-015](#bug-015) | Low | Removing an FD in the UI matches it by `toString()` | Fixed |
-| [BUG-016](#bug-016) | Low | A failed "Load Example" leaves a half-built relation and a stale UI | Fixed |
-| [BUG-017](#bug-017) | Low | "Check Result" overwrites the Explanation tab | Fixed |
+| [BUG-014](#bug-014) | Low | `FunctionalDependency.hashCode()` is additive, so `X→Y` and `Y→X` always collide | Fixed (`6a21f47`) |
+| [BUG-015](#bug-015) | Low | Removing an FD in the UI matches it by `toString()` | Fixed (`bd703f3`) |
+| [BUG-016](#bug-016) | Low | A failed "Load Example" leaves a half-built relation and a stale UI | Fixed (`bd703f3`) |
+| [BUG-017](#bug-017) | Low | "Check Result" overwrites the Explanation tab | Fixed (`bd703f3`) |
 | [BUG-018](#bug-018) | Low | Closure and decompositions are computed twice per click | Fixed (`cbc67e5`) |
-| [BLD-001](#bld-001) | Low | `build-exe.ps1` hard-codes the artifact name and version | Fixed |
-| [BLD-002](#bld-002) | Low | `jlink --add-modules ALL-MODULE-PATH` bundles the whole JDK | Fixed |
-| [BLD-003](#bld-003) | Low | CI runs the test suite twice; PR branches build twice | Fixed |
-| [BLD-004](#bld-004) | Low | Shipped config has DEBUG logging and meaningless properties | Fixed |
-| [BLD-005](#bld-005) | Low | `.gitignore` ignores every `*.ini`; no `.gitattributes` (mixed line endings) | Fixed |
+| [BLD-001](#bld-001) | Low | `build-exe.ps1` hard-codes the artifact name and version | Fixed (`e698fff`) |
+| [BLD-002](#bld-002) | Low | `jlink --add-modules ALL-MODULE-PATH` bundles the whole JDK | Fixed (`e698fff`) |
+| [BLD-003](#bld-003) | Low | CI runs the test suite twice; PR branches build twice | Fixed (`509d15f`) |
+| [BLD-004](#bld-004) | Low | Shipped config has DEBUG logging and meaningless properties | Fixed (`509d15f`) |
+| [BLD-005](#bld-005) | Low | `.gitignore` ignores every `*.ini`; no `.gitattributes` (mixed line endings) | Fixed (`509d15f`) |
 | [CQ-001](#cq-001) | Medium | ~20 dead source/resource files (old controllers, FXML, components, repository) | Fixed (`5345b5f`) |
-| [CQ-002](#cq-002) | Low | Dependency injection is only half applied | Fixed |
-| [CQ-003](#cq-003) | Low | Every algorithm is written twice (plain + "with steps") | Fixed |
-| [CQ-004](#cq-004) | Low | `MainController` is a 904-line god class; the service layer is mostly pass-through | Fixed |
-| [CQ-005](#cq-005) | Low | Defensive copies in getters run inside the hot closure loop | Fixed |
+| [CQ-002](#cq-002) | Low | Dependency injection is only half applied | Fixed (`38ddbb0`) |
+| [CQ-003](#cq-003) | Low | Every algorithm is written twice (plain + "with steps") | Fixed (`38ddbb0`) |
+| [CQ-004](#cq-004) | Low | `MainController` is a 904-line god class; the service layer is mostly pass-through | Fixed (`bd703f3`) |
+| [CQ-005](#cq-005) | Low | Defensive copies in getters run inside the hot closure loop | Fixed (`6a21f47`) |
 | [CQ-006](#cq-006) | Low | Stale "backward compatibility" APIs with no callers | Fixed (`5345b5f`) |
 | [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | Fixed (`2ea1c2a`) |
 | [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | Fixed (`2ea1c2a`) |
-| [TEST-003](#test-003) | Low | Normal-form tests use hand-written candidate keys instead of computed ones | Fixed |
-| [TEST-004](#test-004) | Low | No tests for large inputs, performance limits, or the UI | Fixed |
-| [DOC-001](#doc-001) | Low | `Progress.md`, `UC.md`, `PROJECT_STRUCTURE.md` duplicated in root and `MarkDown/` | Fixed |
-| [DOC-002](#doc-002) | Low | README overstates 1NF and omits implemented features | Fixed |
-| [DOC-003](#doc-003) | Low | `UC.md` is out of date with the implementation | Fixed |
+| [TEST-003](#test-003) | Low | Normal-form tests use hand-written candidate keys instead of computed ones | Fixed (`3caea5a`) |
+| [TEST-004](#test-004) | Low | No tests for large inputs, performance limits, or the UI | Fixed (`bd703f3`) |
+| [DOC-001](#doc-001) | Low | `Progress.md`, `UC.md`, `PROJECT_STRUCTURE.md` duplicated in root and `MarkDown/` | Fixed (`6fcb8d9`) |
+| [DOC-002](#doc-002) | Low | README overstates 1NF and omits implemented features | Fixed (`6fcb8d9`) |
+| [DOC-003](#doc-003) | Low | `UC.md` is out of date with the implementation | Fixed (`6fcb8d9`) |
 | [DOC-004](#doc-004) | Low | `PROJECT_STRUCTURE.md` describes dead code as the live architecture | Fixed (`5345b5f`) |
 
 ---
@@ -283,7 +283,7 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-014"></a>
 ### BUG-014 — `FunctionalDependency.hashCode()` is additive
 
-- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Severity:** Low · **Status:** Fixed (`6a21f47`) · **By inspection**
 - **Regression test:** `FunctionalDependencyTest.testReversedDependencyHasDifferentHash`
 - **Resolution:** `hashCode()` now uses `Objects.hash(leftSide, rightSide)`.
 - **Location:** [FunctionalDependency.java:51](src/main/java/com/dbms/analyzer/model/FunctionalDependency.java:51)
@@ -295,7 +295,7 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-015"></a>
 ### BUG-015 — Removing an FD in the UI matches it by `toString()`
 
-- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Severity:** Low · **Status:** Fixed (`bd703f3`) · **By inspection**
 - **Regression test:** `MainControllerUiTest.fullSessionThroughTheUi`
 - **Resolution:** `fdListView` is a `ListView<FunctionalDependency>` filled in canonical order; cells use `toString()`, and removal passes the selected FD object to `FdService`.
 - **Location:** [MainController.java:289](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:289)
@@ -307,7 +307,7 @@ The list holds `String`s, and removal searches for the FD whose `toString()` equ
 <a id="bug-016"></a>
 ### BUG-016 — A failed "Load Example" leaves a half-built relation and a stale UI
 
-- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Severity:** Low · **Status:** Fixed (`bd703f3`) · **By inspection**
 - **Regression test:** `FdServiceTest.testLoadRelationIsAllOrNothing`, `ResultFormatterTest.testEverySampleRelationIsValid`
 - **Resolution:** New `FdService.loadRelation(schema, fds)` parses the schema and every FD into a new relation and only then makes it current, so a bad FD leaves the previous relation untouched. "Load Example" uses it and refreshes the UI on failure too.
 - **Location:** [MainController.java:317](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:317)
@@ -319,7 +319,7 @@ The relation is created first and the FDs are added one at a time. If an FD fail
 <a id="bug-017"></a>
 ### BUG-017 — "Check Result" overwrites the Explanation tab
 
-- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Severity:** Low · **Status:** Fixed (`bd703f3`) · **By inspection**
 - **Regression test:** `MainControllerUiTest.fullSessionThroughTheUi`
 - **Resolution:** Added a "Check Result" tab (`checkResultTab`/`checkResultArea` in `main.fxml`); the Explanation tab is no longer overwritten. Tutorial text updated.
 - **Location:** [MainController.java:527](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:527)
@@ -392,7 +392,7 @@ The handlers catch only `RuntimeException`. An `OutOfMemoryError` from BUG-004 e
 
 <a id="bld-001"></a>
 ### BLD-001 — `build-exe.ps1` hard-codes the artifact name and version
-- **Severity:** Low · **Status:** Fixed · **By inspection** · [build-exe.ps1](build-exe.ps1)
+- **Severity:** Low · **Status:** Fixed (`e698fff`) · **By inspection** · [build-exe.ps1](build-exe.ps1)
 - **Regression test:** manual: `build-exe.bat` builds `target/dist/Normalizer/Normalizer.exe`
 - **Resolution:** `build-exe.ps1` reads `project.artifactId` and `project.version` with `mvn help:evaluate`, derives the thin-jar name from them, and passes the numeric part of the version (e.g. `1.0.0` from `1.0.0-SNAPSHOT`) to `jpackage --app-version`.
 
@@ -400,7 +400,7 @@ The handlers catch only `RuntimeException`. An `OutOfMemoryError` from BUG-004 e
 
 <a id="bld-002"></a>
 ### BLD-002 — `jlink --add-modules ALL-MODULE-PATH` bundles the whole JDK
-- **Severity:** Low · **Status:** Fixed · **By inspection** · [build-exe.ps1](build-exe.ps1)
+- **Severity:** Low · **Status:** Fixed (`e698fff`) · **By inspection** · [build-exe.ps1](build-exe.ps1)
 - **Regression test:** manual: built the app image, started the bundled runtime (`runtime/bin/java -cp "app/*" com.dbms.analyzer.Launcher`, Spring started with no missing classes) and the `.exe` (still running after 12 s)
 - **Resolution:** Worse than reported: on the JDK installed here (25), `jlink --add-modules ALL-MODULE-PATH` without `--module-path` fails outright, so the `.exe` could not be built at all. The script now runs `jdeps --print-module-deps` over every staged jar, adds `java.naming`, `java.management` and `jdk.unsupported` (used reflectively), keeps only modules the JDK provides, and links exactly those. The app image went from 176 MB (the last build that worked) to 99 MB. Not changed: JavaFX still loads from the class path, so it prints its "unsupported configuration" warning at start-up; moving it to the module path is optional.
 
@@ -408,7 +408,7 @@ No `--module-path` is passed, so `ALL-MODULE-PATH` resolves to every JDK module.
 
 <a id="bld-003"></a>
 ### BLD-003 — CI runs the test suite twice; PR branches build twice
-- **Severity:** Low · **Status:** Fixed · **By inspection** · [.github/workflows/ci.yml](.github/workflows/ci.yml)
+- **Severity:** Low · **Status:** Fixed (`509d15f`) · **By inspection** · [.github/workflows/ci.yml](.github/workflows/ci.yml)
 - **Regression test:** n/a (CI config)
 - **Resolution:** The workflow runs one `mvn -B verify` step (tests run once, jar is packaged), and `push` is limited to `main`, so PR branches build only through `pull_request`.
 
@@ -416,7 +416,7 @@ No `--module-path` is passed, so `ALL-MODULE-PATH` resolves to every JDK module.
 
 <a id="bld-004"></a>
 ### BLD-004 — Shipped config has DEBUG logging and meaningless properties
-- **Severity:** Low · **Status:** Fixed · **By inspection** · [application.properties](src/main/resources/application.properties)
+- **Severity:** Low · **Status:** Fixed (`509d15f`) · **By inspection** · [application.properties](src/main/resources/application.properties)
 - **Regression test:** n/a (config)
 - **Resolution:** `com.dbms.analyzer` logs at INFO by default. Removed `spring.application.version`, `javafx.preloader`, `javafx.launch.noPreloaderStage`, `app.title` and `app.version`: none were read by anything.
 
@@ -424,7 +424,7 @@ No `--module-path` is passed, so `ALL-MODULE-PATH` resolves to every JDK module.
 
 <a id="bld-005"></a>
 ### BLD-005 — `.gitignore` ignores every `*.ini`; no `.gitattributes`
-- **Severity:** Low · **Status:** Fixed · **By inspection** · [.gitignore](.gitignore)
+- **Severity:** Low · **Status:** Fixed (`509d15f`) · **By inspection** · [.gitignore](.gitignore)
 - **Regression test:** n/a (repo config; `git add --renormalize .` changed nothing)
 - **Resolution:** Removed the blanket `*.ini` ignore (`Desktop.ini` is still ignored by name). Added `.gitattributes` with `* text=auto`, plus CRLF for `.bat`/`.cmd`/`.ps1`. The index was already all LF, so renormalizing changed no files.
 
@@ -455,7 +455,7 @@ Medium because dead code misleads future maintainers, AI agents especially, into
 
 <a id="cq-002"></a>
 ### CQ-002 — Dependency injection is only half applied
-- **Severity:** Low · **Status:** Fixed · **By inspection** · [AppConfig.java](src/main/java/com/dbms/analyzer/config/AppConfig.java)
+- **Severity:** Low · **Status:** Fixed (`38ddbb0`) · **By inspection** · [AppConfig.java](src/main/java/com/dbms/analyzer/config/AppConfig.java)
 - **Regression test:** `DbmsApplicationContextTest.algorithmBeansShareTheirCollaborators`
 - **Resolution:** Every algorithm that uses a helper takes it through a constructor (`NormalFormChecker`, `MinimalCoverComputer`, `FdProjector`, `BcnfDecomposer`, `ThreeNfSynthesizer`, `DependencyPreservationChecker`, `LosslessJoinChecker`). `AppConfig` wires one shared instance of each, including a new `FdProjector` bean. The no-argument constructors remain and delegate with defaults, for tests and simple use. Spring was kept: it is now used consistently, and removing it would be a larger change with no functional gain.
 
@@ -463,7 +463,7 @@ Medium because dead code misleads future maintainers, AI agents especially, into
 
 <a id="cq-003"></a>
 ### CQ-003 — Every algorithm is written twice
-- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Severity:** Low · **Status:** Fixed (`38ddbb0`) · **By inspection**
 - **Regression test:** existing trace and result tests (all unchanged and passing), e.g. `LosslessJoinCheckerTest`, `MinimalCoverComputerTest.testWithStepsShowsEachStepAndTheResult`
 - **Resolution:** Each algorithm now has one implementation that records a trace only when given a step list: `ClosureComputer.compute`, `LosslessJoinChecker.check` (binary test and chase), `MinimalCoverComputer.compute`, plus the earlier `DependencyPreservationChecker.reachableAcross`, `BcnfDecomposer.decomposeWithTrace` and `ThreeNfSynthesizer.synthesizeWithTrace`. The plain methods delegate to these.
 
@@ -471,7 +471,7 @@ Medium because dead code misleads future maintainers, AI agents especially, into
 
 <a id="cq-004"></a>
 ### CQ-004 — `MainController` is a 904-line god class; the service layer is mostly pass-through
-- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Severity:** Low · **Status:** Fixed (`bd703f3`) · **By inspection**
 - **Regression test:** `ResultFormatterTest`, `MainControllerUiTest`
 - **Resolution:** `MainController` went from 904 to 737 lines: the example relations moved to `SampleRelations`, the tutorial text to `resources/text/tutorial.txt`, and all report formatting to `ResultFormatter`, which is unit-tested without JavaFX. The normal-form report reads 2NF/3NF/BCNF from one analysis (`NormalFormResult.satisfies`), so the unused `NormalFormService.is2NF/is3NF/isBCNF` were removed. What remains in the controller is FXML wiring and event handling. Not changed on purpose: the services stay thin; they hold the current-relation state and the "no relation" checks, and merging them into one session object would mostly move code around.
 
@@ -479,7 +479,7 @@ The controller takes 10 injected services, handles formatting, holds state (`las
 
 <a id="cq-005"></a>
 ### CQ-005 — Defensive copies in getters run inside the hot closure loop
-- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Severity:** Low · **Status:** Fixed (`6a21f47`) · **By inspection**
 - **Regression test:** `FunctionalDependencyTest.testGettersAreReadOnlyViewsWithoutCopying`
 - **Resolution:** `FunctionalDependency` and `CandidateKey` copy their sets once in the constructor and their getters return the same read-only view, so the closure loop no longer allocates on every call. All callers were checked: none modifies a returned set. `Relation` getters still return copies, since callers use them as working sets.
 
@@ -534,7 +534,7 @@ Also add pinned textbook examples (Elmasri/Navathe, Silberschatz) with exact exp
 
 <a id="test-003"></a>
 ### TEST-003 — Normal-form tests use hand-written candidate keys
-- **Severity:** Low · **Status:** Fixed
+- **Severity:** Low · **Status:** Fixed (`3caea5a`)
 - **Regression test:** `NormalFormCheckerTest` (all cases)
 - **Resolution:** Every `NormalFormCheckerTest` case now gets its keys from `CandidateKeyFinder` through a `computedKeys` helper, which also asserts they equal the documented keys. End-to-end coverage through the services and the key finder is in `NormalFormServiceTest`, `PropertyTest.testHighestNormalFormMatchesBruteForce` and `TextbookExamplesTest`.
 
@@ -542,7 +542,7 @@ Also add pinned textbook examples (Elmasri/Navathe, Silberschatz) with exact exp
 
 <a id="test-004"></a>
 ### TEST-004 — No tests for large inputs, performance limits, or the UI
-- **Severity:** Low · **Status:** Fixed
+- **Severity:** Low · **Status:** Fixed (`bd703f3`)
 - **Regression test:** `MainControllerUiTest`, plus `CandidateKeyFinderTest.testRelationAboveLimitIsRejected`/`testWorstCaseAtLimitFinishesQuickly`, `BcnfDecomposerTest.testLargestAllowedRelationFinishesQuickly`, `NormalFormServiceTest.testNormalFormClickAtAttributeLimitIsFast`, `FdUtilTest.testSplittingWithManyDeadEndsIsFast`
 - **Resolution:** Limits and large inputs are covered by the tests listed. `MainControllerUiTest` loads the real `main.fxml` through the Spring context and clicks through a session (create relation, add/duplicate/remove FDs, BCNF, Check Result, Explain, Load Example, Keys, Normal Form). It runs wherever JavaFX can open a display and is skipped on headless machines, including the GitHub Actions runner; no TestFX/Monocle dependency was added.
 
@@ -554,7 +554,7 @@ Nothing pins the behaviour at the attribute limit (BUG-003/004). There are no Te
 
 <a id="doc-001"></a>
 ### DOC-001 — Docs duplicated in root and `MarkDown/`
-- **Severity:** Low · **Status:** Fixed · **Verified**
+- **Severity:** Low · **Status:** Fixed (`6fcb8d9`) · **Verified**
 - **Regression test:** n/a (docs)
 - **Resolution:** Removed the root copies; `MarkDown/` (created by the "Repo reordered" commit) is the single home for `UC.md`, `Progress.md` and `PROJECT_STRUCTURE.md`. `bugreport.md` and `AGENTS.md` stay in the root. Links in the README and this report point to `MarkDown/`.
 
@@ -562,7 +562,7 @@ Commit `41f9fc5` "Repo reordered" *copied* `Progress.md`, `UC.md` and `PROJECT_S
 
 <a id="doc-002"></a>
 ### DOC-002 — README overstates 1NF and omits implemented features
-- **Severity:** Low · **Status:** Fixed · **By inspection** · [README.md](README.md)
+- **Severity:** Low · **Status:** Fixed (`6fcb8d9`) · **By inspection** · [README.md](README.md)
 - **Regression test:** n/a (docs)
 - **Resolution:** The README lists minimal cover, 3NF synthesis and Check Result in features and usage, describes the current algorithms (pruned key search, F⁺-based BCNF, preservation test, chase), states the 20-attribute limit and the name rules, documents `build-exe.bat`, uses the real clone URL and issues link, and lists the current classes. The 1NF wording was fixed with BUG-007. The license line is still a placeholder: that choice is the owner's.
 
@@ -570,7 +570,7 @@ The README claims a 1NF atomicity check (BUG-007). It does not mention minimal c
 
 <a id="doc-003"></a>
 ### DOC-003 — `UC.md` is out of date with the implementation
-- **Severity:** Low · **Status:** Fixed · **By inspection** · [UC.md](MarkDown/UC.md)
+- **Severity:** Low · **Status:** Fixed (`6fcb8d9`) · **By inspection** · [UC.md](MarkDown/UC.md)
 - **Regression test:** n/a (docs)
 - **Resolution:** `MarkDown/UC.md` now matches the app: features and requirements include minimal cover, 3NF synthesis and decomposition checks; UC-5 states that 1NF is assumed; UC-6 describes the step trace instead of a tree and points to Check Result for lost dependencies; UC-7 describes the Explain button instead of an "explanation mode"; new UC-8 (3NF synthesis) and UC-9 (Check Result); UC-1/UC-2 list the name, limit and ambiguity errors; the performance and reliability requirements state what the app now guarantees; the implemented preservation checker was removed from Future Enhancements.
 
@@ -609,3 +609,4 @@ These were checked during the review, so later reviews can skip them unless the 
 | 2026-10-12 | `caef5f5` | Fixed all critical and high issues: BUG-001, -002, -003, -004, -005, -006, plus BUG-010 along the way. TEST-001 and TEST-002 in progress. Added `AnalysisLimits.MAX_ATTRIBUTES` = 20. |
 | 2026-10-12 | `5345b5f` | Fixed BUG-008 (canonical ordering via `FdOrder`). Removed dead code (CQ-001, CQ-006) and regenerated `PROJECT_STRUCTURE.md` (DOC-004). BUG-013 in progress. Test count drops to 90 because tests of removed methods were deleted. |
 | 2026-10-12 | `2ea1c2a` | Fixed every medium issue: BUG-007, -009, -011, -012, -013, TEST-001, TEST-002, plus BUG-018 along the way. Added `PropertyTest` and `TextbookExamplesTest`. Behaviour changes: attribute names must match `[A-Za-z_][A-Za-z0-9_]*`; compact FD input is split into the relation's attributes; 1NF is shown as an assumption. |
+| 2026-10-12 | `6fcb8d9` | Fixed the 18 remaining low issues. BLD-002 turned out to break the `.exe` build on current JDKs; fixed and verified by building and starting the app image. Added `MainControllerUiTest` (skipped without a display). No open issues. |

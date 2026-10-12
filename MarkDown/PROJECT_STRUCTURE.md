@@ -22,7 +22,7 @@ dbms-normalizer/
 ├── AGENTS.md                                   # Instructions for AI agents
 ├── MarkDown/                                   # UC.md, Progress.md, this file
 ├── build-exe.bat / build-exe.ps1               # Windows .exe packaging (jpackage)
-├── .github/workflows/ci.yml                    # CI: build and test on push
+├── .github/workflows/ci.yml                    # CI: build and test (main and PRs)
 │
 └── src/
     ├── main/

@@ -15,6 +15,6 @@
 
 ## Project notes
 
-- Build and test with `mvn -B verify`. CI runs on every push.
+- Build and test with `mvn -B verify`. CI runs on pushes to `main` and on pull requests. `MainControllerUiTest` needs a display, so it is skipped in CI; run it locally after UI changes.
 - The UI is a single window: `src/main/resources/fxml/main.fxml` with `MainController`. The old per-feature controllers, FXML files and components were removed as dead code (CQ-001); don't re-create them without a caller.
 - Algorithm changes need tests that check correctness invariants (see TEST-002), not just "result is non-empty".
