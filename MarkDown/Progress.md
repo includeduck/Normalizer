@@ -44,7 +44,7 @@ Known defects and their fixes are tracked in [`bugreport.md`](../bugreport.md); 
 - [x] 3NF synthesis (minimal cover, one relation per left side, key relation, remove subsumed), with projected FDs.
 - [x] Dependency preservation (standard fixed-point test) and lossless join (binary shortcut and chase).
 - [x] Results do not depend on hash-set iteration order (`FdOrder`).
-- [x] Project scope is through BCNF; 4NF/5NF support is not planned.
+- [x] Implemented scope: normalization up to BCNF (4NF/5NF planned below).
 
 ### Tests And Verification
 - [x] 123 tests, all passing (`./mvnw -B verify`).
@@ -62,7 +62,16 @@ Known defects and their fixes are tracked in [`bugreport.md`](../bugreport.md); 
 - [ ] Optionally run JavaFX from the module path in the packaged app, to remove its "unsupported configuration" start-up warning.
 - [ ] Optionally run `MainControllerUiTest` in CI (needs a virtual display, e.g. xvfb).
 
-### Features (see `UC.md`, section 6)
+### 4NF and 5NF (see [Roadmap.md](Roadmap.md))
+- [ ] Phase 1: MVD and JD model classes, parser (`X ->> Y`, `*(A,B | B,C)`), UI input and listing.
+- [ ] Phase 2: implication engine (chase for FDs, MVDs and JDs; dependency basis cross-checked against it).
+- [ ] Phase 3: closures and candidate keys under FDs + MVDs; 4NF check with traces.
+- [ ] Phase 4: 4NF decomposition and dependency projection; Check Result reports lost MVDs/JDs.
+- [ ] Phase 5: 5NF check with respect to the given dependencies; 5NF decomposition.
+- [ ] Phase 6: examples, limits and performance tests, docs and tutorial.
+- [ ] Owner decisions needed first: JD syntax, effect of MVDs on the existing FD features, 4NF/5NF attribute limit, 5NF scope (see the roadmap's open questions).
+
+### Other Features (see `UC.md`, section 6)
 - [ ] Save and load analysis sessions.
 - [ ] SQL schema export.
 - [ ] Minimal cover visualization.

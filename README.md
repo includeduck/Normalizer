@@ -49,7 +49,7 @@ Normalizer/
 ├── README.md
 ├── bugreport.md                              # Known issues and their status
 ├── AGENTS.md                                 # Instructions for AI agents
-├── MarkDown/                                 # Use cases, progress, project structure
+├── MarkDown/                                 # Use cases, progress, roadmap, project structure
 ├── build-exe.bat / build-exe.ps1             # Windows .exe packaging
 ├── mvnw / mvnw.cmd, .mvn/wrapper/            # Maven Wrapper (pins the Maven version)
 ├── src/
@@ -217,12 +217,14 @@ See [MarkDown/PROJECT_STRUCTURE.md](MarkDown/PROJECT_STRUCTURE.md) for the full 
 - [ ] Minimal cover visualization
 - [ ] Interactive decomposition graphs
 - [ ] Report generation
+- [ ] 4NF and 5NF: multivalued and join dependencies, checks and decompositions (planned; see [MarkDown/Roadmap.md](MarkDown/Roadmap.md))
 
-The project's scope is normalization up to BCNF; 4NF/5NF and multi-valued dependencies are not planned.
+Normalization currently goes up to BCNF.
 
 ## 📚 Documentation
 - [MarkDown/UC.md](MarkDown/UC.md): use cases and requirements
 - [MarkDown/Progress.md](MarkDown/Progress.md): what is implemented and what remains
+- [MarkDown/Roadmap.md](MarkDown/Roadmap.md): plan for 4NF and 5NF support
 - [MarkDown/PROJECT_STRUCTURE.md](MarkDown/PROJECT_STRUCTURE.md): project layout and class relationships
 - [bugreport.md](bugreport.md): known issues and their status
 

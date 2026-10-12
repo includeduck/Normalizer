@@ -20,7 +20,7 @@ dbms-normalizer/
 ├── README.md                                   # Project documentation
 ├── bugreport.md                                # Running bug and issue log
 ├── AGENTS.md                                   # Instructions for AI agents
-├── MarkDown/                                   # UC.md, Progress.md, this file
+├── MarkDown/                                   # UC.md, Progress.md, Roadmap.md, this file
 ├── build-exe.bat / build-exe.ps1               # Windows .exe packaging (jpackage)
 ├── mvnw / mvnw.cmd, .mvn/wrapper/              # Maven Wrapper (pins Maven 3.9.16)
 ├── .github/workflows/ci.yml                    # CI: build and test (main and PRs)

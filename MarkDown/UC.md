@@ -234,7 +234,7 @@ Every other action (closure, keys, minimal cover, BCNF, 3NF, Check Result) also 
 | Usability      | The application should remain beginner-friendly and educational. |
 | Reliability    | Invalid input is reported with a message naming the problem; unexpected errors are shown in an error dialog. |
 | Maintainability| UI logic and DBMS algorithms should remain separated.           |
-| Scope          | Normalization up to BCNF; 4NF/5NF and multi-valued dependencies are out of scope. |
+| Scope          | Normalization up to BCNF today; 4NF and 5NF (multivalued and join dependencies) are planned, see [Roadmap.md](Roadmap.md). |
 
 ## 6. Future Enhancements
 
@@ -243,3 +243,44 @@ Every other action (closure, keys, minimal cover, BCNF, 3NF, Check Result) also 
 - Minimal cover visualization
 - Interactive decomposition graphs
 - Report generation
+- 4NF and 5NF support: multivalued and join dependencies, checks and decompositions (see [Roadmap.md](Roadmap.md) and the planned use cases below)
+
+## 7. Planned Use Cases (4NF and 5NF)
+
+These are not implemented yet. Details, phases and open questions are in [Roadmap.md](Roadmap.md).
+
+### UC-10: Enter Multivalued and Join Dependencies (planned)
+
+**Goal:** Record MVDs and JDs alongside FDs.
+
+**Main Success Scenario:**
+1. User enters an MVD such as `course ->> teacher`, or a JD such as `*(agent,company | company,product | agent,product)`.
+2. System validates the syntax and that every attribute belongs to the relation (a JD's components must cover the relation).
+3. System lists the dependency with the others, grouped by kind.
+
+**Alternative Flows:**
+- Unknown attribute, invalid syntax, or JD components that do not cover the relation.
+
+### UC-11: Check and Decompose to 4NF (planned)
+
+**Goal:** Detect 4NF violations and produce a lossless 4NF decomposition.
+
+**Main Success Scenario:**
+1. User selects '4NF'.
+2. System finds a non-trivial MVD `X ->> Y` whose left side is not a superkey, and explains why it violates 4NF.
+3. System splits the relation into `X ∪ Y` and `X ∪ (R − Y)`, repeating until every part is in 4NF.
+4. System displays each step and the final relations with their dependencies.
+
+**Alternative Flows:**
+- Relation already in 4NF.
+- Some dependencies cannot be preserved: reported by 'Check Result'.
+
+### UC-12: Check and Decompose to 5NF (planned)
+
+**Goal:** Detect 5NF violations with respect to the given dependencies and decompose along them.
+
+**Main Success Scenario:**
+1. User selects '5NF'.
+2. System tests whether each given JD (and each MVD) is implied by the candidate keys.
+3. System reports any JD that is not implied, and decomposes along it into its components.
+4. System displays each step, and states that the result is relative to the given dependencies.
