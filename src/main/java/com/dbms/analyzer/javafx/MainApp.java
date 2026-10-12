@@ -3,7 +3,9 @@ package com.dbms.analyzer.javafx;
 import com.dbms.analyzer.DbmsApplication;
 import com.dbms.analyzer.javafx.controllers.MainController;
 import com.dbms.analyzer.javafx.utils.JavaFxSpringInjector;
+import com.dbms.analyzer.javafx.utils.UnexpectedErrorHandler;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -15,18 +17,41 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class MainApp extends Application {
 
     private ConfigurableApplicationContext applicationContext;
+    private RuntimeException startupFailure;
 
     @Override
     public void init() {
-        applicationContext = new SpringApplicationBuilder(DbmsApplication.class)
-            .headless(false)
-            .web(WebApplicationType.NONE)
-            .run(getParameters().getRaw().toArray(new String[0]));
-        JavaFxSpringInjector.setApplicationContext(applicationContext);
+        try {
+            applicationContext = new SpringApplicationBuilder(DbmsApplication.class)
+                .headless(false)
+                .web(WebApplicationType.NONE)
+                .run(getParameters().getRaw().toArray(new String[0]));
+            JavaFxSpringInjector.setApplicationContext(applicationContext);
+        } catch (RuntimeException e) {
+            // init() runs off the FX thread; report it from start()
+            startupFailure = e;
+        }
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) {
+        UnexpectedErrorHandler.install();
+
+        if (startupFailure != null) {
+            UnexpectedErrorHandler.showStartupFailure(startupFailure);
+            Platform.exit();
+            return;
+        }
+
+        try {
+            showMainWindow(stage);
+        } catch (Exception e) {
+            UnexpectedErrorHandler.showStartupFailure(e);
+            Platform.exit();
+        }
+    }
+
+    private void showMainWindow(Stage stage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(
             getClass().getResource("/fxml/main.fxml"));
         fxmlLoader.setControllerFactory(applicationContext::getBean);

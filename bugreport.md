@@ -39,7 +39,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-002](#bug-002) | Critical | Dependency-preservation check reports preserved FDs as **LOST** | Fixed |
 | [BUG-003](#bug-003) | Critical | Candidate-key search overflows at ≥ 31 attributes and returns **no keys** | Fixed |
 | [BUG-004](#bug-004) | High | Exponential key search, repeated ~7× on the UI thread: 13 s freeze at 16 attributes, out of memory at 23 | Fixed |
-| [BUG-005](#bug-005) | High | `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback | Open |
+| [BUG-005](#bug-005) | High | `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback | Fixed |
 | [BUG-006](#bug-006) | Critical | 3NF synthesis emits duplicate relations | Fixed |
 | [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Open |
 | [BUG-008](#bug-008) | Medium | Results depend on `HashSet` iteration order (BCNF split, minimal cover, chosen 3NF key) | Open |
@@ -356,7 +356,9 @@ Output from the decomposition check goes into `explanationResultArea`, replacing
 <a id="bug-005"></a>
 ### BUG-005 — `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback
 
-- **Severity:** High · **Status:** Open · **By inspection** (OOM itself verified in BUG-004)
+- **Severity:** High · **Status:** Fixed · **By inspection** (OOM itself verified in BUG-004)
+- **Regression test:** `UnexpectedErrorHandlerTest` (message mapping only; the dialog itself needs a manual check). Start-up verified manually with `mvn javafx:run`.
+- **Resolution:** Added `UnexpectedErrorHandler`, installed as the default uncaught-exception handler in `MainApp.start()`. It logs the error and shows an error dialog (deferred with `Platform.runLater`, at most one at a time) with a plain-language message for `OutOfMemoryError`/`StackOverflowError` and an expandable stack trace. Spring context failures in `init()` and FXML load failures in `start()` now show a "Startup failed" dialog and exit cleanly. The attribute limit from BUG-003/004 also removes the out-of-memory path that was observed.
 - **Location:** every `catch (RuntimeException e)` in [MainController.java](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java); app start-up in [MainApp.java](src/main/java/com/dbms/analyzer/javafx/MainApp.java)
 
 The handlers catch only `RuntimeException`. An `OutOfMemoryError` from BUG-004 escapes to the JavaFX thread's default handler: the stack trace goes to a console that the packaged `.exe` doesn't show, the UI is left part-updated, and the user sees nothing. If the Spring context fails in `MainApp.init()`, the app also dies without a dialog. This breaks the `UC.md` requirement "Invalid input should never crash the application". **Fix:** prevent the condition in the first place (BUG-004's limits). Also install `Thread.setDefaultUncaughtExceptionHandler` and show an error dialog for both start-up and runtime failures.
