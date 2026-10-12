@@ -5,10 +5,10 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-12 (after BUG-008 and the dead-code removal) |
+| **Last updated** | 2026-10-12 (all medium issues fixed) |
 | **Last full review at commit** | `6b6ad65` (Add CI Pipeline) |
-| **Test suite** | 90 tests, all passing (78 at the review, when none of them caught the bugs below) |
-| **Open issues** | 26 (0 critical, 0 high, 7 medium, 19 low), 3 of them in progress · 11 fixed |
+| **Test suite** | 112 tests, all passing (78 at the review, when none of them caught the bugs below) |
+| **Open issues** | 18 (0 critical, 0 high, 0 medium, 18 low) · 19 fixed |
 
 ---
 
@@ -41,18 +41,18 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-004](#bug-004) | High | Exponential key search, repeated ~7× on the UI thread: 13 s freeze at 16 attributes, out of memory at 23 | Fixed (`e932846`) |
 | [BUG-005](#bug-005) | High | `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback | Fixed (`caef5f5`) |
 | [BUG-006](#bug-006) | Critical | 3NF synthesis emits duplicate relations | Fixed (`c22fb93`) |
-| [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Fixed |
+| [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Fixed (`40db285`) |
 | [BUG-008](#bug-008) | Medium | Results depend on `HashSet` iteration order (BCNF split, minimal cover, chosen 3NF key) | Fixed (`135f690`) |
-| [BUG-009](#bug-009) | Medium | `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted | Fixed |
+| [BUG-009](#bug-009) | Medium | `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted | Fixed (`cbc67e5`) |
 | [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Fixed (`f4f9c8d`) |
-| [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Fixed |
-| [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Fixed |
-| [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | Fixed |
+| [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Fixed (`65954c6`) |
+| [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Fixed (`65954c6`) |
+| [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | Fixed (`ddb03b7`) |
 | [BUG-014](#bug-014) | Low | `FunctionalDependency.hashCode()` is additive, so `X→Y` and `Y→X` always collide | Open |
 | [BUG-015](#bug-015) | Low | Removing an FD in the UI matches it by `toString()` | Open |
 | [BUG-016](#bug-016) | Low | A failed "Load Example" leaves a half-built relation and a stale UI | Open |
 | [BUG-017](#bug-017) | Low | "Check Result" overwrites the Explanation tab | Open |
-| [BUG-018](#bug-018) | Low | Closure and decompositions are computed twice per click | Fixed |
+| [BUG-018](#bug-018) | Low | Closure and decompositions are computed twice per click | Fixed (`cbc67e5`) |
 | [BLD-001](#bld-001) | Low | `build-exe.ps1` hard-codes the artifact name and version | Open |
 | [BLD-002](#bld-002) | Low | `jlink --add-modules ALL-MODULE-PATH` bundles the whole JDK | Open |
 | [BLD-003](#bld-003) | Low | CI runs the test suite twice; PR branches build twice | Open |
@@ -64,8 +64,8 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [CQ-004](#cq-004) | Low | `MainController` is a 904-line god class; the service layer is mostly pass-through | Open |
 | [CQ-005](#cq-005) | Low | Defensive copies in getters run inside the hot closure loop | Open |
 | [CQ-006](#cq-006) | Low | Stale "backward compatibility" APIs with no callers | Fixed (`5345b5f`) |
-| [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | Fixed |
-| [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | Fixed |
+| [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | Fixed (`2ea1c2a`) |
+| [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | Fixed (`2ea1c2a`) |
 | [TEST-003](#test-003) | Low | Normal-form tests use hand-written candidate keys instead of computed ones | Open |
 | [TEST-004](#test-004) | Low | No tests for large inputs, performance limits, or the UI | Open |
 | [DOC-001](#doc-001) | Low | `Progress.md`, `UC.md`, `PROJECT_STRUCTURE.md` duplicated in root and `MarkDown/` | Open |
@@ -176,7 +176,7 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-007"></a>
 ### BUG-007 — 1NF is hard-coded `true` but presented as a real check
 
-- **Severity:** Medium · **Status:** Fixed · **By inspection**
+- **Severity:** Medium · **Status:** Fixed (`40db285`) · **By inspection**
 - **Regression test:** `NormalFormServiceTest.testOneNfIsPresentedAsAnAssumption`
 - **Resolution:** The always-true `is1NF()` methods were removed (checker and service). The UI, the explanation and the tutorial text now show "1NF: assumed (the tool treats every attribute as atomic)" from `NormalFormChecker.FIRST_NF_ASSUMPTION`, and the 2NF-violation explanation repeats it. The unused `NormalForm.NONE` constant was removed. README updated.
 - **Location:** [NormalFormChecker.java:23](src/main/java/com/dbms/analyzer/algorithm/NormalFormChecker.java:23); README "1NF: All attributes are atomic"
@@ -209,7 +209,7 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-009"></a>
 ### BUG-009 — `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted
 
-- **Severity:** Medium · **Status:** Fixed · **By inspection**
+- **Severity:** Medium · **Status:** Fixed (`cbc67e5`) · **By inspection**
 - **Regression test:** `ThreeNfSynthesizerTest.testTraceDescribesExactlyTheReturnedRelations`, `testResultRelationsCarryProjectedFds`, `BcnfDecomposerTest.testTraceAndResultComeFromTheSameRun`
 - **Resolution:** `ThreeNfSynthesizer` has one implementation, `synthesizeWithTrace`, returning a `Synthesis(relations, steps)` record; `synthesize` and `synthesizeWithSteps` delegate to it. `BcnfDecomposer.decomposeWithTrace` returns a `Decomposition(relations, explanation)` record the same way. The services expose only these `…WithTrace()` methods, and `MainController` stores the relations from the run it displays. 3NF relations now carry a minimal cover of the true projection of F⁺ (shared `FdProjector`, extracted from the BCNF code), and the trace lists those FDs. This also resolves the 3NF note under BUG-001.
 - **Location:** [ThreeNfSynthesizer.java:133](src/main/java/com/dbms/analyzer/algorithm/ThreeNfSynthesizer.java:133); [MainController.java:488](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:488)
@@ -237,7 +237,7 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-011"></a>
 ### BUG-011 — Relation schema parser accepts attribute names that can never be used in an FD
 
-- **Severity:** Medium · **Status:** Fixed · **Verified**
+- **Severity:** Medium · **Status:** Fixed (`65954c6`) · **Verified**
 - **Regression test:** `RelationServiceTest.testAttributeNamesFollowTheFdGrammar`, `FdUtilTest.testInvalidNamesAreRejectedEverywhere`
 - **Resolution:** One name grammar, `[A-Za-z_][A-Za-z0-9_]*` (`FdUtil.isValidName`/`requireValidName`), is enforced for the relation name and attributes in `RelationService.createRelation`, and for every attribute token the FD/closure parser accepts. Errors name the bad token. Behaviour change: digit-only names such as `1` are no longer valid attributes.
 - **Location:** [RelationService.java:35](src/main/java/com/dbms/analyzer/service/RelationService.java:35)
@@ -251,7 +251,7 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-012"></a>
 ### BUG-012 — FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors
 
-- **Severity:** Medium · **Status:** Fixed · **Verified**
+- **Severity:** Medium · **Status:** Fixed (`65954c6`) · **Verified**
 - **Regression test:** `FdUtilTest.testLowercaseCompactInputIsSplitLikeUppercase`, `testCompactInputSplitsIntoMultiCharacterAttributes`, `testAmbiguousCompactInputIsRejected`, `testExactAttributeNameWinsOverSplitting`, `testSplittingWithManyDeadEndsIsFast`, `FdServiceTest.testUnknownAttributeErrorNamesTheAttribute`
 - **Resolution:** Input without separators is resolved against the relation: an exact attribute name wins; otherwise it is split into a sequence of the relation's attribute names, the same way for upper and lower case (`ab` on `R(a,b)`, `A1B` on `R(A1,B)`). If it splits more than one way (`ABC` on `R(A,B,AB,C)`), it is rejected with a message asking for commas. The split search remembers dead ends, so it stays fast. Unknown-attribute errors in `FdService` and `ClosureService` now name the attributes and list the relation's attributes. The duplicate regex patterns are gone; without a relation for context, only runs of uppercase letters are treated as shorthand. README updated.
 - **Location:** [FdUtil.java:12](src/main/java/com/dbms/analyzer/algorithm/FdUtil.java:12) (`attributeTokens`)
@@ -269,7 +269,7 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-013"></a>
 ### BUG-013 — Mutable model objects are stored in hash-based collections
 
-- **Severity:** Medium · **Status:** Fixed · **By inspection**
+- **Severity:** Medium · **Status:** Fixed (`ddb03b7`) · **By inspection**
 - **Regression test:** `RelationTest` (copies, equality, `with`/`without`)
 - **Resolution:** `Relation` is now immutable: FDs are given to the constructor and `withFunctionalDependency`/`withoutFunctionalDependency` return new relations; `FdService` swaps the current relation via a package-private `RelationService.replaceCurrentRelation`. `equals`/`hashCode` now include the FDs, which is safe because nothing can change them. Together with the earlier removal of the setters, all model classes used in hash-based collections are immutable.
 - **Location:** [FunctionalDependency.java](src/main/java/com/dbms/analyzer/model/FunctionalDependency.java), [Relation.java](src/main/java/com/dbms/analyzer/model/Relation.java), [CandidateKey.java](src/main/java/com/dbms/analyzer/model/CandidateKey.java)
@@ -323,7 +323,7 @@ Output from the decomposition check goes into `explanationResultArea`, replacing
 <a id="bug-018"></a>
 ### BUG-018 — Closure and decompositions are computed twice per click
 
-- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Severity:** Low · **Status:** Fixed (`cbc67e5`) · **By inspection**
 - **Regression test:** covered by the BUG-009 tests (single run per decomposition)
 - **Resolution:** Decompositions run once per click (BUG-009). The closure action now only calls `computeClosureWithSteps`, whose trace already ends with the final closure. `ClosureService.computeClosure` remains as the service's result method and is used by its tests.
 - **Location:** [MainController.java:739](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:739), [MainController.java:469](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:469), [MainController.java:488](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:488)
@@ -477,7 +477,7 @@ Delete them.
 
 <a id="test-001"></a>
 ### TEST-001 — Several tests have assertions that can never fail
-- **Severity:** Medium · **Status:** Fixed · **Verified**
+- **Severity:** Medium · **Status:** Fixed (`2ea1c2a`) · **Verified**
 - **Regression test:** n/a (test-only change)
 - **Resolution:** Every listed test now asserts exact results: `ThreeNfSynthesizerTest` checks exact schemas and trace lines (`testClassicDecomposition`, `testCandidateKeyRelationAdded`, `testWithStepsShowsEachStep`); the `*WithSteps` tests for minimal cover, dependency preservation and lossless join check specific lines and the final verdict (plus a new lossy binary case); `NormalFormCheckerTest.test2NFViolationForPartialDependency` checks the exact violation. Earlier fixes covered the BCNF and candidate-key tests.
 
@@ -491,7 +491,7 @@ Delete them.
 
 <a id="test-002"></a>
 ### TEST-002 — No invariant/property-based tests for the decomposition algorithms
-- **Severity:** Medium · **Status:** Fixed
+- **Severity:** Medium · **Status:** Fixed (`2ea1c2a`)
 - **Regression test:** `PropertyTest`, `TextbookExamplesTest` (plus the random tests in `CandidateKeyFinderTest`, `BcnfDecomposerTest`, `OrderIndependenceTest`)
 - **Resolution:** All seven properties are now covered by seeded random tests against brute-force oracles: (1) BCNF output and (2) losslessness in `BcnfDecomposerTest`; (3) 3NF synthesis is lossless (a relation contains a key), dependency-preserving and in 3NF, with no subsumed schemas, in `PropertyTest`; (4) candidate keys in `CandidateKeyFinderTest`; (5) minimal cover is equivalent, with no trivial, redundant or extraneous parts, in `PropertyTest`; (6) plain vs. traced results in the BCNF/3NF tests; (7) order independence in `OrderIndependenceTest`. `PropertyTest` also checks the highest normal form against brute force. Verified by mutation: removing the 3NF key step, the redundant-FD step, or the BCNF check each fails `PropertyTest`. `TextbookExamplesTest` pins three standard exercises with exact answers. jqwik was not added; plain JUnit with fixed seeds keeps failures reproducible without a new dependency.
 
@@ -572,3 +572,4 @@ These were checked during the review, so later reviews can skip them unless the 
 | 2026-10-12 | `6b6ad65` | Initial full review. 37 issues logged. Reproductions verified with throwaway probe tests (not committed). |
 | 2026-10-12 | `caef5f5` | Fixed all critical and high issues: BUG-001, -002, -003, -004, -005, -006, plus BUG-010 along the way. TEST-001 and TEST-002 in progress. Added `AnalysisLimits.MAX_ATTRIBUTES` = 20. |
 | 2026-10-12 | `5345b5f` | Fixed BUG-008 (canonical ordering via `FdOrder`). Removed dead code (CQ-001, CQ-006) and regenerated `PROJECT_STRUCTURE.md` (DOC-004). BUG-013 in progress. Test count drops to 90 because tests of removed methods were deleted. |
+| 2026-10-12 | `2ea1c2a` | Fixed every medium issue: BUG-007, -009, -011, -012, -013, TEST-001, TEST-002, plus BUG-018 along the way. Added `PropertyTest` and `TextbookExamplesTest`. Behaviour changes: attribute names must match `[A-Za-z_][A-Za-z0-9_]*`; compact FD input is split into the relation's attributes; 1NF is shown as an assumption. |
