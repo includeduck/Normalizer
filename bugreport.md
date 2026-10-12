@@ -5,17 +5,17 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-12 |
+| **Last updated** | 2026-10-12 (after the severe-bug fixes) |
 | **Last full review at commit** | `6b6ad65` (Add CI Pipeline) |
-| **Test suite at review** | 78 tests, all passing — none of them catch the bugs below |
-| **Open issues** | 37 (4 critical, 2 high, 9 medium, 22 low) |
+| **Test suite** | 92 tests, all passing (78 at the review, when none of them caught the bugs below) |
+| **Open issues** | 30 (0 critical, 0 high, 9 medium, 21 low), 2 of them in progress · 7 fixed |
 
 ---
 
 ## How to maintain this file
 
-- **Status values:** `Open` · `In progress` · `Fixed (<commit>)` · `Won't fix (<reason>)` · `Cannot reproduce`
-- **When you fix an issue:** set its status to `Fixed (<short-sha>)`, name the regression test that now covers it, and update the summary table and the counts above. Don't delete fixed entries; they record what used to be broken.
+- **Status values:** `Open` · `In progress` (add a **Progress:** line) · `Fixed (<commit>)` · `Won't fix (<reason>)` · `Cannot reproduce`
+- **When you fix an issue:** set its status to `Fixed (<short-sha>)`, name the regression test that now covers it, and update the summary table and the counts above. Don't delete fixed entries; they record what used to be broken. A commit can't contain its own hash, so write `Fixed` in the fix commit and fill in the hash in a follow-up commit.
 - **When you find an issue:** give it the next free ID in its category, add a row to the summary table, and include a reproduction that someone else can run.
 - **After a full review:** update *Last full review at commit* and add a line to the [Changelog](#changelog).
 - Every entry should say how it was established: **Verified** (reproduced by running code) or **By inspection** (found by reading or tracing the code, not run).
@@ -35,16 +35,16 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 
 | ID | Severity | Title | Status |
 |---|---|---|---|
-| [BUG-001](#bug-001) | Critical | Naive FD projection: BCNF decomposition can return relations that are **not** in BCNF | Fixed |
-| [BUG-002](#bug-002) | Critical | Dependency-preservation check reports preserved FDs as **LOST** | Fixed |
-| [BUG-003](#bug-003) | Critical | Candidate-key search overflows at ≥ 31 attributes and returns **no keys** | Fixed |
-| [BUG-004](#bug-004) | High | Exponential key search, repeated ~7× on the UI thread: 13 s freeze at 16 attributes, out of memory at 23 | Fixed |
-| [BUG-005](#bug-005) | High | `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback | Fixed |
-| [BUG-006](#bug-006) | Critical | 3NF synthesis emits duplicate relations | Fixed |
+| [BUG-001](#bug-001) | Critical | Naive FD projection: BCNF decomposition can return relations that are **not** in BCNF | Fixed (`f4f9c8d`) |
+| [BUG-002](#bug-002) | Critical | Dependency-preservation check reports preserved FDs as **LOST** | Fixed (`719d049`) |
+| [BUG-003](#bug-003) | Critical | Candidate-key search overflows at ≥ 31 attributes and returns **no keys** | Fixed (`e932846`) |
+| [BUG-004](#bug-004) | High | Exponential key search, repeated ~7× on the UI thread: 13 s freeze at 16 attributes, out of memory at 23 | Fixed (`e932846`) |
+| [BUG-005](#bug-005) | High | `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback | Fixed (`caef5f5`) |
+| [BUG-006](#bug-006) | Critical | 3NF synthesis emits duplicate relations | Fixed (`c22fb93`) |
 | [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Open |
 | [BUG-008](#bug-008) | Medium | Results depend on `HashSet` iteration order (BCNF split, minimal cover, chosen 3NF key) | Open |
 | [BUG-009](#bug-009) | Medium | `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted | Open |
-| [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Fixed |
+| [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Fixed (`f4f9c8d`) |
 | [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Open |
 | [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Open |
 | [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | Open |
@@ -64,8 +64,8 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [CQ-004](#cq-004) | Low | `MainController` is a 904-line god class; the service layer is mostly pass-through | Open |
 | [CQ-005](#cq-005) | Low | Defensive copies in getters run inside the hot closure loop | Open |
 | [CQ-006](#cq-006) | Low | Stale "backward compatibility" APIs with no callers | Open |
-| [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | Open |
-| [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | Open |
+| [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | In progress |
+| [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | In progress |
 | [TEST-003](#test-003) | Low | Normal-form tests use hand-written candidate keys instead of computed ones | Open |
 | [TEST-004](#test-004) | Low | No tests for large inputs, performance limits, or the UI | Open |
 | [DOC-001](#doc-001) | Low | `Progress.md`, `UC.md`, `PROJECT_STRUCTURE.md` duplicated in root and `MarkDown/` | Open |
@@ -80,7 +80,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 <a id="bug-001"></a>
 ### BUG-001 — Naive FD projection: BCNF decomposition can return relations that are not in BCNF
 
-- **Severity:** Critical · **Status:** Fixed · **Verified**
+- **Severity:** Critical · **Status:** Fixed (`f4f9c8d`) · **Verified**
 - **Regression test:** `BcnfDecomposerTest.testViolationImpliedThroughRemovedAttribute`, `testInvariantsOnRandomRelations` (300 seeded random relations checked against brute-force BCNF, projection, and lossless-join oracles), `testFinalRelationsCarryProjectedFds`
 - **Resolution:** All closures are now taken under the original F. On the original relation the given FDs are checked, which is sufficient. A sub-relation Ri is checked with given FDs inside Ri first, then every X ⊆ Ri, smallest first (`X⁺ ∩ Ri ⊋ X` and `≠ Ri`). The reported violating FD is `X → (X⁺ ∩ Ri) − X`. Final relations carry a minimal cover of the true projection of F⁺, computed from minimal determinants only. FDs are processed in sorted order, so results are deterministic. Uses the bitmask `FdBitIndex`; a 20-attribute chain decomposes in well under a second. Not yet fixed: the 3NF synthesizer still attaches only the minimal-cover FDs that fit inside each relation (display only; BUG-009 tracks the duplicated 3NF code).
 - **Location:** [BcnfDecomposer.java:198](src/main/java/com/dbms/analyzer/algorithm/BcnfDecomposer.java:198) (`projectFdsOnto`); the same logic is in [ThreeNfSynthesizer.java](src/main/java/com/dbms/analyzer/algorithm/ThreeNfSynthesizer.java) (result FD attachment)
@@ -112,7 +112,7 @@ R_2(A,C,D)  FDs: (none)
 <a id="bug-002"></a>
 ### BUG-002 — Dependency-preservation check reports preserved FDs as LOST
 
-- **Severity:** Critical · **Status:** Fixed · **Verified**
+- **Severity:** Critical · **Status:** Fixed (`719d049`) · **Verified**
 - **Regression test:** `DependencyPreservationCheckerTest.testPreservedThroughImpliedDependencies`, `testPreservedWhenOriginalFdSpansRelations`
 - **Resolution:** Replaced the projection with the standard `res ∪= (res ∩ Ri)⁺ ∩ Ri` fixed-point test, using closures under the original F. The step-by-step view now shows how `res` grows through each Ri. Removed the naive public `projectFds` method, which had no other callers. FDs and relations are processed in sorted order, so the trace is deterministic.
 - **Location:** [DependencyPreservationChecker.java:126](src/main/java/com/dbms/analyzer/algorithm/DependencyPreservationChecker.java:126) (`projectFds`), used by `findLostDependencies`, `isPreserved` and `checkWithSteps`
@@ -144,7 +144,7 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-003"></a>
 ### BUG-003 — Candidate-key search overflows at ≥ 31 attributes and returns no keys
 
-- **Severity:** Critical · **Status:** Fixed · **Verified**
+- **Severity:** Critical · **Status:** Fixed (`e932846`) · **Verified**
 - **Regression test:** `CandidateKeyFinderTest.testRelationAboveLimitIsRejected`, `testLargestAllowedRelationWithoutFds`, `RelationServiceTest.testRelationAboveAttributeLimitIsRejected`
 - **Resolution:** Added `AnalysisLimits.MAX_ATTRIBUTES` (20), enforced in `RelationService.createRelation` (with a clear message) and in `CandidateKeyFinder`. Subset masks are now `long` values in the new `FdBitIndex` helper, which rejects universes over 63 attributes. The `1 << n` loop in `NormalFormChecker` is gone (see BUG-004).
 - **Location:** [CandidateKeyFinder.java:68](src/main/java/com/dbms/analyzer/algorithm/CandidateKeyFinder.java:68)
@@ -160,8 +160,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-006"></a>
 ### BUG-006 — 3NF synthesis emits duplicate relations
 
-- **Severity:** Critical · **Status:** Fixed · **Verified**
+- **Severity:** Critical · **Status:** Fixed (`c22fb93`) · **Verified**
 - **Regression test:** `ThreeNfSynthesizerTest.testIdenticalSchemasAreMergedIntoOne`
+- **Resolution:** Step 4 now also removes a schema that duplicates an earlier one (keeping the first), in both `synthesize()` and `synthesizeWithSteps()`.
 - **Location:** [ThreeNfSynthesizer.java:92](src/main/java/com/dbms/analyzer/algorithm/ThreeNfSynthesizer.java:92) (step 4), and again in `synthesizeWithSteps`
 
 **Description.** Step 4 only removes a schema that is a **strict** subset of another (`containsAll && !reverse containsAll`). Two identical schemas never subsume each other, so both survive.
@@ -216,7 +217,7 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-010"></a>
 ### BUG-010 — BCNF step numbering can produce duplicate or skipped step numbers
 
-- **Severity:** Low · **Status:** Fixed · **By inspection** (traced, not reproduced)
+- **Severity:** Low · **Status:** Fixed (`f4f9c8d`) · **By inspection** (traced, not reproduced)
 - **Regression test:** `BcnfDecomposerTest.testStepNumbersAreSequential`
 - **Resolution:** Fixed as part of the BUG-001 rewrite: each step is numbered `stepLog.size() + 1` when it is recorded, so numbers are sequential by construction. The regression test asserts 1..n; it also passed on the old code for its input, so it guards the invariant rather than reproducing the original collision.
 - **Location:** [BcnfDecomposer.java:155](src/main/java/com/dbms/analyzer/algorithm/BcnfDecomposer.java:155)
@@ -322,7 +323,7 @@ Output from the decomposition check goes into `explanationResultArea`, replacing
 <a id="bug-004"></a>
 ### BUG-004 — Exponential key search, repeated ~7× on the UI thread
 
-- **Severity:** High · **Status:** Fixed · **Verified**
+- **Severity:** High · **Status:** Fixed (`e932846`) · **Verified**
 - **Regression test:** `CandidateKeyFinderTest.testWorstCaseAtLimitFinishesQuickly`, `testMatchesBruteForceOnRandomRelations`, `NormalFormServiceTest.testNormalFormClickAtAttributeLimitIsFast`
 - **Resolution:** Rewrote `CandidateKeyFinder`: attributes are classified (core / never-in-key / optional), only optional subsets are searched with bitmask closures, smallest first, and supersets of found keys are skipped. `CandidateKeyService` caches keys until the attributes or FDs change. The 2NF check now tests only the maximal proper subsets K − {a} (closure is monotone, so this is equivalent) instead of all 2^|K| subsets, and reports a minimal determinant. Measured: one Normal Form click at 20 attributes takes ~32 ms, versus 13.4 s at 16 attributes before; the worst case at the limit (2^10 keys) takes under 1 s. The work still runs on the JavaFX thread, but the attribute limit now bounds it; moving it into a background `Task` remains a possible follow-up.
 - **Location:** [CandidateKeyFinder.java](src/main/java/com/dbms/analyzer/algorithm/CandidateKeyFinder.java); callers in [MainController.java:405](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:405) and [MainController.java:631](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:631)
@@ -356,7 +357,7 @@ Output from the decomposition check goes into `explanationResultArea`, replacing
 <a id="bug-005"></a>
 ### BUG-005 — `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback
 
-- **Severity:** High · **Status:** Fixed · **By inspection** (OOM itself verified in BUG-004)
+- **Severity:** High · **Status:** Fixed (`caef5f5`) · **By inspection** (OOM itself verified in BUG-004)
 - **Regression test:** `UnexpectedErrorHandlerTest` (message mapping only; the dialog itself needs a manual check). Start-up verified manually with `mvn javafx:run`.
 - **Resolution:** Added `UnexpectedErrorHandler`, installed as the default uncaught-exception handler in `MainApp.start()`. It logs the error and shows an error dialog (deferred with `Platform.runLater`, at most one at a time) with a plain-language message for `OutOfMemoryError`/`StackOverflowError` and an expandable stack trace. Spring context failures in `init()` and FXML load failures in `start()` now show a "Startup failed" dialog and exit cleanly. The attribute limit from BUG-003/004 also removes the out-of-memory path that was observed.
 - **Location:** every `catch (RuntimeException e)` in [MainController.java](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java); app start-up in [MainApp.java](src/main/java/com/dbms/analyzer/javafx/MainApp.java)
@@ -460,7 +461,8 @@ Delete them.
 
 <a id="test-001"></a>
 ### TEST-001 — Several tests have assertions that can never fail
-- **Severity:** Medium · **Status:** Open · **Verified**
+- **Severity:** Medium · **Status:** In progress · **Verified**
+- **Progress:** `BcnfDecomposerTest.testBcnfViolation` and both `CandidateKeyFinderTest` cases now assert exact results. Still open: `ThreeNfSynthesizerTest.testClassicDecomposition` and the `*WithSteps` tests.
 
 | Test | Problem |
 |---|---|
@@ -472,7 +474,8 @@ Delete them.
 
 <a id="test-002"></a>
 ### TEST-002 — No invariant/property-based tests for the decomposition algorithms
-- **Severity:** Medium · **Status:** Open
+- **Severity:** Medium · **Status:** In progress
+- **Progress:** Added seeded random tests with brute-force oracles for the candidate-key finder (`CandidateKeyFinderTest.testMatchesBruteForceOnRandomRelations`) and BCNF decomposition (`BcnfDecomposerTest.testInvariantsOnRandomRelations`: BCNF, lossless join, projection equivalence, attribute coverage, plain vs. with-steps). Still open: properties 3, 5 and 7 (3NF synthesis, minimal cover, order independence).
 
 None of the bugs BUG-001, -002, -003 or -006 would survive tests like these. Add jqwik (or a seeded random loop in JUnit) over random schemas with 2–7 attributes and 0–6 FDs, and assert:
 1. Every BCNF output relation is in BCNF under the **true** projection (check with a brute-force F⁺ oracle in test code).
@@ -548,3 +551,4 @@ These were checked during the review, so later reviews can skip them unless the 
 | Date | Commit | Change |
 |---|---|---|
 | 2026-10-12 | `6b6ad65` | Initial full review. 37 issues logged. Reproductions verified with throwaway probe tests (not committed). |
+| 2026-10-12 | `caef5f5` | Fixed all critical and high issues: BUG-001, -002, -003, -004, -005, -006, plus BUG-010 along the way. TEST-001 and TEST-002 in progress. Added `AnalysisLimits.MAX_ATTRIBUTES` = 20. |
