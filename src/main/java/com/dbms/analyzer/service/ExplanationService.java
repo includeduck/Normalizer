@@ -1,6 +1,7 @@
 package com.dbms.analyzer.service;
 
 import org.springframework.stereotype.Service;
+import com.dbms.analyzer.algorithm.FdOrder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -43,7 +44,7 @@ public class ExplanationService {
         explanation.add("Finding all candidate keys...");
         explanation.add("Candidate keys are minimal superkeys.");
         
-        candidateKeyService.findAllCandidateKeys().forEach(key ->
+        FdOrder.sortedKeys(candidateKeyService.findAllCandidateKeys()).forEach(key ->
             explanation.add("  Candidate Key: " + key));
 
         explanation.add("");

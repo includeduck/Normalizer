@@ -48,6 +48,7 @@ public class LosslessJoinChecker {
             Set<Relation> decomposedRelations) {
 
         List<Relation> relations = new ArrayList<>(decomposedRelations);
+        relations.sort(java.util.Comparator.comparing(Relation::getName));
 
         // Binary shortcut
         if (relations.size() == 2) {
@@ -71,6 +72,7 @@ public class LosslessJoinChecker {
         steps.add("");
 
         List<Relation> relations = new ArrayList<>(decomposedRelations);
+        relations.sort(java.util.Comparator.comparing(Relation::getName));
 
         if (relations.size() == 2) {
             return binaryCheckWithSteps(
@@ -165,7 +167,7 @@ public class LosslessJoinChecker {
         boolean changed = true;
         while (changed) {
             changed = false;
-            for (FunctionalDependency fd : fds) {
+            for (FunctionalDependency fd : FdOrder.sorted(fds)) {
                 changed |= applyFd(table, attrList, fd, rows);
             }
         }
@@ -197,7 +199,7 @@ public class LosslessJoinChecker {
         while (changed) {
             changed = false;
             iteration++;
-            for (FunctionalDependency fd : fds) {
+            for (FunctionalDependency fd : FdOrder.sorted(fds)) {
                 boolean applied = applyFd(table, attrList, fd, rows);
                 if (applied) {
                     changed = true;

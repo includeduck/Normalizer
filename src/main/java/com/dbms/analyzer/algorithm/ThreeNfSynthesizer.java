@@ -83,8 +83,8 @@ public class ThreeNfSynthesizer {
         }
 
         if (!keyPresent && !candidateKeys.isEmpty()) {
-            // Pick one candidate key and add a relation for it
-            CandidateKey chosen = candidateKeys.iterator().next();
+            // Add a relation for the smallest key (alphabetically first on ties)
+            CandidateKey chosen = FdOrder.sortedKeys(candidateKeys).get(0);
             schemas.add(new TreeSet<>(chosen.getAttributes()));
             schemaFds.add(new LinkedHashSet<>());
         }
@@ -178,9 +178,10 @@ public class ThreeNfSynthesizer {
         if (keyPresent) {
             steps.add("  A candidate key is already present. No extra relation needed.");
         } else if (!candidateKeys.isEmpty()) {
-            CandidateKey chosen = candidateKeys.iterator().next();
+            CandidateKey chosen = FdOrder.sortedKeys(candidateKeys).get(0);
             schemas.add(new TreeSet<>(chosen.getAttributes()));
-            steps.add("  No candidate key found. Adding relation for key: " + chosen);
+            steps.add("  No relation contains a candidate key. Adding relation for key "
+                    + chosen + " (smallest key, alphabetically first on ties).");
         }
         steps.add("");
 

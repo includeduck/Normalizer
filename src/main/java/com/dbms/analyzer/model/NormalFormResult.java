@@ -1,6 +1,6 @@
 package com.dbms.analyzer.model;
 
-import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.Set;
 
 public class NormalFormResult {
@@ -14,7 +14,7 @@ public class NormalFormResult {
 
     public NormalFormResult(NormalForm highestNormalForm, Set<String> violations, String explanation) {
         this.highestNormalForm = highestNormalForm;
-        this.violations = new HashSet<>(violations);
+        this.violations = new TreeSet<>(violations);
         this.explanation = explanation;
     }
 
@@ -23,7 +23,7 @@ public class NormalFormResult {
     }
 
     public Set<String> getViolations() {
-        return new HashSet<>(violations);
+        return new TreeSet<>(violations);
     }
 
     public String getExplanation() {

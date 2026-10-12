@@ -1,7 +1,6 @@
 package com.dbms.analyzer.algorithm;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -292,7 +291,7 @@ public class BcnfDecomposer {
 
     private static List<FunctionalDependency> sortedFds(Set<FunctionalDependency> fds) {
         List<FunctionalDependency> sorted = new ArrayList<>(fds);
-        sorted.sort(Comparator.comparing(FunctionalDependency::toString));
+        sorted.sort(FdOrder.CANONICAL);
         return sorted;
     }
 

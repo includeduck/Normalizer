@@ -42,7 +42,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-005](#bug-005) | High | `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback | Fixed (`caef5f5`) |
 | [BUG-006](#bug-006) | Critical | 3NF synthesis emits duplicate relations | Fixed (`c22fb93`) |
 | [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Open |
-| [BUG-008](#bug-008) | Medium | Results depend on `HashSet` iteration order (BCNF split, minimal cover, chosen 3NF key) | Open |
+| [BUG-008](#bug-008) | Medium | Results depend on `HashSet` iteration order (BCNF split, minimal cover, chosen 3NF key) | Fixed |
 | [BUG-009](#bug-009) | Medium | `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted | Open |
 | [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Fixed (`f4f9c8d`) |
 | [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Open |
@@ -188,7 +188,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-008"></a>
 ### BUG-008 — Results depend on `HashSet` iteration order
 
-- **Severity:** Medium · **Status:** Open · **Verified** (minimal cover); **By inspection** (BCNF, 3NF)
+- **Severity:** Medium · **Status:** Fixed · **Verified** (minimal cover); **By inspection** (BCNF, 3NF)
+- **Regression test:** `OrderIndependenceTest` (all 24 orderings of the report example; 150 seeded random relations × 6 shuffles comparing every result and trace; 3NF key choice)
+- **Resolution:** Added `FdOrder`, a canonical order (attribute sets by size, then alphabetically; FDs by LHS then RHS). It is used by the minimal cover (singletons sorted before extraneous/redundant removal, output grouped in order), the BCNF decomposer, the dependency-preservation and lossless-join traces (relations by name), the closure trace, the 3NF key choice (smallest key, alphabetically first), and the explanation key list. `NormalFormResult` now keeps violations sorted. The minimal-cover and 3NF traces state the rule they use to choose.
 - **Location:**
   - `findBcnfViolation` in [BcnfDecomposer.java:169](src/main/java/com/dbms/analyzer/algorithm/BcnfDecomposer.java:169)
   - `candidateKeys.iterator().next()` in [ThreeNfSynthesizer.java](src/main/java/com/dbms/analyzer/algorithm/ThreeNfSynthesizer.java)

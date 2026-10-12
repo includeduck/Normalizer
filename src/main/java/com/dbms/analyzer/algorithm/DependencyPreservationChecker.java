@@ -156,7 +156,7 @@ public class DependencyPreservationChecker {
 
     private List<FunctionalDependency> sortedFds(Set<FunctionalDependency> fds) {
         List<FunctionalDependency> sorted = new ArrayList<>(fds);
-        sorted.sort(Comparator.comparing(FunctionalDependency::toString));
+        sorted.sort(FdOrder.CANONICAL);
         return sorted;
     }
 

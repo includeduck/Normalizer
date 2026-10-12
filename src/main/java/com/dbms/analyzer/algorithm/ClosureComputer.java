@@ -44,6 +44,8 @@ public class ClosureComputer {
         java.util.List<String> steps = new java.util.ArrayList<>();
         Set<String> closure = new HashSet<>(attributeSet);
         steps.add("Initial closure: " + formatSet(closure));
+        java.util.List<FunctionalDependency> orderedFds =
+            FdOrder.sorted(functionalDependencies);
         
         boolean changed = true;
         int iteration = 0;
@@ -51,7 +53,7 @@ public class ClosureComputer {
         while (changed) {
             changed = false;
             iteration++;
-            for (FunctionalDependency fd : functionalDependencies) {
+            for (FunctionalDependency fd : orderedFds) {
                 if (closure.containsAll(fd.getLeftSide()) && 
                     !closure.containsAll(fd.getRightSide())) {
                     steps.add("Iteration " + iteration + ": Apply FD " + fd

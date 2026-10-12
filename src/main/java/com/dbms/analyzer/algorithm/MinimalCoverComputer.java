@@ -59,6 +59,10 @@ public class MinimalCoverComputer {
 
         List<String> steps = new ArrayList<>();
         steps.add("=== Minimal Cover Computation ===");
+        steps.add("FDs are processed in a fixed order: smaller left sides first,");
+        steps.add("then alphabetically. Redundant FDs are tested from the end of");
+        steps.add("the list, so when several minimal covers exist, the one shown");
+        steps.add("keeps the FDs that come earlier.");
         steps.add("");
 
         // Step 1
@@ -101,6 +105,9 @@ public class MinimalCoverComputer {
                         fd.getLeftSide(), Set.of(attr)));
             }
         }
+        // Later steps keep or drop FDs in list order; fix that order so the
+        // cover chosen depends only on the FDs, not on hash-set iteration.
+        result.sort(FdOrder.CANONICAL);
         return result;
     }
 
@@ -179,22 +186,16 @@ public class MinimalCoverComputer {
     private Set<FunctionalDependency> recombine(
             List<FunctionalDependency> fds) {
 
-        // Use a list to collect unique LHS groups while preserving encounter order
-        List<Set<String>> lhsOrder = new ArrayList<>();
-        java.util.Map<Set<String>, Set<String>> map = new java.util.LinkedHashMap<>();
+        java.util.Map<Set<String>, Set<String>> map =
+                new java.util.TreeMap<>(FdOrder.ATTRIBUTE_SETS);
 
         for (FunctionalDependency fd : fds) {
-            Set<String> key = fd.getLeftSide();
-            map.computeIfAbsent(key, k -> {
-                lhsOrder.add(k);
-                return new TreeSet<>();
-            }).addAll(fd.getRightSide());
+            map.computeIfAbsent(fd.getLeftSide(), k -> new TreeSet<>())
+                    .addAll(fd.getRightSide());
         }
 
         Set<FunctionalDependency> result = new LinkedHashSet<>();
-        for (Set<String> lhs : lhsOrder) {
-            result.add(new FunctionalDependency(lhs, map.get(lhs)));
-        }
+        map.forEach((lhs, rhs) -> result.add(new FunctionalDependency(lhs, rhs)));
         return result;
     }
 
