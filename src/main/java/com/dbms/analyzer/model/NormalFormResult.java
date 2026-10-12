@@ -22,6 +22,14 @@ public class NormalFormResult {
         return highestNormalForm;
     }
 
+    /**
+     * True if the relation satisfies {@code normalForm}. Normal forms are
+     * cumulative (BCNF ⇒ 3NF ⇒ 2NF), so this follows from the highest one.
+     */
+    public boolean satisfies(NormalForm normalForm) {
+        return highestNormalForm.compareTo(normalForm) >= 0;
+    }
+
     public Set<String> getViolations() {
         return new TreeSet<>(violations);
     }

@@ -44,9 +44,6 @@ public class NormalFormServiceTest {
         NormalFormResult result = assertTimeoutPreemptively(
             Duration.ofSeconds(5), () -> {
                 NormalFormResult analysis = normalFormService.analyzeNormalForm();
-                normalFormService.is2NF();
-                normalFormService.is3NF();
-                normalFormService.isBCNF();
                 candidateKeyService.findAllCandidateKeys();
                 normalFormService.analyzeNormalForm();
                 return analysis;

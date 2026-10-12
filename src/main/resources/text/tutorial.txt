@@ -1,0 +1,41 @@
+App Tutorial
+
+1. Create a relation
+Enter a schema in the Relation box, then choose Create / Replace.
+You can also choose a built-in example and select Load Example.
+Examples:
+- R(A,B,C)
+- Enrollment(student_id,course_id,grade)
+Names must start with a letter or underscore and contain only letters,
+digits and underscores. Relations can have up to 20 attributes.
+
+2. Add functional dependencies
+After a relation exists, enter dependencies in the Functional Dependency box.
+Use comma-separated attributes on either side of ->.
+Examples:
+- A -> B
+- student_id,course_id -> grade
+Compact input such as AB -> C is split into the relation's attributes.
+
+3. Compute closures
+Enter one or more attributes in the Closure box and choose Compute Closure.
+The Closure tab shows the step-by-step expansion and final closure.
+
+4. Run analysis
+Use Keys to find candidate keys, Normal Form to check 2NF/3NF/BCNF
+(1NF is assumed: every attribute is treated as atomic),
+Minimal Cover to simplify dependencies, and Explain for a guided summary.
+
+5. Decompose the relation
+Use BCNF or 3NF to generate decomposed relations.
+Then choose Check Result to test dependency preservation and lossless join;
+the result appears in the Check Result tab.
+
+6. Read the side summary
+The Relation Summary panel always reflects the current relation, attributes,
+functional dependencies, candidate keys, normal form, and latest decomposition.
+
+Tips
+- Press Enter in Relation, Functional Dependency, or Closure fields to submit.
+- Select an FD in the summary list before using Remove Selected.
+- Clear resets the session but keeps this tutorial available.

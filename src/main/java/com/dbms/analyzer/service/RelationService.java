@@ -13,9 +13,19 @@ public class RelationService {
     private Relation currentRelation;
 
     /**
-     * Creates a new relation from a schema string like "R(A,B,C)"
+     * Creates a new relation from a schema string like "R(A,B,C)" and makes
+     * it the current relation.
      */
     public Relation createRelation(String schemaString) throws IllegalArgumentException {
+        this.currentRelation = parseRelation(schemaString);
+        return currentRelation;
+    }
+
+    /**
+     * Parses a schema string like "R(A,B,C)" without changing the current
+     * relation.
+     */
+    Relation parseRelation(String schemaString) {
         schemaString = schemaString.trim();
         
         // Parse relation name and attributes
@@ -55,8 +65,7 @@ public class RelationService {
 
         AnalysisLimits.requireWithinLimit(attributes.size());
 
-        this.currentRelation = new Relation(relationName, attributes);
-        return currentRelation;
+        return new Relation(relationName, attributes);
     }
 
     /**
@@ -74,6 +83,11 @@ public class RelationService {
         if (currentRelation == null) {
             throw new IllegalStateException("No relation defined");
         }
+        this.currentRelation = relation;
+    }
+
+    /** Makes a fully built relation current. Used by {@link FdService}. */
+    void installRelation(Relation relation) {
         this.currentRelation = relation;
     }
 

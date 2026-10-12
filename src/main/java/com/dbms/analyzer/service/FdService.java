@@ -2,6 +2,7 @@ package com.dbms.analyzer.service;
 
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.model.FunctionalDependency;
+import com.dbms.analyzer.model.Relation;
 import com.dbms.analyzer.algorithm.FdUtil;
 import java.util.List;
 import java.util.Set;
@@ -23,18 +24,36 @@ public class FdService {
             throw new IllegalStateException("No relation defined");
         }
 
-        FunctionalDependency fd = FdUtil.parseFD(
-            fdString, relationService.getAttributes());
-
-        List<String> unknown =
-            FdUtil.unknownAttributes(fd, relationService.getAttributes());
-        if (!unknown.isEmpty()) {
-            throw new IllegalArgumentException(FdUtil.unknownAttributesMessage(
-                unknown, relationService.getAttributes()));
-        }
-
+        FunctionalDependency fd =
+            parseDependency(fdString, relationService.getAttributes());
         relationService.replaceCurrentRelation(
             relationService.getCurrentRelation().withFunctionalDependency(fd));
+    }
+
+    /**
+     * Creates a relation with its FDs and makes it current only if the
+     * schema and every FD are valid; otherwise the current relation is left
+     * unchanged.
+     */
+    public Relation loadRelation(String schemaString, List<String> fdStrings) {
+        Relation relation = relationService.parseRelation(schemaString);
+        for (String fdString : fdStrings) {
+            relation = relation.withFunctionalDependency(
+                parseDependency(fdString, relation.getAttributes()));
+        }
+        relationService.installRelation(relation);
+        return relation;
+    }
+
+    private static FunctionalDependency parseDependency(
+            String fdString, Set<String> attributes) {
+        FunctionalDependency fd = FdUtil.parseFD(fdString, attributes);
+        List<String> unknown = FdUtil.unknownAttributes(fd, attributes);
+        if (!unknown.isEmpty()) {
+            throw new IllegalArgumentException(
+                FdUtil.unknownAttributesMessage(unknown, attributes));
+        }
+        return fd;
     }
 
     /**

@@ -49,9 +49,9 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Fixed (`65954c6`) |
 | [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | Fixed (`ddb03b7`) |
 | [BUG-014](#bug-014) | Low | `FunctionalDependency.hashCode()` is additive, so `X→Y` and `Y→X` always collide | Fixed |
-| [BUG-015](#bug-015) | Low | Removing an FD in the UI matches it by `toString()` | Open |
-| [BUG-016](#bug-016) | Low | A failed "Load Example" leaves a half-built relation and a stale UI | Open |
-| [BUG-017](#bug-017) | Low | "Check Result" overwrites the Explanation tab | Open |
+| [BUG-015](#bug-015) | Low | Removing an FD in the UI matches it by `toString()` | Fixed |
+| [BUG-016](#bug-016) | Low | A failed "Load Example" leaves a half-built relation and a stale UI | Fixed |
+| [BUG-017](#bug-017) | Low | "Check Result" overwrites the Explanation tab | Fixed |
 | [BUG-018](#bug-018) | Low | Closure and decompositions are computed twice per click | Fixed (`cbc67e5`) |
 | [BLD-001](#bld-001) | Low | `build-exe.ps1` hard-codes the artifact name and version | Open |
 | [BLD-002](#bld-002) | Low | `jlink --add-modules ALL-MODULE-PATH` bundles the whole JDK | Open |
@@ -61,13 +61,13 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [CQ-001](#cq-001) | Medium | ~20 dead source/resource files (old controllers, FXML, components, repository) | Fixed (`5345b5f`) |
 | [CQ-002](#cq-002) | Low | Dependency injection is only half applied | Fixed |
 | [CQ-003](#cq-003) | Low | Every algorithm is written twice (plain + "with steps") | Fixed |
-| [CQ-004](#cq-004) | Low | `MainController` is a 904-line god class; the service layer is mostly pass-through | Open |
+| [CQ-004](#cq-004) | Low | `MainController` is a 904-line god class; the service layer is mostly pass-through | Fixed |
 | [CQ-005](#cq-005) | Low | Defensive copies in getters run inside the hot closure loop | Fixed |
 | [CQ-006](#cq-006) | Low | Stale "backward compatibility" APIs with no callers | Fixed (`5345b5f`) |
 | [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | Fixed (`2ea1c2a`) |
 | [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | Fixed (`2ea1c2a`) |
 | [TEST-003](#test-003) | Low | Normal-form tests use hand-written candidate keys instead of computed ones | Open |
-| [TEST-004](#test-004) | Low | No tests for large inputs, performance limits, or the UI | Open |
+| [TEST-004](#test-004) | Low | No tests for large inputs, performance limits, or the UI | Fixed |
 | [DOC-001](#doc-001) | Low | `Progress.md`, `UC.md`, `PROJECT_STRUCTURE.md` duplicated in root and `MarkDown/` | Open |
 | [DOC-002](#doc-002) | Low | README overstates 1NF and omits implemented features | Open |
 | [DOC-003](#doc-003) | Low | `UC.md` is out of date with the implementation | Open |
@@ -295,7 +295,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-015"></a>
 ### BUG-015 — Removing an FD in the UI matches it by `toString()`
 
-- **Severity:** Low · **Status:** Open · **By inspection**
+- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Regression test:** `MainControllerUiTest.fullSessionThroughTheUi`
+- **Resolution:** `fdListView` is a `ListView<FunctionalDependency>` filled in canonical order; cells use `toString()`, and removal passes the selected FD object to `FdService`.
 - **Location:** [MainController.java:289](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:289)
 
 The list holds `String`s, and removal searches for the FD whose `toString()` equals the selected text. This is fragile: it breaks as soon as the display format changes or two FDs render the same. **Fix:** use `ListView<FunctionalDependency>` with a cell factory for display.
@@ -305,7 +307,9 @@ The list holds `String`s, and removal searches for the FD whose `toString()` equ
 <a id="bug-016"></a>
 ### BUG-016 — A failed "Load Example" leaves a half-built relation and a stale UI
 
-- **Severity:** Low · **Status:** Open · **By inspection**
+- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Regression test:** `FdServiceTest.testLoadRelationIsAllOrNothing`, `ResultFormatterTest.testEverySampleRelationIsValid`
+- **Resolution:** New `FdService.loadRelation(schema, fds)` parses the schema and every FD into a new relation and only then makes it current, so a bad FD leaves the previous relation untouched. "Load Example" uses it and refreshes the UI on failure too.
 - **Location:** [MainController.java:317](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:317)
 
 The relation is created first and the FDs are added one at a time. If an FD fails, the `catch` neither rolls back nor calls `updateRelationDisplay()`, so the service holds the new partial relation while the UI still shows the old one. The built-in samples are valid today, so this is latent. **Fix:** build the relation and its FDs off to the side and commit them only if every step succeeds, or always refresh the UI in `finally`.
@@ -315,7 +319,9 @@ The relation is created first and the FDs are added one at a time. If an FD fail
 <a id="bug-017"></a>
 ### BUG-017 — "Check Result" overwrites the Explanation tab
 
-- **Severity:** Low · **Status:** Open · **By inspection**
+- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Regression test:** `MainControllerUiTest.fullSessionThroughTheUi`
+- **Resolution:** Added a "Check Result" tab (`checkResultTab`/`checkResultArea` in `main.fxml`); the Explanation tab is no longer overwritten. Tutorial text updated.
 - **Location:** [MainController.java:527](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:527)
 
 Output from the decomposition check goes into `explanationResultArea`, replacing whatever **Explain** last produced. **Fix:** give it its own tab, or append it to the Decomposition tab.
@@ -455,7 +461,9 @@ Medium because dead code misleads future maintainers, AI agents especially, into
 
 <a id="cq-004"></a>
 ### CQ-004 — `MainController` is a 904-line god class; the service layer is mostly pass-through
-- **Severity:** Low · **Status:** Open · **By inspection**
+- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Regression test:** `ResultFormatterTest`, `MainControllerUiTest`
+- **Resolution:** `MainController` went from 904 to 737 lines: the example relations moved to `SampleRelations`, the tutorial text to `resources/text/tutorial.txt`, and all report formatting to `ResultFormatter`, which is unit-tested without JavaFX. The normal-form report reads 2NF/3NF/BCNF from one analysis (`NormalFormResult.satisfies`), so the unused `NormalFormService.is2NF/is3NF/isBCNF` were removed. What remains in the controller is FXML wiring and event handling. Not changed on purpose: the services stay thin; they hold the current-relation state and the "no relation" checks, and merging them into one session object would mostly move code around.
 
 The controller takes 10 injected services, handles formatting, holds state (`lastDecomposition`) and contains the tutorial text. Most `*Service` methods are just `if (!hasRelation()) throw …; return algorithm.x(...)`. **Fix:** add one `AnalysisSession` holding the relation, FDs and cached keys/normal form/decomposition, invalidated on change. Formatting goes into presenter classes, and the tutorial text into a resource file.
 
@@ -522,7 +530,9 @@ Also add pinned textbook examples (Elmasri/Navathe, Silberschatz) with exact exp
 
 <a id="test-004"></a>
 ### TEST-004 — No tests for large inputs, performance limits, or the UI
-- **Severity:** Low · **Status:** Open
+- **Severity:** Low · **Status:** Fixed
+- **Regression test:** `MainControllerUiTest`, plus `CandidateKeyFinderTest.testRelationAboveLimitIsRejected`/`testWorstCaseAtLimitFinishesQuickly`, `BcnfDecomposerTest.testLargestAllowedRelationFinishesQuickly`, `NormalFormServiceTest.testNormalFormClickAtAttributeLimitIsFast`, `FdUtilTest.testSplittingWithManyDeadEndsIsFast`
+- **Resolution:** Limits and large inputs are covered by the tests listed. `MainControllerUiTest` loads the real `main.fxml` through the Spring context and clicks through a session (create relation, add/duplicate/remove FDs, BCNF, Check Result, Explain, Load Example, Keys, Normal Form). It runs wherever JavaFX can open a display and is skipped on headless machines, including the GitHub Actions runner; no TestFX/Monocle dependency was added.
 
 Nothing pins the behaviour at the attribute limit (BUG-003/004). There are no TestFX tests, so the controller's 904 lines are covered only by a context-load test.
 

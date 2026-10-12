@@ -180,6 +180,12 @@
                                           editable="false"/>
                             </content>
                         </Tab>
+                        <Tab fx:id="checkResultTab" text="Check Result">
+                            <content>
+                                <TextArea fx:id="checkResultArea" wrapText="true"
+                                          editable="false"/>
+                            </content>
+                        </Tab>
                         <Tab fx:id="explanationTab" text="Explanation">
                             <content>
                                 <TextArea fx:id="explanationResultArea" wrapText="true"

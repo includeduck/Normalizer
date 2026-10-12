@@ -1,7 +1,9 @@
 package com.dbms.analyzer.javafx.controllers;
 
 import com.dbms.analyzer.algorithm.FdUtil;
-import com.dbms.analyzer.algorithm.NormalFormChecker;
+import com.dbms.analyzer.algorithm.FdOrder;
+import com.dbms.analyzer.javafx.ResultFormatter;
+import com.dbms.analyzer.javafx.SampleRelations;
 import com.dbms.analyzer.model.CandidateKey;
 import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.model.Relation;
@@ -17,7 +19,6 @@ import com.dbms.analyzer.service.RelationService;
 import com.dbms.analyzer.service.ThreeNfService;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,30 +43,6 @@ public class MainController {
     private static final String VALIDATION_OK = "validation-ok";
     private static final String STATUS_ERROR = "status-error";
     private static final String STATUS_OK = "status-ok";
-    private static final List<SampleRelation> SAMPLE_RELATIONS = List.of(
-        new SampleRelation(
-            "Student Course Grades",
-            "Enrollment(student_id,course_id,instructor,advisor,grade)",
-            List.of(
-                "student_id,course_id -> grade",
-                "course_id -> instructor",
-                "student_id -> advisor"),
-            "student_id,course_id"),
-        new SampleRelation(
-            "Employee Departments",
-            "Employee(employee_id,employee_name,department_id,department_name,manager_id)",
-            List.of(
-                "employee_id -> employee_name,department_id",
-                "department_id -> department_name,manager_id"),
-            "employee_id"),
-        new SampleRelation(
-            "Library Loans",
-            "Loan(member_id,isbn,loan_date,member_name,book_title,due_date)",
-            List.of(
-                "member_id -> member_name",
-                "isbn -> book_title",
-                "member_id,isbn,loan_date -> due_date"),
-            "member_id,isbn,loan_date"));
 
     private final RelationService relationService;
     private final FdService fdService;
@@ -143,7 +120,7 @@ public class MainController {
     private Label statusLabel;
 
     @FXML
-    private ListView<String> fdListView;
+    private ListView<FunctionalDependency> fdListView;
     @FXML
     private ComboBox<String> sampleComboBox;
 
@@ -205,6 +182,10 @@ public class MainController {
     @FXML
     private TextArea decompositionResultArea;
     @FXML
+    private Tab checkResultTab;
+    @FXML
+    private TextArea checkResultArea;
+    @FXML
     private TextArea explanationResultArea;
 
     @FXML
@@ -218,12 +199,12 @@ public class MainController {
         fdListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> updateControls());
         sampleComboBox.getItems().setAll(
-            SAMPLE_RELATIONS.stream()
-                .map(SampleRelation::name)
+            SampleRelations.ALL.stream()
+                .map(SampleRelations.Sample::name)
                 .collect(Collectors.toList()));
         sampleComboBox.getSelectionModel().selectFirst();
 
-        tutorialResultArea.setText(buildTutorialText());
+        tutorialResultArea.setText(ResultFormatter.tutorialText());
         clearResultAreas();
         updateRelationDisplay();
         updateValidationVisibility();
@@ -276,7 +257,7 @@ public class MainController {
             return;
         }
 
-        String selected = fdListView.getSelectionModel().getSelectedItem();
+        FunctionalDependency selected = fdListView.getSelectionModel().getSelectedItem();
         if (selected == null) {
             setValidation(
                 fdValidationLabel,
@@ -286,19 +267,11 @@ public class MainController {
             return;
         }
 
-        for (FunctionalDependency fd : fdService.getAllDependencies()) {
-            if (fd.toString().equals(selected)) {
-                fdService.removeFunctionalDependency(fd);
-                lastDecomposition = null;
-                updateRelationDisplay();
-                setValidation(fdValidationLabel, "Dependency removed.", false);
-                setStatus("Functional dependency removed", false);
-                return;
-            }
-        }
-
-        setValidation(fdValidationLabel, "Selected dependency could not be found.", true);
-        setStatus("Remove failed", true);
+        fdService.removeFunctionalDependency(selected);
+        lastDecomposition = null;
+        updateRelationDisplay();
+        setValidation(fdValidationLabel, "Dependency removed.", false);
+        setStatus("Functional dependency removed", false);
     }
 
     @FXML
@@ -316,17 +289,12 @@ public class MainController {
 
     @FXML
     private void handleLoadSample() {
-        String selectedSample = sampleComboBox.getSelectionModel().getSelectedItem();
-        SampleRelation sample = SAMPLE_RELATIONS.stream()
-            .filter(candidate -> candidate.name().equals(selectedSample))
-            .findFirst()
-            .orElse(SAMPLE_RELATIONS.get(0));
+        SampleRelations.Sample sample = SampleRelations.byName(
+            sampleComboBox.getSelectionModel().getSelectedItem());
 
         try {
-            relationService.createRelation(sample.schema());
-            for (String dependency : sample.dependencies()) {
-                fdService.addFunctionalDependency(dependency);
-            }
+            // All-or-nothing: the current relation only changes if every FD is valid
+            fdService.loadRelation(sample.schema(), sample.dependencies());
 
             lastDecomposition = null;
             relationInputField.setText(sample.schema());
@@ -341,6 +309,7 @@ public class MainController {
                 false);
             setStatus("Example loaded", false);
         } catch (RuntimeException e) {
+            updateRelationDisplay();
             setValidation(relationValidationLabel, e.getMessage(), true);
             setStatus("Example could not be loaded", true);
         }
@@ -377,23 +346,10 @@ public class MainController {
         }
 
         try {
-            Set<CandidateKey> keys = candidateKeyService.findAllCandidateKeys();
-            StringBuilder result = new StringBuilder("Candidate Keys\n");
-            if (keys.isEmpty()) {
-                result.append("No candidate keys found.\n");
-            } else {
-                keys.stream()
-                    .map(CandidateKey::toString)
-                    .sorted()
-                    .forEach(key -> result.append("- ").append(key).append("\n"));
-            }
-
-            result.append("\nPrime Attributes: ")
-                .append(formatSet(candidateKeyService.getPrimeAttributes()))
-                .append("\nNon-Prime Attributes: ")
-                .append(formatSet(candidateKeyService.getNonPrimeAttributes()));
-
-            keysResultArea.setText(result.toString());
+            keysResultArea.setText(ResultFormatter.candidateKeysReport(
+                candidateKeyService.findAllCandidateKeys(),
+                candidateKeyService.getPrimeAttributes(),
+                candidateKeyService.getNonPrimeAttributes()));
             selectTab(keysTab);
             updateRelationDisplay();
             setStatus("Candidate keys computed", false);
@@ -409,31 +365,8 @@ public class MainController {
         }
 
         try {
-            var analysis = normalFormService.analyzeNormalForm();
-            StringBuilder result = new StringBuilder("Normal Form Analysis\n");
-            result.append("Highest Normal Form: ")
-                .append(analysis.getHighestNormalForm())
-                .append("\n\n");
-            result.append("1NF: ").append(NormalFormChecker.FIRST_NF_ASSUMPTION).append("\n");
-            result.append("2NF: ").append(normalFormService.is2NF()).append("\n");
-            result.append("3NF: ").append(normalFormService.is3NF()).append("\n");
-            result.append("BCNF: ").append(normalFormService.isBCNF()).append("\n");
-
-            if (!analysis.getViolations().isEmpty()) {
-                result.append("\nViolations\n");
-                analysis.getViolations().stream()
-                    .sorted()
-                    .forEach(violation -> result.append("- ")
-                        .append(violation)
-                        .append("\n"));
-            }
-
-            if (analysis.getExplanation() != null
-                    && !analysis.getExplanation().isBlank()) {
-                result.append("\n").append(analysis.getExplanation());
-            }
-
-            normalFormResultArea.setText(result.toString());
+            normalFormResultArea.setText(ResultFormatter.normalFormReport(
+                normalFormService.analyzeNormalForm()));
             selectTab(normalFormTab);
             updateRelationDisplay();
             setStatus("Normal form analysis complete", false);
@@ -450,7 +383,7 @@ public class MainController {
 
         try {
             List<String> steps = minimalCoverService.computeMinimalCoverWithSteps();
-            minimalCoverResultArea.setText(renderLines(steps));
+            minimalCoverResultArea.setText(ResultFormatter.renderLines(steps));
             selectTab(minimalCoverTab);
             setStatus("Minimal cover computed", false);
         } catch (RuntimeException e) {
@@ -468,7 +401,7 @@ public class MainController {
             var decomposition = bcnfDecompositionService.decomposeWithTrace();
             lastDecomposition = decomposition.relations();
 
-            decompositionResultArea.setText(renderLines(decomposition.explanation()));
+            decompositionResultArea.setText(ResultFormatter.renderLines(decomposition.explanation()));
             selectTab(decompositionTab);
             updateRelationDisplay();
             setStatus("BCNF decomposition complete", false);
@@ -487,7 +420,7 @@ public class MainController {
             var synthesis = threeNfService.synthesizeWithTrace();
             lastDecomposition = synthesis.relations();
 
-            decompositionResultArea.setText(renderLines(synthesis.steps()));
+            decompositionResultArea.setText(ResultFormatter.renderLines(synthesis.steps()));
             selectTab(decompositionTab);
             updateRelationDisplay();
             setStatus("3NF synthesis complete", false);
@@ -505,30 +438,21 @@ public class MainController {
         if (lastDecomposition == null || lastDecomposition.isEmpty()) {
             showActionError(
                 "Run a decomposition (BCNF or 3NF) first.",
-                explanationResultArea,
-                explanationTab);
+                checkResultArea,
+                checkResultTab);
             return;
         }
 
         try {
-            StringBuilder result = new StringBuilder();
-
-            List<String> depSteps =
-                    decompositionAnalysisService
-                            .checkDependencyPreservationWithSteps(lastDecomposition);
-            depSteps.forEach(s -> result.append(s).append("\n"));
-            result.append("\n");
-
-            List<String> joinSteps =
-                    decompositionAnalysisService
-                            .checkLosslessJoinWithSteps(lastDecomposition);
-            joinSteps.forEach(s -> result.append(s).append("\n"));
-
-            explanationResultArea.setText(result.toString());
-            selectTab(explanationTab);
+            checkResultArea.setText(ResultFormatter.decompositionCheckReport(
+                decompositionAnalysisService
+                    .checkDependencyPreservationWithSteps(lastDecomposition),
+                decompositionAnalysisService
+                    .checkLosslessJoinWithSteps(lastDecomposition)));
+            selectTab(checkResultTab);
             setStatus("Decomposition analysis complete", false);
         } catch (RuntimeException e) {
-            showActionError(e.getMessage(), explanationResultArea, explanationTab);
+            showActionError(e.getMessage(), checkResultArea, checkResultTab);
         }
     }
 
@@ -546,7 +470,7 @@ public class MainController {
             explanation.add("");
             explanation.addAll(explanationService.explainNormalForm());
 
-            explanationResultArea.setText(renderLines(explanation));
+            explanationResultArea.setText(ResultFormatter.renderLines(explanation));
             selectTab(explanationTab);
             updateRelationDisplay();
             setStatus("Explanation refreshed", false);
@@ -622,10 +546,8 @@ public class MainController {
             return;
         }
 
-        fdService.getAllDependencies().stream()
-            .map(Object::toString)
-            .sorted()
-            .forEach(fdListView.getItems()::add);
+        // The list holds the FD objects themselves; cells show toString()
+        fdListView.getItems().setAll(FdOrder.sorted(fdService.getAllDependencies()));
     }
 
     private void refreshSummary() {
@@ -644,12 +566,13 @@ public class MainController {
         Set<FunctionalDependency> fds = fdService.getAllDependencies();
 
         relationLabel.setText(relation.toString());
-        attributeSummaryLabel.setText(formatSet(attributes));
-        fdCountLabel.setText(formatCount(fds.size(), "dependency", "dependencies"));
+        attributeSummaryLabel.setText(ResultFormatter.formatSet(attributes));
+        fdCountLabel.setText(ResultFormatter.formatCount(
+            fds.size(), "dependency", "dependencies"));
 
         try {
             Set<CandidateKey> keys = candidateKeyService.findAllCandidateKeys();
-            keySummaryLabel.setText(formatKeys(keys));
+            keySummaryLabel.setText(ResultFormatter.formatKeys(keys));
         } catch (RuntimeException e) {
             keySummaryLabel.setText("Unavailable");
         }
@@ -663,17 +586,8 @@ public class MainController {
             normalFormSummaryLabel.setText("Unavailable");
         }
 
-        if (lastDecomposition == null || lastDecomposition.isEmpty()) {
-            decompositionSummaryLabel.setText("No decomposition run");
-        } else {
-            decompositionSummaryLabel.setText(
-                formatCount(lastDecomposition.size(), "relation", "relations")
-                    + ": "
-                    + lastDecomposition.stream()
-                        .map(Relation::toString)
-                        .sorted()
-                        .collect(Collectors.joining("; ")));
-        }
+        decompositionSummaryLabel.setText(
+            ResultFormatter.decompositionSummary(lastDecomposition));
     }
 
     private void updateControls() {
@@ -737,13 +651,7 @@ public class MainController {
         try {
             // The trace ends with the final closure, so one computation suffices
             var steps = closureService.computeClosureWithSteps(input);
-            StringBuilder result = new StringBuilder("Closure Input: ")
-                .append(input)
-                .append("\n\n");
-
-            steps.forEach(step -> result.append(step).append("\n"));
-
-            closureResultArea.setText(result.toString());
+            closureResultArea.setText(ResultFormatter.closureReport(input, steps));
             selectTab(closureTab);
             setValidation(closureValidationLabel, "Closure computed.", false);
             setStatus("Closure computed", false);
@@ -822,83 +730,8 @@ public class MainController {
         normalFormResultArea.clear();
         minimalCoverResultArea.clear();
         decompositionResultArea.clear();
+        checkResultArea.clear();
         explanationResultArea.clear();
         selectTab(tutorialTab);
-    }
-
-    private static String buildTutorialText() {
-        return String.join(System.lineSeparator(),
-            "App Tutorial",
-            "",
-            "1. Create a relation",
-            "Enter a schema in the Relation box, then choose Create / Replace.",
-            "You can also choose a built-in example and select Load Example.",
-            "Examples:",
-            "- R(A,B,C)",
-            "- Enrollment(student_id,course_id,grade)",
-            "",
-            "2. Add functional dependencies",
-            "After a relation exists, enter dependencies in the Functional Dependency box.",
-            "Use comma-separated attributes on either side of ->.",
-            "Examples:",
-            "- A -> B",
-            "- student_id,course_id -> grade",
-            "",
-            "3. Compute closures",
-            "Enter one or more attributes in the Closure box and choose Compute Closure.",
-            "The Closure tab shows the step-by-step expansion and final closure.",
-            "",
-            "4. Run analysis",
-            "Use Keys to find candidate keys, Normal Form to check 2NF/3NF/BCNF",
-            "(1NF is assumed: every attribute is treated as atomic),",
-            "Minimal Cover to simplify dependencies, and Explain for a guided summary.",
-            "",
-            "5. Decompose the relation",
-            "Use BCNF or 3NF to generate decomposed relations.",
-            "Then choose Check Result to test dependency preservation and lossless join.",
-            "",
-            "6. Read the side summary",
-            "The Relation Summary panel always reflects the current relation, attributes,",
-            "functional dependencies, candidate keys, normal form, and latest decomposition.",
-            "",
-            "Tips",
-            "- Press Enter in Relation, Functional Dependency, or Closure fields to submit.",
-            "- Select an FD in the summary list before using Remove Selected.",
-            "- Clear resets the session but keeps this tutorial available.");
-    }
-
-    private record SampleRelation(
-            String name,
-            String schema,
-            List<String> dependencies,
-            String closureSeed) {
-    }
-
-    private static String formatSet(Collection<String> values) {
-        return values.stream()
-            .sorted()
-            .collect(Collectors.joining(", ", "{", "}"));
-    }
-
-    private static String formatKeys(Set<CandidateKey> keys) {
-        if (keys.isEmpty()) {
-            return "None";
-        }
-
-        return keys.stream()
-            .map(CandidateKey::toString)
-            .sorted()
-            .collect(Collectors.joining(", "));
-    }
-
-    private static String formatCount(
-            int count,
-            String singular,
-            String plural) {
-        return count + " " + (count == 1 ? singular : plural);
-    }
-
-    private static String renderLines(List<String> lines) {
-        return String.join(System.lineSeparator(), lines);
     }
 }

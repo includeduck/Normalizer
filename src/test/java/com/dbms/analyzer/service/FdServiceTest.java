@@ -77,4 +77,19 @@ public class FdServiceTest {
             () -> fdService.addFunctionalDependency("A -> D"));
         assertTrue(error.getMessage().contains("'D'"), error.getMessage());
     }
+
+    @Test
+    public void testLoadRelationIsAllOrNothing() {
+        // BUG-016: a failing FD used to leave a half-built relation behind
+        var before = relationService.getCurrentRelation();
+
+        assertThrows(IllegalArgumentException.class, () ->
+            fdService.loadRelation("S(X,Y)", java.util.List.of("X -> Y", "X -> Z")));
+        assertSame(before, relationService.getCurrentRelation());
+
+        var loaded = fdService.loadRelation("S(X,Y)", java.util.List.of("X -> Y"));
+        assertEquals(loaded, relationService.getCurrentRelation());
+        assertEquals(Set.of(new FunctionalDependency(Set.of("X"), Set.of("Y"))),
+            fdService.getAllDependencies());
+    }
 }

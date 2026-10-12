@@ -36,46 +36,4 @@ public class NormalFormService {
             fdService.getAllDependencies(),
             candidateKeyService.findAllCandidateKeys());
     }
-
-    /**
-     * Checks if relation satisfies BCNF
-     */
-    public boolean isBCNF() {
-        if (!relationService.hasRelation()) {
-            throw new IllegalStateException("No relation defined");
-        }
-
-        return normalFormChecker.isBCNF(
-            relationService.getAttributes(),
-            fdService.getAllDependencies(),
-            candidateKeyService.findAllCandidateKeys());
-    }
-
-    /**
-     * Checks if relation satisfies 3NF
-     */
-    public boolean is3NF() {
-        if (!relationService.hasRelation()) {
-            throw new IllegalStateException("No relation defined");
-        }
-
-        return normalFormChecker.is3NF(
-            relationService.getAttributes(),
-            fdService.getAllDependencies(),
-            candidateKeyService.findAllCandidateKeys());
-    }
-
-    /**
-     * Checks if relation satisfies 2NF
-     */
-    public boolean is2NF() {
-        if (!relationService.hasRelation()) {
-            throw new IllegalStateException("No relation defined");
-        }
-
-        return normalFormChecker.is2NF(
-            relationService.getAttributes(),
-            fdService.getAllDependencies(),
-            candidateKeyService.findAllCandidateKeys());
-    }
 }
