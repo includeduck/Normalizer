@@ -64,8 +64,8 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [CQ-004](#cq-004) | Low | `MainController` is a 904-line god class; the service layer is mostly pass-through | Open |
 | [CQ-005](#cq-005) | Low | Defensive copies in getters run inside the hot closure loop | Open |
 | [CQ-006](#cq-006) | Low | Stale "backward compatibility" APIs with no callers | Fixed (`5345b5f`) |
-| [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | In progress |
-| [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | In progress |
+| [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | Fixed |
+| [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | Fixed |
 | [TEST-003](#test-003) | Low | Normal-form tests use hand-written candidate keys instead of computed ones | Open |
 | [TEST-004](#test-004) | Low | No tests for large inputs, performance limits, or the UI | Open |
 | [DOC-001](#doc-001) | Low | `Progress.md`, `UC.md`, `PROJECT_STRUCTURE.md` duplicated in root and `MarkDown/` | Open |
@@ -477,8 +477,9 @@ Delete them.
 
 <a id="test-001"></a>
 ### TEST-001 — Several tests have assertions that can never fail
-- **Severity:** Medium · **Status:** In progress · **Verified**
-- **Progress:** `BcnfDecomposerTest.testBcnfViolation` and both `CandidateKeyFinderTest` cases now assert exact results. Still open: `ThreeNfSynthesizerTest.testClassicDecomposition` and the `*WithSteps` tests.
+- **Severity:** Medium · **Status:** Fixed · **Verified**
+- **Regression test:** n/a (test-only change)
+- **Resolution:** Every listed test now asserts exact results: `ThreeNfSynthesizerTest` checks exact schemas and trace lines (`testClassicDecomposition`, `testCandidateKeyRelationAdded`, `testWithStepsShowsEachStep`); the `*WithSteps` tests for minimal cover, dependency preservation and lossless join check specific lines and the final verdict (plus a new lossy binary case); `NormalFormCheckerTest.test2NFViolationForPartialDependency` checks the exact violation. Earlier fixes covered the BCNF and candidate-key tests.
 
 | Test | Problem |
 |---|---|
@@ -490,8 +491,9 @@ Delete them.
 
 <a id="test-002"></a>
 ### TEST-002 — No invariant/property-based tests for the decomposition algorithms
-- **Severity:** Medium · **Status:** In progress
-- **Progress:** Added seeded random tests with brute-force oracles for the candidate-key finder (`CandidateKeyFinderTest.testMatchesBruteForceOnRandomRelations`) and BCNF decomposition (`BcnfDecomposerTest.testInvariantsOnRandomRelations`: BCNF, lossless join, projection equivalence, attribute coverage, plain vs. with-steps). Still open: properties 3, 5 and 7 (3NF synthesis, minimal cover, order independence).
+- **Severity:** Medium · **Status:** Fixed
+- **Regression test:** `PropertyTest`, `TextbookExamplesTest` (plus the random tests in `CandidateKeyFinderTest`, `BcnfDecomposerTest`, `OrderIndependenceTest`)
+- **Resolution:** All seven properties are now covered by seeded random tests against brute-force oracles: (1) BCNF output and (2) losslessness in `BcnfDecomposerTest`; (3) 3NF synthesis is lossless (a relation contains a key), dependency-preserving and in 3NF, with no subsumed schemas, in `PropertyTest`; (4) candidate keys in `CandidateKeyFinderTest`; (5) minimal cover is equivalent, with no trivial, redundant or extraneous parts, in `PropertyTest`; (6) plain vs. traced results in the BCNF/3NF tests; (7) order independence in `OrderIndependenceTest`. `PropertyTest` also checks the highest normal form against brute force. Verified by mutation: removing the 3NF key step, the redundant-FD step, or the BCNF check each fails `PropertyTest`. `TextbookExamplesTest` pins three standard exercises with exact answers. jqwik was not added; plain JUnit with fixed seeds keeps failures reproducible without a new dependency.
 
 None of the bugs BUG-001, -002, -003 or -006 would survive tests like these. Add jqwik (or a seeded random loop in JUnit) over random schemas with 2–7 attributes and 0–6 FDs, and assert:
 1. Every BCNF output relation is in BCNF under the **true** projection (check with a brute-force F⁺ oracle in test code).

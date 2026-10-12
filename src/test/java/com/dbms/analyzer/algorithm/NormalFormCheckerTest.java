@@ -70,7 +70,9 @@ public class NormalFormCheckerTest {
         assertEquals(
             NormalFormResult.NormalForm.FIRST_NF,
             result.getHighestNormalForm());
-        assertFalse(result.getViolations().isEmpty());
+        assertEquals(Set.of("2NF violation: {A} partially determines"
+            + " non-prime attribute C from candidate key {A,B}"),
+            result.getViolations());
     }
 
     @Test

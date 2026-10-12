@@ -103,7 +103,10 @@ public class DependencyPreservationCheckerTest {
         Relation r1 = new Relation("R1", Set.of("A", "B"));
 
         List<String> steps = checker.checkWithSteps(fds, Set.of(r1));
-        assertFalse(steps.isEmpty());
-        assertTrue(steps.stream().anyMatch(s -> s.contains("PRESERVED")));
+        assertTrue(steps.contains("Check A -> B: res = {A}"), steps.toString());
+        assertTrue(steps.contains("  via R1: {A}+ adds {B}"), steps.toString());
+        assertTrue(steps.contains("  Final res = {A,B} → PRESERVED"), steps.toString());
+        assertEquals("Result: All dependencies are preserved.",
+                steps.get(steps.size() - 1));
     }
 }

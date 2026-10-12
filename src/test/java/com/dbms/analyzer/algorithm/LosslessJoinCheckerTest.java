@@ -84,6 +84,21 @@ public class LosslessJoinCheckerTest {
         Relation r1 = new Relation("R1", Set.of("A", "B"));
 
         List<String> steps = checker.checkWithSteps(attrs, fds, Set.of(r1));
-        assertFalse(steps.isEmpty());
+        assertEquals(
+                "Result: Found a row with all distinguished symbols → LOSSLESS.",
+                steps.get(steps.size() - 1));
+    }
+
+    @Test
+    public void testBinaryCheckWithStepsReportsLossy() {
+        Set<String> attrs = Set.of("A", "B", "C");
+        Relation r1 = new Relation("R1", Set.of("A", "B"));
+        Relation r2 = new Relation("R2", Set.of("B", "C"));
+
+        List<String> steps = checker.checkWithSteps(attrs, Set.of(), Set.of(r1, r2));
+
+        assertTrue(steps.contains("R1 ∩ R2 = {B}"), steps.toString());
+        assertTrue(steps.contains("Closure of {B} = {B}"), steps.toString());
+        assertEquals("Result: Decomposition is LOSSY.", steps.get(steps.size() - 1));
     }
 }

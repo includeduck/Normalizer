@@ -76,13 +76,25 @@ public class MinimalCoverComputerTest {
     }
 
     @Test
-    public void testWithStepsReturnsNonEmpty() {
+    public void testWithStepsShowsEachStepAndTheResult() {
+        // A -> BC, B -> C, A -> B, AB -> C has minimal cover {A -> B, B -> C}
         Set<FunctionalDependency> fds = Set.of(
+                new FunctionalDependency(Set.of("A"), Set.of("B", "C")),
+                new FunctionalDependency(Set.of("B"), Set.of("C")),
                 new FunctionalDependency(Set.of("A"), Set.of("B")),
-                new FunctionalDependency(Set.of("B"), Set.of("C")));
+                new FunctionalDependency(Set.of("A", "B"), Set.of("C")));
 
         List<String> steps = computer.computeMinimalCoverWithSteps(fds);
-        assertFalse(steps.isEmpty());
-        assertTrue(steps.get(0).contains("Minimal Cover"));
+
+        assertEquals("=== Minimal Cover Computation ===", steps.get(0));
+        int step2 = steps.indexOf("Step 2: Remove extraneous LHS attributes");
+        int step3 = steps.indexOf("Step 3: Remove redundant FDs");
+        int done = steps.indexOf("Final minimal cover:");
+        assertTrue(steps.indexOf("Step 1: Decompose RHS to singletons") < step2);
+        assertTrue(step2 < step3 && step3 < done, steps.toString());
+        // After step 2, AB -> C has become A -> C
+        assertTrue(steps.subList(step2, step3).contains("  A → C"), steps.toString());
+        assertEquals(List.of("  A → B", "  B → C"), steps.subList(done + 1, steps.size()));
+        assertEquals("[A -> B, B -> C]", computer.computeMinimalCover(fds).toString());
     }
 }

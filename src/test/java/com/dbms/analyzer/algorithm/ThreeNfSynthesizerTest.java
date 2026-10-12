@@ -35,7 +35,9 @@ public class ThreeNfSynthesizerTest {
                 new FunctionalDependency(Set.of("C"), Set.of("D")));
 
         Set<Relation> result = synthesizer.synthesize(r);
-        assertTrue(result.size() >= 2, "Should decompose into at least 2 relations");
+        // One relation per FD, plus the key {A,C} which neither contains
+        assertEquals(Set.of(Set.of("A", "B"), Set.of("C", "D"), Set.of("A", "C")),
+                schemas(result));
 
         // All original attributes should be covered
         Set<String> allAttrs = new java.util.HashSet<>();
@@ -53,7 +55,7 @@ public class ThreeNfSynthesizerTest {
                 new FunctionalDependency(Set.of("B"), Set.of("C")));
 
         Set<Relation> result = synthesizer.synthesize(r);
-        assertTrue(result.size() >= 2);
+        assertEquals(Set.of(Set.of("B", "C"), Set.of("A", "B")), schemas(result));
 
         // Check that one relation contains a candidate key
         boolean hasKeyRelation = false;
@@ -67,14 +69,20 @@ public class ThreeNfSynthesizerTest {
     }
 
     @Test
-    public void testWithStepsReturnsNonEmpty() {
+    public void testWithStepsShowsEachStep() {
         Relation r = new Relation("R", Set.of("A", "B", "C"));
         r = r.withFunctionalDependency(
                 new FunctionalDependency(Set.of("A"), Set.of("B")));
 
         List<String> steps = synthesizer.synthesizeWithSteps(r);
-        assertFalse(steps.isEmpty());
-        assertTrue(steps.get(0).contains("3NF"));
+        assertEquals("=== 3NF Synthesis ===", steps.get(0));
+        assertTrue(steps.contains("  A -> B  →  R(A,B)"), steps.toString());
+        assertTrue(steps.contains("  No relation contains a candidate key. Adding relation"
+                + " for key {A,C} (smallest key, alphabetically first on ties)."),
+                steps.toString());
+        int done = steps.indexOf("Final 3NF decomposition:");
+        assertEquals(List.of("  R_3NF_1(A,B)", "    FD: A -> B", "  R_3NF_2(A,C)"),
+                steps.subList(done + 1, steps.size()));
     }
 
     @Test
@@ -145,5 +153,11 @@ public class ThreeNfSynthesizerTest {
                 .filter(s -> s.startsWith("  R_3NF_"))
                 .count();
         assertEquals(1, finalRelations);
+    }
+
+    private static Set<Set<String>> schemas(Set<Relation> relations) {
+        Set<Set<String>> schemas = new java.util.HashSet<>();
+        relations.forEach(rel -> schemas.add(rel.getAttributes()));
+        return schemas;
     }
 }
