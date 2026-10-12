@@ -24,8 +24,8 @@ public class NormalFormCheckerTest {
         fds.add(new FunctionalDependency(
             Set.of("B"), Set.of("C")));
         
-        Set<CandidateKey> candidateKeys = new HashSet<>();
-        candidateKeys.add(new CandidateKey(Set.of("A", "B")));
+        Set<CandidateKey> candidateKeys = computedKeys(attributes, fds,
+            new CandidateKey(Set.of("A", "B")));
         
         // B is not a superkey, so BCNF is violated
         assertFalse(normalFormChecker.isBCNF(
@@ -42,8 +42,8 @@ public class NormalFormCheckerTest {
         fds.add(new FunctionalDependency(
             Set.of("A"), Set.of("B")));
         
-        Set<CandidateKey> candidateKeys = new HashSet<>();
-        candidateKeys.add(new CandidateKey(Set.of("A")));
+        Set<CandidateKey> candidateKeys = computedKeys(attributes, fds,
+            new CandidateKey(Set.of("A")));
         
         // A is a superkey, so BCNF is satisfied
         assertTrue(normalFormChecker.isBCNF(
@@ -58,8 +58,8 @@ public class NormalFormCheckerTest {
         fds.add(new FunctionalDependency(
             Set.of("A"), Set.of("C")));
 
-        Set<CandidateKey> candidateKeys = new HashSet<>();
-        candidateKeys.add(new CandidateKey(Set.of("A", "B")));
+        Set<CandidateKey> candidateKeys = computedKeys(attributes, fds,
+            new CandidateKey(Set.of("A", "B")));
 
         assertFalse(normalFormChecker.is2NF(
             attributes, fds, candidateKeys));
@@ -85,8 +85,8 @@ public class NormalFormCheckerTest {
         fds.add(new FunctionalDependency(
             Set.of("B"), Set.of("C")));
 
-        Set<CandidateKey> candidateKeys = new HashSet<>();
-        candidateKeys.add(new CandidateKey(Set.of("A")));
+        Set<CandidateKey> candidateKeys = computedKeys(attributes, fds,
+            new CandidateKey(Set.of("A")));
 
         assertTrue(normalFormChecker.is2NF(
             attributes, fds, candidateKeys));
@@ -111,9 +111,9 @@ public class NormalFormCheckerTest {
         fds.add(new FunctionalDependency(
             Set.of("B"), Set.of("A")));
 
-        Set<CandidateKey> candidateKeys = new HashSet<>();
-        candidateKeys.add(new CandidateKey(Set.of("A", "C")));
-        candidateKeys.add(new CandidateKey(Set.of("B", "C")));
+        Set<CandidateKey> candidateKeys = computedKeys(attributes, fds,
+            new CandidateKey(Set.of("A", "C")),
+            new CandidateKey(Set.of("B", "C")));
 
         assertTrue(normalFormChecker.is2NF(
             attributes, fds, candidateKeys));
@@ -138,8 +138,8 @@ public class NormalFormCheckerTest {
         fds.add(new FunctionalDependency(
             Set.of("A"), Set.of("A")));
 
-        Set<CandidateKey> candidateKeys = new HashSet<>();
-        candidateKeys.add(new CandidateKey(Set.of("A", "B")));
+        Set<CandidateKey> candidateKeys = computedKeys(attributes, fds,
+            new CandidateKey(Set.of("A", "B")));
 
         assertTrue(normalFormChecker.isBCNF(
             attributes, fds, candidateKeys));
@@ -151,7 +151,7 @@ public class NormalFormCheckerTest {
         Set<String> attributes = Set.of("A", "B", "C", "D");
         Set<FunctionalDependency> fds = Set.of(
             new FunctionalDependency(Set.of("A"), Set.of("D")));
-        Set<CandidateKey> candidateKeys = Set.of(
+        Set<CandidateKey> candidateKeys = computedKeys(attributes, fds,
             new CandidateKey(Set.of("A", "B", "C")));
 
         NormalFormResult result = normalFormChecker.determineHighestNormalForm(
@@ -163,5 +163,19 @@ public class NormalFormCheckerTest {
             "2NF violation: {A} partially determines non-prime attribute D"
                 + " from candidate key {A,B,C}"),
             result.getViolations());
+    }
+
+    /**
+     * Computes the keys with {@link CandidateKeyFinder} and checks them against
+     * the expected keys, so the checker is always tested with real keys.
+     */
+    private static Set<CandidateKey> computedKeys(
+            Set<String> attributes,
+            Set<FunctionalDependency> fds,
+            CandidateKey... expected) {
+        Set<CandidateKey> keys =
+            new CandidateKeyFinder().findAllCandidateKeys(attributes, fds);
+        assertEquals(Set.of(expected), keys);
+        return keys;
     }
 }

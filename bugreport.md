@@ -66,7 +66,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [CQ-006](#cq-006) | Low | Stale "backward compatibility" APIs with no callers | Fixed (`5345b5f`) |
 | [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | Fixed (`2ea1c2a`) |
 | [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | Fixed (`2ea1c2a`) |
-| [TEST-003](#test-003) | Low | Normal-form tests use hand-written candidate keys instead of computed ones | Open |
+| [TEST-003](#test-003) | Low | Normal-form tests use hand-written candidate keys instead of computed ones | Fixed |
 | [TEST-004](#test-004) | Low | No tests for large inputs, performance limits, or the UI | Fixed |
 | [DOC-001](#doc-001) | Low | `Progress.md`, `UC.md`, `PROJECT_STRUCTURE.md` duplicated in root and `MarkDown/` | Open |
 | [DOC-002](#doc-002) | Low | README overstates 1NF and omits implemented features | Open |
@@ -524,7 +524,9 @@ Also add pinned textbook examples (Elmasri/Navathe, Silberschatz) with exact exp
 
 <a id="test-003"></a>
 ### TEST-003 — Normal-form tests use hand-written candidate keys
-- **Severity:** Low · **Status:** Open
+- **Severity:** Low · **Status:** Fixed
+- **Regression test:** `NormalFormCheckerTest` (all cases)
+- **Resolution:** Every `NormalFormCheckerTest` case now gets its keys from `CandidateKeyFinder` through a `computedKeys` helper, which also asserts they equal the documented keys. End-to-end coverage through the services and the key finder is in `NormalFormServiceTest`, `PropertyTest.testHighestNormalFormMatchesBruteForce` and `TextbookExamplesTest`.
 
 `NormalFormCheckerTest` passes `candidateKeys` built by hand, so it never exercises the real key finder together with the checker. Add at least a few end-to-end tests through `NormalFormService`.
 
