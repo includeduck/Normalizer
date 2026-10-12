@@ -35,7 +35,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 
 | ID | Severity | Title | Status |
 |---|---|---|---|
-| [BUG-001](#bug-001) | Critical | Naive FD projection: BCNF decomposition can return relations that are **not** in BCNF | Open |
+| [BUG-001](#bug-001) | Critical | Naive FD projection: BCNF decomposition can return relations that are **not** in BCNF | Fixed |
 | [BUG-002](#bug-002) | Critical | Dependency-preservation check reports preserved FDs as **LOST** | Fixed |
 | [BUG-003](#bug-003) | Critical | Candidate-key search overflows at ≥ 31 attributes and returns **no keys** | Fixed |
 | [BUG-004](#bug-004) | High | Exponential key search, repeated ~7× on the UI thread: 13 s freeze at 16 attributes, out of memory at 23 | Fixed |
@@ -44,7 +44,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Open |
 | [BUG-008](#bug-008) | Medium | Results depend on `HashSet` iteration order (BCNF split, minimal cover, chosen 3NF key) | Open |
 | [BUG-009](#bug-009) | Medium | `synthesize()` and `synthesizeWithSteps()` are separate copies that have already drifted | Open |
-| [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Open |
+| [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Fixed |
 | [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Open |
 | [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Open |
 | [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | Open |
@@ -80,7 +80,9 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 <a id="bug-001"></a>
 ### BUG-001 — Naive FD projection: BCNF decomposition can return relations that are not in BCNF
 
-- **Severity:** Critical · **Status:** Open · **Verified**
+- **Severity:** Critical · **Status:** Fixed · **Verified**
+- **Regression test:** `BcnfDecomposerTest.testViolationImpliedThroughRemovedAttribute`, `testInvariantsOnRandomRelations` (300 seeded random relations checked against brute-force BCNF, projection, and lossless-join oracles), `testFinalRelationsCarryProjectedFds`
+- **Resolution:** All closures are now taken under the original F. On the original relation the given FDs are checked, which is sufficient. A sub-relation Ri is checked with given FDs inside Ri first, then every X ⊆ Ri, smallest first (`X⁺ ∩ Ri ⊋ X` and `≠ Ri`). The reported violating FD is `X → (X⁺ ∩ Ri) − X`. Final relations carry a minimal cover of the true projection of F⁺, computed from minimal determinants only. FDs are processed in sorted order, so results are deterministic. Uses the bitmask `FdBitIndex`; a 20-attribute chain decomposes in well under a second. Not yet fixed: the 3NF synthesizer still attaches only the minimal-cover FDs that fit inside each relation (display only; BUG-009 tracks the duplicated 3NF code).
 - **Location:** [BcnfDecomposer.java:198](src/main/java/com/dbms/analyzer/algorithm/BcnfDecomposer.java:198) (`projectFdsOnto`); the same logic is in [ThreeNfSynthesizer.java](src/main/java/com/dbms/analyzer/algorithm/ThreeNfSynthesizer.java) (result FD attachment)
 
 **Description.** When a relation is split, `projectFdsOnto` keeps only the FDs whose LHS and RHS both lie entirely inside the sub-schema. The projection of F onto Ri is really `{X → (X⁺ ∩ Ri) : X ⊆ Ri}`, which is computed over **F⁺**, not F. FDs implied through an attribute that is no longer in the sub-schema get lost. Sub-relations then look as if they have fewer (or no) FDs than they really do, so they are wrongly declared to be in BCNF.
@@ -214,7 +216,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-010"></a>
 ### BUG-010 — BCNF step numbering can produce duplicate or skipped step numbers
 
-- **Severity:** Low · **Status:** Open · **By inspection** (traced, not reproduced)
+- **Severity:** Low · **Status:** Fixed · **By inspection** (traced, not reproduced)
+- **Regression test:** `BcnfDecomposerTest.testStepNumbersAreSequential`
+- **Resolution:** Fixed as part of the BUG-001 rewrite: each step is numbered `stepLog.size() + 1` when it is recorded, so numbers are sequential by construction. The regression test asserts 1..n; it also passed on the old code for its input, so it guards the invariant rather than reproducing the original collision.
 - **Location:** [BcnfDecomposer.java:155](src/main/java/com/dbms/analyzer/algorithm/BcnfDecomposer.java:155)
 
 **Description.** The left child is numbered `stepNumber + 1` and the right child `stepNumber + stepLog.size()`; neither is the next free number. Trace: R(step 1) → R_1(2) → R_1_1 in BCNF → R_1_2 gets 2+2 = **4** → back at the root, R_2 gets 1+3 = **4**. That is a duplicate "Step 4", and step 3 never appears.

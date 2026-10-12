@@ -1,7 +1,7 @@
 package com.dbms.analyzer.algorithm;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,20 +13,25 @@ import com.dbms.analyzer.model.DecompositionStep;
 /**
  * Decomposes a relation into BCNF using the standard recursive algorithm.
  *
- * Improvements over the original implementation:
- * - Trivial FDs are ignored when searching for violations.
- * - The exact violating determinant is reported.
- * - FDs are properly projected onto each sub-relation during decomposition.
- * - Decomposition steps are recorded for educational display.
+ * All closures are taken under the ORIGINAL FD set F, never under FDs
+ * copied onto sub-relations: a sub-relation Ri can be subject to FDs that
+ * only follow from F⁺ through attributes outside Ri.
+ *
+ * <ul>
+ *   <li>For the original relation, checking the given FDs is sufficient.</li>
+ *   <li>For a sub-relation Ri, Ri violates BCNF iff some X ⊆ Ri has
+ *       X⁺ ∩ Ri ⊋ X and X⁺ ∩ Ri ≠ Ri. Given FDs inside Ri are tried first,
+ *       then attribute subsets smallest first.</li>
+ *   <li>A violation X splits Ri into X⁺ ∩ Ri and X ∪ (Ri − X⁺).</li>
+ * </ul>
+ * Each final relation carries a minimal cover of the projection of F⁺.
  */
 public class BcnfDecomposer {
 
-    private final ClosureComputer closureComputer;
-    private final NormalFormChecker normalFormChecker;
+    private final MinimalCoverComputer minimalCoverComputer;
 
     public BcnfDecomposer() {
-        this.closureComputer = new ClosureComputer();
-        this.normalFormChecker = new NormalFormChecker();
+        this.minimalCoverComputer = new MinimalCoverComputer();
     }
 
     /**
@@ -36,8 +41,7 @@ public class BcnfDecomposer {
      * @return Set of relations in BCNF
      */
     public Set<Relation> decomposeToBcnf(Relation relation) {
-        List<DecompositionStep> stepLog = new ArrayList<>();
-        return decomposeToBcnf(relation, stepLog, 1);
+        return decomposeToBcnf(relation, new ArrayList<>());
     }
 
     /**
@@ -49,7 +53,7 @@ public class BcnfDecomposer {
      */
     public Set<Relation> decomposeToBcnfWithSteps(
             Relation relation, List<DecompositionStep> stepLog) {
-        return decomposeToBcnf(relation, stepLog, 1);
+        return decomposeToBcnf(relation, stepLog);
     }
 
     /**
@@ -62,18 +66,22 @@ public class BcnfDecomposer {
         explanation.add("=== BCNF Decomposition ===");
         explanation.add("Original relation: " + formatRelation(relation));
         explanation.add("Original FDs:");
-        for (FunctionalDependency fd : relation.getFunctionalDependencies()) {
+        for (FunctionalDependency fd : sortedFds(relation.getFunctionalDependencies())) {
             explanation.add("  " + fd);
         }
         explanation.add("");
 
-        Set<Relation> result = decomposeToBcnf(relation, stepLog, 1);
+        Set<Relation> result = decomposeToBcnf(relation, stepLog);
 
         for (DecompositionStep step : stepLog) {
+            FunctionalDependency violation = step.getViolatingDependency();
             explanation.add("Step " + step.getStepNumber() + ":");
             explanation.add("  Decompose: "
                     + formatRelation(step.getOriginalRelation()));
-            explanation.add("  Violating FD: " + step.getViolatingDependency());
+            explanation.add("  Violating FD: " + violation
+                    + "  (" + formatSet(violation.getLeftSide())
+                    + " is not a superkey of "
+                    + step.getOriginalRelation().getName() + ")");
             explanation.add("  Into:");
             for (Relation r : step.getDecomposedRelations()) {
                 explanation.add("    " + formatRelation(r));
@@ -84,9 +92,8 @@ public class BcnfDecomposer {
         explanation.add("Final BCNF relations:");
         for (Relation r : result) {
             explanation.add("  " + formatRelation(r));
-            Set<FunctionalDependency> fds = r.getFunctionalDependencies();
-            if (!fds.isEmpty()) {
-                fds.forEach(fd -> explanation.add("    FD: " + fd));
+            for (FunctionalDependency fd : sortedFds(r.getFunctionalDependencies())) {
+                explanation.add("    FD: " + fd);
             }
         }
 
@@ -98,93 +105,104 @@ public class BcnfDecomposer {
     // ---------------------------------------------------------------
 
     private Set<Relation> decomposeToBcnf(
-            Relation relation,
-            List<DecompositionStep> stepLog,
-            int stepNumber) {
+            Relation relation, List<DecompositionStep> stepLog) {
+
+        Set<String> attributes = relation.getAttributes();
+        AnalysisLimits.requireWithinLimit(attributes.size());
+
+        List<FunctionalDependency> fds =
+                sortedFds(relation.getFunctionalDependencies());
+        FdBitIndex index = new FdBitIndex(attributes, fds);
 
         Set<Relation> bcnfRelations = new LinkedHashSet<>();
-        Set<String> attributes = relation.getAttributes();
-        Set<FunctionalDependency> fds = relation.getFunctionalDependencies();
+        decompose(relation.getName(), index.mask(attributes), true,
+                index, stepLog, bcnfRelations);
+        return bcnfRelations;
+    }
 
-        // Find a BCNF violation (ignoring trivial FDs)
-        FunctionalDependency violation = findBcnfViolation(attributes, fds);
+    private void decompose(
+            String name,
+            long schema,
+            boolean isOriginal,
+            FdBitIndex index,
+            List<DecompositionStep> stepLog,
+            Set<Relation> bcnfRelations) {
 
-        if (violation == null) {
-            // No violation — relation is already in BCNF
-            bcnfRelations.add(relation);
-            return bcnfRelations;
+        long determinant = findViolatingDeterminant(schema, isOriginal, index);
+
+        if (determinant == NO_VIOLATION) {
+            Relation result = new Relation(name, index.toSet(schema));
+            result.setFunctionalDependencies(projectFds(schema, index));
+            bcnfRelations.add(result);
+            return;
         }
 
-        // Compute closure of the violating determinant
-        Set<String> leftClosure = closureComputer.computeClosure(
-                violation.getLeftSide(), fds);
+        long closure = index.closure(determinant) & schema;
+        long r1 = closure;                                // X⁺ ∩ Ri
+        long r2 = determinant | (schema & ~closure);      // X ∪ (Ri − X⁺)
 
-        // R1 = attributes in the closure (X⁺)
-        Set<String> r1Attrs = new TreeSet<>(leftClosure);
-        r1Attrs.retainAll(attributes); // restrict to current schema
+        Relation current = new Relation(name, index.toSet(schema));
+        Set<Relation> parts = new LinkedHashSet<>();
+        parts.add(new Relation(name + "_1", index.toSet(r1)));
+        parts.add(new Relation(name + "_2", index.toSet(r2)));
 
-        Relation r1 = new Relation(
-                relation.getName() + "_1", r1Attrs);
-
-        // R2 = X ∪ (R − X⁺)
-        Set<String> r2Attrs = new TreeSet<>(attributes);
-        r2Attrs.removeAll(leftClosure);
-        r2Attrs.addAll(violation.getLeftSide());
-
-        Relation r2 = new Relation(
-                relation.getName() + "_2", r2Attrs);
-
-        // Project FDs onto each sub-relation
-        projectFdsOnto(r1, fds);
-        projectFdsOnto(r2, fds);
-
-        // Record the step
-        Set<Relation> stepRelations = new LinkedHashSet<>();
-        stepRelations.add(r1);
-        stepRelations.add(r2);
-
+        FunctionalDependency violation = new FunctionalDependency(
+                index.toSet(determinant),
+                index.toSet(closure & ~determinant));
         DecompositionStep step = new DecompositionStep(
-                relation, violation, stepNumber);
-        step.setDecomposedRelations(stepRelations);
+                current, violation, stepLog.size() + 1);
+        step.setDecomposedRelations(parts);
         stepLog.add(step);
 
-        // Recurse
-        bcnfRelations.addAll(
-                decomposeToBcnf(r1, stepLog, stepNumber + 1));
-        bcnfRelations.addAll(
-                decomposeToBcnf(r2, stepLog, stepNumber + stepLog.size()));
-
-        return bcnfRelations;
+        decompose(name + "_1", r1, false, index, stepLog, bcnfRelations);
+        decompose(name + "_2", r2, false, index, stepLog, bcnfRelations);
     }
 
     // ---------------------------------------------------------------
     // Violation finding
     // ---------------------------------------------------------------
 
+    private static final long NO_VIOLATION = -1L;
+
     /**
-     * Finds a BCNF violation if one exists, ignoring trivial FDs.
-     *
-     * @return A violating FD whose LHS is not a superkey, or null
+     * Returns a determinant X ⊆ schema with X⁺ ∩ schema ⊋ X and
+     * X⁺ ∩ schema ≠ schema, or {@link #NO_VIOLATION}.
      */
-    private FunctionalDependency findBcnfViolation(
-            Set<String> attributes,
-            Set<FunctionalDependency> functionalDependencies) {
+    private long findViolatingDeterminant(
+            long schema, boolean isOriginal, FdBitIndex index) {
 
-        for (FunctionalDependency fd : functionalDependencies) {
-            // Skip trivial FDs (LHS contains all of RHS)
-            if (isTrivial(fd)) {
-                continue;
-            }
-
-            Set<String> closure = closureComputer.computeClosure(
-                    fd.getLeftSide(), functionalDependencies);
-
-            // The LHS is a superkey if its closure contains all attributes
-            if (!closure.containsAll(attributes)) {
-                return fd;
+        // Given FDs first: their determinants are the most natural to show.
+        for (int i = 0; i < index.fdCount(); i++) {
+            long lhs = index.lhs(i);
+            if (FdBitIndex.isSubset(lhs, schema)
+                    && violates(lhs, schema, index)) {
+                return lhs;
             }
         }
-        return null;
+
+        // On the original relation, checking the given FDs is sufficient.
+        if (isOriginal) {
+            return NO_VIOLATION;
+        }
+
+        List<Integer> bits = bitsOf(schema);
+        int n = bits.size();
+        for (int size = 1; size < n; size++) {
+            long combination = (1L << size) - 1;
+            while (combination < (1L << n)) {
+                long candidate = expand(combination, bits);
+                if (violates(candidate, schema, index)) {
+                    return candidate;
+                }
+                combination = nextCombination(combination);
+            }
+        }
+        return NO_VIOLATION;
+    }
+
+    private static boolean violates(long determinant, long schema, FdBitIndex index) {
+        long closure = index.closure(determinant) & schema;
+        return (closure & ~determinant) != 0 && closure != schema;
     }
 
     // ---------------------------------------------------------------
@@ -192,32 +210,100 @@ public class BcnfDecomposer {
     // ---------------------------------------------------------------
 
     /**
-     * Projects a set of FDs onto a relation's attribute set.
-     * Only FDs whose LHS and RHS are entirely within the relation are kept.
+     * Projects F⁺ onto a schema and returns a minimal cover of the result.
+     *
+     * Subsets are visited smallest first; X → A is kept only if no smaller
+     * determinant of A has been found inside X, so only minimal
+     * determinants are passed on to the minimal-cover step.
      */
-    private void projectFdsOnto(Relation relation,
-                                Set<FunctionalDependency> originalFds) {
-        Set<String> attrs = relation.getAttributes();
-        for (FunctionalDependency fd : originalFds) {
-            if (attrs.containsAll(fd.getLeftSide())
-                    && attrs.containsAll(fd.getRightSide())) {
-                relation.addFunctionalDependency(fd);
+    private Set<FunctionalDependency> projectFds(long schema, FdBitIndex index) {
+        List<Integer> bits = bitsOf(schema);
+        int n = bits.size();
+        List<long[]> minimalDeterminants = new ArrayList<>(); // {determinant, attribute}
+        Set<FunctionalDependency> projected = new LinkedHashSet<>();
+
+        for (int size = 1; size < n; size++) {
+            long combination = (1L << size) - 1;
+            while (combination < (1L << n)) {
+                long candidate = expand(combination, bits);
+                long gained = index.closure(candidate) & schema & ~candidate;
+
+                for (int bit : bits) {
+                    long attribute = 1L << bit;
+                    if ((gained & attribute) != 0
+                            && !hasSmallerDeterminant(
+                                candidate, attribute, minimalDeterminants)) {
+                        minimalDeterminants.add(new long[] {candidate, attribute});
+                        projected.add(new FunctionalDependency(
+                                index.toSet(candidate), index.toSet(attribute)));
+                    }
+                }
+                combination = nextCombination(combination);
             }
         }
+
+        return minimalCoverComputer.computeMinimalCover(projected);
     }
 
-    private boolean isTrivial(FunctionalDependency fd) {
-        return fd.getLeftSide().containsAll(fd.getRightSide());
+    private static boolean hasSmallerDeterminant(
+            long candidate, long attribute, List<long[]> minimalDeterminants) {
+        for (long[] entry : minimalDeterminants) {
+            if (entry[1] == attribute && FdBitIndex.isSubset(entry[0], candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ---------------------------------------------------------------
+    // Bitmask helpers
+    // ---------------------------------------------------------------
+
+    private static List<Integer> bitsOf(long mask) {
+        List<Integer> bits = new ArrayList<>();
+        for (int bit = 0; bit < Long.SIZE - 1; bit++) {
+            if ((mask & (1L << bit)) != 0) {
+                bits.add(bit);
+            }
+        }
+        return bits;
+    }
+
+    private static long expand(long combination, List<Integer> bits) {
+        long mask = 0L;
+        for (int i = 0; i < bits.size(); i++) {
+            if ((combination & (1L << i)) != 0) {
+                mask |= 1L << bits.get(i);
+            }
+        }
+        return mask;
+    }
+
+    /** Gosper's hack: next integer with the same number of set bits. */
+    private static long nextCombination(long combination) {
+        long lowest = combination & -combination;
+        long ripple = combination + lowest;
+        return ripple | (((ripple ^ combination) >>> 2) / lowest);
     }
 
     // ---------------------------------------------------------------
     // Formatting helpers
     // ---------------------------------------------------------------
 
+    private static List<FunctionalDependency> sortedFds(Set<FunctionalDependency> fds) {
+        List<FunctionalDependency> sorted = new ArrayList<>(fds);
+        sorted.sort(Comparator.comparing(FunctionalDependency::toString));
+        return sorted;
+    }
+
     private String formatRelation(Relation r) {
         return r.getName() + "("
                 + String.join(",", new TreeSet<>(r.getAttributes()))
                 + ")";
+    }
+
+    private String formatSet(Set<String> values) {
+        return "{" + String.join(",", new TreeSet<>(values)) + "}";
     }
 
     /**
