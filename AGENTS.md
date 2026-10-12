@@ -16,5 +16,5 @@
 ## Project notes
 
 - Build and test with `mvn -B verify`. CI runs on every push.
-- `src/main/resources/fxml/main.fxml` + `MainController` is the only live UI. Before extending other controllers, components, or FXML files, check CQ-001 in the bug report: they are dead code.
+- The UI is a single window: `src/main/resources/fxml/main.fxml` with `MainController`. The old per-feature controllers, FXML files and components were removed as dead code (CQ-001); don't re-create them without a caller.
 - Algorithm changes need tests that check correctness invariants (see TEST-002), not just "result is non-empty".

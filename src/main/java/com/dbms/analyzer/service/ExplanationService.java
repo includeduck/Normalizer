@@ -12,28 +12,18 @@ public class ExplanationService {
 
     private final RelationService relationService;
     private final FdService fdService;
-    private final ClosureService closureService;
     private final CandidateKeyService candidateKeyService;
     private final NormalFormService normalFormService;
 
     public ExplanationService(
             RelationService relationService,
             FdService fdService,
-            ClosureService closureService,
             CandidateKeyService candidateKeyService,
             NormalFormService normalFormService) {
         this.relationService = relationService;
         this.fdService = fdService;
-        this.closureService = closureService;
         this.candidateKeyService = candidateKeyService;
         this.normalFormService = normalFormService;
-    }
-
-    /**
-     * Generates explanation for closure computation
-     */
-    public List<String> explainClosure(String attributeString) {
-        return closureService.computeClosureWithSteps(attributeString);
     }
 
     /**

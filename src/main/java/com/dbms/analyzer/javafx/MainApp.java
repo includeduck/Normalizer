@@ -2,7 +2,6 @@ package com.dbms.analyzer.javafx;
 
 import com.dbms.analyzer.DbmsApplication;
 import com.dbms.analyzer.javafx.controllers.MainController;
-import com.dbms.analyzer.javafx.utils.JavaFxSpringInjector;
 import com.dbms.analyzer.javafx.utils.UnexpectedErrorHandler;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -26,7 +25,6 @@ public class MainApp extends Application {
                 .headless(false)
                 .web(WebApplicationType.NONE)
                 .run(getParameters().getRaw().toArray(new String[0]));
-            JavaFxSpringInjector.setApplicationContext(applicationContext);
         } catch (RuntimeException e) {
             // init() runs off the FX thread; report it from start()
             startupFailure = e;

@@ -86,19 +86,6 @@ public class FdUtil {
         return relationAttributes.containsAll(fdAttributes);
     }
 
-    /**
-     * Checks for duplicate attributes within a set
-     */
-    public static boolean hasDuplicates(String attributeString) {
-        Set<String> seen = new HashSet<>();
-        for (String attribute : attributeTokens(attributeString, null)) {
-            if (!seen.add(attribute)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private static String[] splitFd(String fdString) {
         if (fdString == null) {
             throw new IllegalArgumentException("FD must be non-empty");

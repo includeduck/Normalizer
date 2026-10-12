@@ -5,8 +5,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class FunctionalDependency {
-    private Set<String> leftSide;
-    private Set<String> rightSide;
+    private final Set<String> leftSide;
+    private final Set<String> rightSide;
 
     public FunctionalDependency(Set<String> leftSide, Set<String> rightSide) {
         this.leftSide = new HashSet<>(leftSide);
@@ -17,16 +17,8 @@ public class FunctionalDependency {
         return new HashSet<>(leftSide);
     }
 
-    public void setLeftSide(Set<String> leftSide) {
-        this.leftSide = new HashSet<>(leftSide);
-    }
-
     public Set<String> getRightSide() {
         return new HashSet<>(rightSide);
-    }
-
-    public void setRightSide(Set<String> rightSide) {
-        this.rightSide = new HashSet<>(rightSide);
     }
 
     /**

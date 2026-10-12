@@ -5,10 +5,10 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 
 | | |
 |---|---|
-| **Last updated** | 2026-10-12 (after the severe-bug fixes) |
+| **Last updated** | 2026-10-12 (after BUG-008 and the dead-code removal) |
 | **Last full review at commit** | `6b6ad65` (Add CI Pipeline) |
-| **Test suite** | 92 tests, all passing (78 at the review, when none of them caught the bugs below) |
-| **Open issues** | 30 (0 critical, 0 high, 9 medium, 21 low), 2 of them in progress · 7 fixed |
+| **Test suite** | 90 tests, all passing (78 at the review, when none of them caught the bugs below) |
+| **Open issues** | 26 (0 critical, 0 high, 7 medium, 19 low), 3 of them in progress · 11 fixed |
 
 ---
 
@@ -47,7 +47,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Fixed (`f4f9c8d`) |
 | [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Open |
 | [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Open |
-| [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | Open |
+| [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | In progress |
 | [BUG-014](#bug-014) | Low | `FunctionalDependency.hashCode()` is additive, so `X→Y` and `Y→X` always collide | Open |
 | [BUG-015](#bug-015) | Low | Removing an FD in the UI matches it by `toString()` | Open |
 | [BUG-016](#bug-016) | Low | A failed "Load Example" leaves a half-built relation and a stale UI | Open |
@@ -58,12 +58,12 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BLD-003](#bld-003) | Low | CI runs the test suite twice; PR branches build twice | Open |
 | [BLD-004](#bld-004) | Low | Shipped config has DEBUG logging and meaningless properties | Open |
 | [BLD-005](#bld-005) | Low | `.gitignore` ignores every `*.ini`; no `.gitattributes` (mixed line endings) | Open |
-| [CQ-001](#cq-001) | Medium | ~20 dead source/resource files (old controllers, FXML, components, repository) | Open |
+| [CQ-001](#cq-001) | Medium | ~20 dead source/resource files (old controllers, FXML, components, repository) | Fixed |
 | [CQ-002](#cq-002) | Low | Dependency injection is only half applied | Open |
 | [CQ-003](#cq-003) | Low | Every algorithm is written twice (plain + "with steps") | Open |
 | [CQ-004](#cq-004) | Low | `MainController` is a 904-line god class; the service layer is mostly pass-through | Open |
 | [CQ-005](#cq-005) | Low | Defensive copies in getters run inside the hot closure loop | Open |
-| [CQ-006](#cq-006) | Low | Stale "backward compatibility" APIs with no callers | Open |
+| [CQ-006](#cq-006) | Low | Stale "backward compatibility" APIs with no callers | Fixed |
 | [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | In progress |
 | [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | In progress |
 | [TEST-003](#test-003) | Low | Normal-form tests use hand-written candidate keys instead of computed ones | Open |
@@ -71,7 +71,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [DOC-001](#doc-001) | Low | `Progress.md`, `UC.md`, `PROJECT_STRUCTURE.md` duplicated in root and `MarkDown/` | Open |
 | [DOC-002](#doc-002) | Low | README overstates 1NF and omits implemented features | Open |
 | [DOC-003](#doc-003) | Low | `UC.md` is out of date with the implementation | Open |
-| [DOC-004](#doc-004) | Low | `PROJECT_STRUCTURE.md` describes dead code as the live architecture | Open |
+| [DOC-004](#doc-004) | Low | `PROJECT_STRUCTURE.md` describes dead code as the live architecture | Fixed |
 
 ---
 
@@ -261,7 +261,8 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-013"></a>
 ### BUG-013 — Mutable model objects are stored in hash-based collections
 
-- **Severity:** Medium · **Status:** Open · **By inspection**
+- **Severity:** Medium · **Status:** In progress · **By inspection**
+- **Progress:** The unused setters on `FunctionalDependency`, `CandidateKey` and `Relation` were removed and those fields made `final` (with CQ-006). Still open: `Relation`'s FD set is mutable (`addFunctionalDependency`, `setFunctionalDependencies`), and `Relation.equals` ignores FDs.
 - **Location:** [FunctionalDependency.java](src/main/java/com/dbms/analyzer/model/FunctionalDependency.java), [Relation.java](src/main/java/com/dbms/analyzer/model/Relation.java), [CandidateKey.java](src/main/java/com/dbms/analyzer/model/CandidateKey.java)
 
 **Description.** `setLeftSide`, `setRightSide`, `setAttributes` and `setName` change fields that feed `equals`/`hashCode`, while instances live in `HashSet`s throughout the code. No caller uses the setters today, but the first one that does will corrupt a set without any error. Also, `Relation.equals` ignores FDs, so two relations with the same schema and different FDs count as equal inside the `LinkedHashSet` results.
@@ -406,7 +407,8 @@ A blanket `*.ini` rule will silently hide any future config file. There is no `.
 
 <a id="cq-001"></a>
 ### CQ-001 — ~20 dead source/resource files
-- **Severity:** Medium · **Status:** Open · **Verified** (grep: no references outside the files themselves)
+- **Severity:** Medium · **Status:** Fixed · **Verified** (grep: no references outside the files themselves)
+- **Resolution:** Deleted the 7 unused controllers and their 7 FXML files, the 3 components, `AlertHelper`, `JavaFxSpringInjector` (and its one call in `MainApp`), `InMemorySessionRepository` (the `repository` package is gone) and `model/Attribute`. The build and all tests pass; nothing referenced them. `DecompositionTreeView` was not wired into the real UI, so UC-6's "decomposition tree" remains unimplemented (DOC-003).
 
 `main.fxml` is the only FXML file loaded, and nothing references the following:
 
@@ -448,7 +450,8 @@ The controller takes 10 injected services, handles formatting, holds state (`las
 
 <a id="cq-006"></a>
 ### CQ-006 — Stale "backward compatibility" APIs with no callers
-- **Severity:** Low · **Status:** Open · **Verified**
+- **Severity:** Low · **Status:** Fixed · **Verified**
+- **Resolution:** Removed `BcnfDecomposer.createDecompositionStep`, `FdUtil.hasDuplicates`, and these service methods with no callers: `BcnfDecompositionService.decomposeToBcnfWithSteps`/`isAlreadyBcnf`/`getDecompositionSteps`, `DecompositionAnalysisService.isDependencyPreserving`/`findLostDependencies`/`isLosslessJoin`, `MinimalCoverService.computeMinimalCover`, `ClosureService.isSuperKey`, `ExplanationService.explainClosure` (plus its now-unused `ClosureService` dependency), `FdService.clearDependencies`/`validateFdString`, and `RelationService.setCurrentRelation`. Tests that only covered removed methods were deleted with them. Public query methods of the algorithm classes (e.g. `isPreserved`, `isLossless`) were kept: the tests use them as the algorithms' API.
 
 - `BcnfDecomposer.createDecompositionStep` ("kept for backward compatibility with existing callers"): there are no callers.
 - `BcnfDecompositionService.getDecompositionSteps()`: returns the *final result* wrapped in a list and calls it "steps".
@@ -529,7 +532,8 @@ The README claims a 1NF atomicity check (BUG-007). It does not mention minimal c
 
 <a id="doc-004"></a>
 ### DOC-004 — `PROJECT_STRUCTURE.md` describes dead code as the live architecture
-- **Severity:** Low · **Status:** Open · **By inspection** · [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
+- **Severity:** Low · **Status:** Fixed · **By inspection** · [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
+- **Resolution:** `PROJECT_STRUCTURE.md` regenerated from the current tree (both copies, see DOC-001): file counts, all 12 algorithm classes, the single controller and FXML file, and the class diagram. The README project tree no longer lists `repository/`.
 
 It describes "controllers/ (7 files)", "components/ (3 files)" and "repository/ — Data Persistence" as active parts of the design (CQ-001). Update it after the dead code is removed.
 
@@ -554,3 +558,4 @@ These were checked during the review, so later reviews can skip them unless the 
 |---|---|---|
 | 2026-10-12 | `6b6ad65` | Initial full review. 37 issues logged. Reproductions verified with throwaway probe tests (not committed). |
 | 2026-10-12 | `caef5f5` | Fixed all critical and high issues: BUG-001, -002, -003, -004, -005, -006, plus BUG-010 along the way. TEST-001 and TEST-002 in progress. Added `AnalysisLimits.MAX_ATTRIBUTES` = 20. |
+| 2026-10-12 | — | Fixed BUG-008 (canonical ordering via `FdOrder`). Removed dead code (CQ-001, CQ-006) and regenerated `PROJECT_STRUCTURE.md` (DOC-004). BUG-013 in progress. Test count drops to 90 because tests of removed methods were deleted. |

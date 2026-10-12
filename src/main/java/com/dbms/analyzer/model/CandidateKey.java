@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class CandidateKey {
-    private Set<String> attributes;
+    private final Set<String> attributes;
 
     public CandidateKey(Set<String> attributes) {
         this.attributes = new HashSet<>(attributes);
@@ -13,10 +13,6 @@ public class CandidateKey {
 
     public Set<String> getAttributes() {
         return new HashSet<>(attributes);
-    }
-
-    public void setAttributes(Set<String> attributes) {
-        this.attributes = new HashSet<>(attributes);
     }
 
     /**

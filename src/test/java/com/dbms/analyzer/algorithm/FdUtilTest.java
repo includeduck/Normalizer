@@ -118,19 +118,4 @@ public class FdUtilTest {
                 Set.of("A"), Set.of("D"));
         assertFalse(FdUtil.validateFdAttributes(fd, Set.of("A", "B", "C")));
     }
-
-    @Test
-    public void testHasDuplicatesTrue() {
-        assertTrue(FdUtil.hasDuplicates("ABA"));
-    }
-
-    @Test
-    public void testHasDuplicatesFalse() {
-        assertFalse(FdUtil.hasDuplicates("ABC"));
-    }
-
-    @Test
-    public void testHasDuplicatesWithMultiCharacterAttributes() {
-        assertTrue(FdUtil.hasDuplicates("student_id,course_id,student_id"));
-    }
 }

@@ -5,8 +5,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class Relation {
-    private String name;
-    private Set<String> attributes;
+    private final String name;
+    private final Set<String> attributes;
     private Set<FunctionalDependency> functionalDependencies;
 
     public Relation(String name, Set<String> attributes) {
@@ -19,16 +19,8 @@ public class Relation {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Set<String> getAttributes() {
         return new HashSet<>(attributes);
-    }
-
-    public void setAttributes(Set<String> attributes) {
-        this.attributes = new HashSet<>(attributes);
     }
 
     public Set<FunctionalDependency> getFunctionalDependencies() {

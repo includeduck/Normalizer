@@ -69,17 +69,4 @@ public class FdServiceTest {
         assertThrows(IllegalArgumentException.class, () ->
             fdService.addFunctionalDependency("A -> D"));
     }
-
-    @Test
-    public void testValidateFdString() {
-        assertTrue(fdService.validateFdString("A -> B"));
-        assertFalse(fdService.validateFdString("A -> D"));
-    }
-
-    @Test
-    public void testClearDependencies() {
-        fdService.addFunctionalDependency("A -> B");
-        fdService.clearDependencies();
-        assertEquals(0, fdService.getAllDependencies().size());
-    }
 }

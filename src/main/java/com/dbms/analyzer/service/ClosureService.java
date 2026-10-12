@@ -70,12 +70,4 @@ public class ClosureService {
         return closureComputer.computeClosureWithSteps(
             attributeSet, fdService.getAllDependencies());
     }
-
-    /**
-     * Checks if a set of attributes forms a superkey
-     */
-    public boolean isSuperKey(String attributeString) {
-        Set<String> closure = computeClosure(attributeString);
-        return closure.equals(relationService.getAttributes());
-    }
 }

@@ -1,14 +1,13 @@
-# DBMS Normalizer - Complete Project Structure
+# DBMS Normalizer - Project Structure
 
 ## Project Overview
 
-**Total Files Created: 55**
-- Java Classes: 38
-- FXML Layout Files: 8
-- Configuration Files: 3
-- Resource Files: 2
-- Documentation: 2
-- Other: 2
+- Java classes (main): 33
+- Java test classes: 16
+- FXML layout files: 1
+- Resource files: 2 (`application.properties`, `styles.css`)
+
+Known issues and their status are tracked in [`bugreport.md`](bugreport.md).
 
 ---
 
@@ -19,252 +18,132 @@ dbms-normalizer/
 │
 ├── pom.xml                                     # Maven project configuration
 ├── README.md                                   # Project documentation
-├── .gitignore                                  # Git ignore patterns
+├── bugreport.md                                # Running bug and issue log
+├── AGENTS.md                                   # Instructions for AI agents
+├── build-exe.bat / build-exe.ps1               # Windows .exe packaging (jpackage)
+├── .github/workflows/ci.yml                    # CI: build and test on push
 │
 └── src/
     ├── main/
     │   ├── java/com/dbms/analyzer/
-    │   │   ├── Launcher.java                   # JavaFX launcher entry point
+    │   │   ├── Launcher.java                   # Desktop entry point
     │   │   ├── DbmsApplication.java            # Spring Boot configuration
     │   │   │
     │   │   ├── javafx/
-    │   │   │   ├── MainApp.java                # JavaFX application entry point
-    │   │   │   │
-    │   │   │   ├── controllers/                # FXML Controller Classes (7 files)
-    │   │   │   │   ├── MainController.java
-    │   │   │   │   ├── RelationController.java
-    │   │   │   │   ├── FdController.java
-    │   │   │   │   ├── ClosureController.java
-    │   │   │   │   ├── CandidateKeyController.java
-    │   │   │   │   ├── NormalFormController.java
-    │   │   │   │   ├── BcnfController.java
-    │   │   │   │   └── ExplanationController.java
-    │   │   │   │
-    │   │   │   ├── components/                 # Custom JavaFX Components (3 files)
-    │   │   │   │   ├── FdListView.java
-    │   │   │   │   ├── AttributeChip.java
-    │   │   │   │   └── DecompositionTreeView.java
-    │   │   │   │
-    │   │   │   └── utils/                      # Utility Classes (2 files)
-    │   │   │       ├── JavaFxSpringInjector.java
-    │   │   │       └── AlertHelper.java
+    │   │   │   ├── MainApp.java                # JavaFX application; boots Spring, loads main UI
+    │   │   │   ├── controllers/
+    │   │   │   │   └── MainController.java     # The single UI controller (main.fxml)
+    │   │   │   └── utils/
+    │   │   │       └── UnexpectedErrorHandler.java  # Error dialogs for uncaught errors
     │   │   │
-    │   │   ├── service/                        # Service Layer (7 files)
-    │   │   │   ├── RelationService.java        # Manages relation state
-    │   │   │   ├── FdService.java              # Manages functional dependencies
-    │   │   │   ├── ClosureService.java         # Closure computation service
-    │   │   │   ├── CandidateKeyService.java    # Candidate key operations
+    │   │   ├── service/                        # Service Layer (10 files)
+    │   │   │   ├── RelationService.java        # Holds the current relation
+    │   │   │   ├── FdService.java              # Adds/removes functional dependencies
+    │   │   │   ├── ClosureService.java         # Attribute closure
+    │   │   │   ├── CandidateKeyService.java    # Candidate keys (cached), prime attributes
     │   │   │   ├── NormalFormService.java      # Normal form analysis
+    │   │   │   ├── MinimalCoverService.java    # Minimal cover
     │   │   │   ├── BcnfDecompositionService.java
-    │   │   │   └── ExplanationService.java     # Explanation generation
+    │   │   │   ├── ThreeNfService.java         # 3NF synthesis
+    │   │   │   ├── DecompositionAnalysisService.java  # Dependency preservation, lossless join
+    │   │   │   └── ExplanationService.java     # Explanation text
     │   │   │
-    │   │   ├── algorithm/                      # Algorithm Implementations (5 files)
-    │   │   │   ├── ClosureComputer.java        # Closure algorithm
-    │   │   │   ├── CandidateKeyFinder.java     # Candidate key algorithm
-    │   │   │   ├── NormalFormChecker.java      # Normal form checking
-    │   │   │   ├── BcnfDecomposer.java         # BCNF decomposition
-    │   │   │   └── FdUtil.java                 # FD utilities
+    │   │   ├── algorithm/                      # Algorithm Implementations (12 files)
+    │   │   │   ├── ClosureComputer.java        # Fixed-point attribute closure
+    │   │   │   ├── CandidateKeyFinder.java     # Pruned candidate-key search
+    │   │   │   ├── NormalFormChecker.java      # 2NF/3NF/BCNF checks
+    │   │   │   ├── MinimalCoverComputer.java   # Minimal (canonical) cover
+    │   │   │   ├── BcnfDecomposer.java         # Recursive BCNF decomposition
+    │   │   │   ├── ThreeNfSynthesizer.java     # 3NF synthesis
+    │   │   │   ├── DependencyPreservationChecker.java
+    │   │   │   ├── LosslessJoinChecker.java    # Binary test and chase
+    │   │   │   ├── FdUtil.java                 # FD parsing and validation
+    │   │   │   ├── FdOrder.java                # Canonical ordering of FDs and keys
+    │   │   │   ├── FdBitIndex.java             # Bitmask closures (package-private)
+    │   │   │   └── AnalysisLimits.java         # Maximum attribute count
     │   │   │
-    │   │   ├── model/                          # Data Models (6 files)
+    │   │   ├── model/                          # Data Models (5 files)
     │   │   │   ├── Relation.java
     │   │   │   ├── FunctionalDependency.java
-    │   │   │   ├── Attribute.java
     │   │   │   ├── CandidateKey.java
     │   │   │   ├── NormalFormResult.java
     │   │   │   └── DecompositionStep.java
     │   │   │
-    │   │   ├── repository/                     # Data Persistence (1 file)
-    │   │   │   └── InMemorySessionRepository.java
-    │   │   │
-    │   │   └── config/                         # Spring Configuration (1 file)
-    │   │       └── AppConfig.java
+    │   │   └── config/
+    │   │       └── AppConfig.java              # Algorithm bean definitions
     │   │
     │   └── resources/
-    │       ├── application.properties           # Spring Boot properties
-    │       │
-    │       ├── css/
-    │       │   └── styles.css                  # JavaFX stylesheet
-    │       │
-    │       ├── fxml/                           # FXML Layout Files (8 files)
-    │       │   ├── main.fxml                   # Main workspace
-    │       │   ├── relation.fxml               # Relation creation
-    │       │   ├── fd.fxml                     # FD input
-    │       │   ├── closure.fxml                # Closure computation
-    │       │   ├── candidateKeys.fxml          # Candidate keys display
-    │       │   ├── normalForm.fxml             # Normal form analysis
-    │       │   ├── bcnf.fxml                   # BCNF decomposition
-    │       │   └── explanation.fxml            # Explanations view
-    │       │
-    │       └── images/
-    │           └── [icon placeholder]
+    │       ├── application.properties          # Spring Boot properties
+    │       ├── css/styles.css                  # JavaFX stylesheet
+    │       └── fxml/main.fxml                  # Main workspace (the only FXML file)
     │
-    └── test/
-        └── java/com/dbms/analyzer/
-            ├── algorithm/                      # Algorithm Tests (4 files)
-            │   ├── ClosureComputerTest.java
-            │   ├── CandidateKeyFinderTest.java
-            │   ├── NormalFormCheckerTest.java
-            │   └── BcnfDecomposerTest.java
-            │
-            └── service/                        # Service Tests (2 files)
-                ├── RelationServiceTest.java
-                └── FdServiceTest.java
+    └── test/java/com/dbms/analyzer/
+        ├── DbmsApplicationContextTest.java     # Spring context loads
+        ├── algorithm/                          # Algorithm tests (10 files)
+        ├── javafx/utils/                       # UnexpectedErrorHandlerTest
+        └── service/                            # Service tests (4 files)
 ```
 
 ---
 
 ## File Categories & Descriptions
 
-### Core Application Files (2)
-1. **Launcher.java** - Main desktop entry point used by Maven and packaged runs
-2. **DbmsApplication.java** - Spring Boot application configuration
-3. **MainApp.java** - JavaFX application startup, boots Spring and loads main UI
+### Core Application Files (3)
+- **Launcher.java** - Main desktop entry point used by Maven and packaged runs
+- **DbmsApplication.java** - Spring Boot application configuration
+- **MainApp.java** - JavaFX application startup; boots Spring, loads `main.fxml`, installs `UnexpectedErrorHandler`, and shows a dialog if start-up fails
 
-### Model Classes (6)
-Represent domain objects:
-- **Relation.java** - Represents a database relation with attributes and FDs
-- **FunctionalDependency.java** - Represents an FD with left/right sides
-- **Attribute.java** - Individual attribute with prime/non-prime flag
-- **CandidateKey.java** - Minimal superkey representation
-- **NormalFormResult.java** - Results of normal form analysis
-- **DecompositionStep.java** - BCNF decomposition step record
+### Model Classes (5)
+- **Relation.java** - A relation with attributes and FDs
+- **FunctionalDependency.java** - An FD with left and right sides (immutable)
+- **CandidateKey.java** - A minimal superkey (immutable)
+- **NormalFormResult.java** - Highest normal form, sorted violations, explanation
+- **DecompositionStep.java** - One BCNF decomposition step
 
-### Algorithm Classes (5)
-Implement core DBMS algorithms:
-- **ClosureComputer.java** - Computes attribute closures using fixed-point iteration
-- **CandidateKeyFinder.java** - Generates all subsets and finds minimal superkeys
-- **NormalFormChecker.java** - Checks 1NF/2NF/3NF/BCNF requirements
-- **BcnfDecomposer.java** - Recursively decomposes relations to BCNF
-- **FdUtil.java** - Parsing, validation, and manipulation utilities for FDs
+### Algorithm Classes (12)
+- **ClosureComputer.java** - Attribute closure by fixed-point iteration, with an optional trace
+- **CandidateKeyFinder.java** - Classifies attributes (always / never / maybe in a key) and searches the remaining subsets smallest first
+- **NormalFormChecker.java** - 2NF/3NF/BCNF checks on the original relation (1NF is assumed)
+- **MinimalCoverComputer.java** - Singleton right sides, extraneous attributes, redundant FDs
+- **BcnfDecomposer.java** - Recursive BCNF decomposition; every check uses closures under the original FDs, and final relations carry their projected FDs
+- **ThreeNfSynthesizer.java** - 3NF synthesis from the minimal cover
+- **DependencyPreservationChecker.java** - Standard fixed-point preservation test
+- **LosslessJoinChecker.java** - Binary shortcut and the chase for n-way decompositions
+- **FdUtil.java** - FD and attribute-set parsing and validation
+- **FdOrder.java** - Canonical order, so results don't depend on hash-set iteration
+- **FdBitIndex.java** - Bitmask closures used by the subset-enumerating algorithms
+- **AnalysisLimits.java** - `MAX_ATTRIBUTES` (20)
 
-### Service Classes (7)
-Business logic layer between UI and algorithms:
-- **RelationService.java** - Creates and manages current relation state
-- **FdService.java** - Adds, removes, and manages functional dependencies
-- **ClosureService.java** - Provides closure computation with explanations
-- **CandidateKeyService.java** - Finds candidate keys and identifies prime attributes
-- **NormalFormService.java** - Analyzes and reports normal forms
-- **BcnfDecompositionService.java** - Orchestrates BCNF decomposition
-- **ExplanationService.java** - Generates step-by-step educational explanations
+### Service Classes (10)
+Business logic between the UI and the algorithms. Each service works on the current relation held by `RelationService`.
 
-### JavaFX Controllers (8)
-FXML controller classes handling UI events:
-- **MainController.java** - Main workspace coordination
-- **RelationController.java** - Relation creation dialog
-- **FdController.java** - FD input and management
-- **ClosureController.java** - Closure computation UI
-- **CandidateKeyController.java** - Candidate key display
-- **NormalFormController.java** - Normal form results
-- **BcnfController.java** - BCNF decomposition display
-- **ExplanationController.java** - Educational explanations
-
-### Custom JavaFX Components (3)
-Reusable UI components:
-- **FdListView.java** - Custom ListView for displaying FDs with context menus
-- **AttributeChip.java** - Visual token-style attribute display
-- **DecompositionTreeView.java** - Hierarchical decomposition tree display
-
-### JavaFX Utilities (2)
-Support classes:
-- **JavaFxSpringInjector.java** - Integrates Spring beans into JavaFX controllers
-- **AlertHelper.java** - Dialog and alert convenience methods
-
-### Repository (1)
-- **InMemorySessionRepository.java** - In-memory data storage for session state
+### JavaFX (3)
+- **MainController.java** - Handles all UI events for `main.fxml`
+- **UnexpectedErrorHandler.java** - Default uncaught-exception handler that logs and shows an error dialog
+- **main.fxml** - The application window
 
 ### Configuration (1)
-- **AppConfig.java** - Spring Bean definitions and wiring
-
-### FXML Layout Files (8)
-XML-based UI definitions:
-- **main.fxml** - Primary application workspace (buttons, lists, workspace)
-- **relation.fxml** - Relation schema input dialog
-- **fd.fxml** - Functional dependency input dialog
-- **closure.fxml** - Attribute closure input and results
-- **candidateKeys.fxml** - Candidate keys display and prime attributes
-- **normalForm.fxml** - Normal form analysis results
-- **bcnf.fxml** - BCNF decomposition results tree
-- **explanation.fxml** - Step-by-step explanation viewer
-
-### Configuration Files (3)
-- **pom.xml** - Maven dependencies and build configuration
-- **application.properties** - Spring Boot and logging configuration
-- **styles.css** - JavaFX CSS styling (buttons, fields, colors)
-
-### Testing Files (6)
-Unit test classes:
-- **ClosureComputerTest.java** - Tests closure algorithm correctness
-- **CandidateKeyFinderTest.java** - Tests candidate key finding
-- **NormalFormCheckerTest.java** - Tests normal form validation
-- **BcnfDecomposerTest.java** - Tests BCNF decomposition
-- **RelationServiceTest.java** - Tests relation operations
-- **FdServiceTest.java** - Tests FD operations
-
-### Documentation (3)
-- **README.md** - Comprehensive project documentation
-- **UC.md** - Detailed use cases and requirements
-- **.gitignore** - Git repository ignore patterns
-
----
-
-## Key Features by Module
-
-### Algorithm Module
-✓ Closure computation with transitive dependency handling
-✓ Candidate key finding via subset generation and minimality checking
-✓ 1NF/2NF/3NF/BCNF normal form validation
-✓ Recursive BCNF decomposition
-✓ FD parsing and validation
-
-### Service Module
-✓ Relation and attribute management
-✓ FD addition, removal, and validation
-✓ Closure computation with step explanations
-✓ Prime/non-prime attribute identification
-✓ Normal form analysis and reporting
-✓ Educational explanation generation
-
-### UI Module
-✓ Relation schema creation
-✓ FD input with syntax validation
-✓ Closure computation with visual results
-✓ Candidate keys display
-✓ Normal form analysis report
-✓ Decomposition tree visualization
-✓ Step-by-step educational explanations
+- **AppConfig.java** - Spring bean definitions for the algorithm classes
 
 ---
 
 ## Build & Execution
 
-### Build
 ```bash
-mvn clean package
-```
-
-### Run
-```bash
-mvn javafx:run
-```
-
-### Test
-```bash
-mvn test
+mvn -B verify          # build and run all tests
+mvn javafx:run         # run the application
+build-exe.bat          # build target/dist/Normalizer/Normalizer.exe (Windows)
 ```
 
 ---
 
 ## Dependencies
 
-**Spring Boot 3.5.14**
-- Spring Boot Starter (core)
+**Spring Boot 3.5.14** - Spring Boot Starter (core)
 
-**JavaFX 21.0.9**
-- javafx-controls
-- javafx-fxml
+**JavaFX 21.0.9** - javafx-controls, javafx-fxml
 
-**Testing**
-- JUnit 5
+**Testing** - JUnit 5 (via spring-boot-starter-test)
 
 ---
 
@@ -274,58 +153,36 @@ mvn test
 Launcher
 └── JavaFX App (MainApp)
     └── Spring Boot Context (DbmsApplication)
-        └── Main UI (MainController + main.fxml)
-        ├── RelationService ← RelationController
-        ├── FdService ← FdController
-        ├── ClosureService ← ClosureController
-        │   └── ClosureComputer
-        ├── CandidateKeyService ← CandidateKeyController
-        │   └── CandidateKeyFinder
-        ├── NormalFormService ← NormalFormController
-        │   └── NormalFormChecker
-        ├── BcnfDecompositionService ← BcnfController
-        │   └── BcnfDecomposer
-        └── ExplanationService ← ExplanationController
+        └── MainController + main.fxml
+            ├── RelationService
+            ├── FdService
+            ├── ClosureService               → ClosureComputer
+            ├── CandidateKeyService          → CandidateKeyFinder
+            ├── NormalFormService            → NormalFormChecker
+            ├── MinimalCoverService          → MinimalCoverComputer
+            ├── BcnfDecompositionService     → BcnfDecomposer
+            ├── ThreeNfService               → ThreeNfSynthesizer
+            ├── DecompositionAnalysisService → DependencyPreservationChecker, LosslessJoinChecker
+            └── ExplanationService
 
 Models:
-- Relation → [Attribute + FunctionalDependency]
-- CandidateKey → [Attributes]
-- NormalFormResult → [NormalForm enum + Violations]
-- DecompositionStep → [Original Relation + Decomposed Relations]
+- Relation → [attribute names + FunctionalDependency]
+- CandidateKey → [attribute names]
+- NormalFormResult → [NormalForm enum + violations]
+- DecompositionStep → [original relation + decomposed relations]
 ```
 
 ---
 
 ## Development Notes
 
-### Architecture Highlights
-- **Separation of Concerns**: UI (controllers/FXML) isolated from business logic (services/algorithms)
-- **Dependency Injection**: Spring manages all service dependencies
-- **Model-Driven**: All data encapsulated in model classes
-- **Testability**: Algorithm and service classes designed for unit testing
-- **Extensibility**: Easy to add new algorithms, services, or UI components
-
-### Future Enhancement Points
-- Add session save/load functionality (using InMemorySessionRepository)
-- Extend normal form checking for 2NF and 3NF
-- Add support for MVDs and 4NF/5NF
-- Implement SQL import/export
-- Add graphical FD visualization
-- Extend test coverage
-
----
+- **Separation of concerns**: the UI (`MainController`, `main.fxml`) is separate from the services and algorithms.
+- **Dependency injection**: Spring wires the services and controller. The algorithm classes still create some of their own helpers (see CQ-002 in `bugreport.md`).
+- **Testability**: algorithms are plain classes; the decomposition and key-finding tests check results against brute-force answers on random inputs.
 
 ## Quick Start for Developers
 
-1. Import project into IntelliJ IDEA
-2. Let Maven download dependencies
-3. Run `mvn test`
-4. Run `mvn javafx:run` or the IntelliJ Maven run configuration
-5. Navigate UI to create relations and add FDs
-6. Explore closure, keys, and normal forms
-7. Write tests for new features in `src/test/`
-
----
-
-*Project created with comprehensive stub files and documentation*
-*Ready for development and feature implementation*
+1. Read `bugreport.md` and `AGENTS.md`
+2. Run `mvn -B verify`
+3. Run `mvn javafx:run`
+4. Add tests for new features in `src/test/`, and update `bugreport.md` in the same commit

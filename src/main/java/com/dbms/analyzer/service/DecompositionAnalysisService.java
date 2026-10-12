@@ -3,7 +3,6 @@ package com.dbms.analyzer.service;
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.algorithm.DependencyPreservationChecker;
 import com.dbms.analyzer.algorithm.LosslessJoinChecker;
-import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.model.Relation;
 
 import java.util.List;
@@ -33,25 +32,6 @@ public class DecompositionAnalysisService {
     }
 
     /**
-     * Checks if a decomposition preserves all FDs of the current relation.
-     */
-    public boolean isDependencyPreserving(Set<Relation> decomposition) {
-        ensureRelation();
-        return depChecker.isPreserved(
-                fdService.getAllDependencies(), decomposition);
-    }
-
-    /**
-     * Returns the FDs that are NOT preserved by the decomposition.
-     */
-    public List<FunctionalDependency> findLostDependencies(
-            Set<Relation> decomposition) {
-        ensureRelation();
-        return depChecker.findLostDependencies(
-                fdService.getAllDependencies(), decomposition);
-    }
-
-    /**
      * Step-by-step dependency preservation check.
      */
     public List<String> checkDependencyPreservationWithSteps(
@@ -59,17 +39,6 @@ public class DecompositionAnalysisService {
         ensureRelation();
         return depChecker.checkWithSteps(
                 fdService.getAllDependencies(), decomposition);
-    }
-
-    /**
-     * Checks if a decomposition is lossless-join.
-     */
-    public boolean isLosslessJoin(Set<Relation> decomposition) {
-        ensureRelation();
-        return joinChecker.isLossless(
-                relationService.getAttributes(),
-                fdService.getAllDependencies(),
-                decomposition);
     }
 
     /**

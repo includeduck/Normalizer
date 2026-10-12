@@ -62,13 +62,6 @@ public class RelationService {
     }
 
     /**
-     * Sets the current relation
-     */
-    public void setCurrentRelation(Relation relation) {
-        this.currentRelation = relation;
-    }
-
-    /**
      * Validates if a relation exists
      */
     public boolean hasRelation() {

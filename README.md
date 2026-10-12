@@ -48,11 +48,10 @@ dbms-normalizer/
 │   │   ├── java/com/dbms/analyzer/
 │   │   │   ├── Launcher.java                # Desktop application entry point
 │   │   │   ├── DbmsApplication.java         # Spring Boot configuration
-│   │   │   ├── javafx/                      # UI components & controllers
+│   │   │   ├── javafx/                      # JavaFX app, main controller, error handler
 │   │   │   ├── service/                     # Business logic services
 │   │   │   ├── algorithm/                   # Core DBMS algorithms
 │   │   │   ├── model/                       # Data models
-│   │   │   ├── repository/                  # Data persistence
 │   │   │   └── config/                      # Spring configuration
 │   │   └── resources/                       # FXML, CSS, Images, Properties
 │   └── test/

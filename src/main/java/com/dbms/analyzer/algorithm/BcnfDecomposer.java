@@ -304,20 +304,4 @@ public class BcnfDecomposer {
     private String formatSet(Set<String> values) {
         return "{" + String.join(",", new TreeSet<>(values)) + "}";
     }
-
-    /**
-     * Creates a decomposition step record (public API kept for backward
-     * compatibility with existing callers).
-     */
-    public DecompositionStep createDecompositionStep(
-            Relation original,
-            FunctionalDependency violation,
-            Set<Relation> decomposed,
-            int stepNumber) {
-
-        DecompositionStep step = new DecompositionStep(
-                original, violation, stepNumber);
-        step.setDecomposedRelations(decomposed);
-        return step;
-    }
 }

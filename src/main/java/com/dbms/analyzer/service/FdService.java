@@ -3,7 +3,6 @@ package com.dbms.analyzer.service;
 import org.springframework.stereotype.Service;
 import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.algorithm.FdUtil;
-import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -53,30 +52,5 @@ public class FdService {
             throw new IllegalStateException("No relation defined");
         }
         return relationService.getCurrentRelation().getFunctionalDependencies();
-    }
-
-    /**
-     * Clears all functional dependencies
-     */
-    public void clearDependencies() {
-        if (!relationService.hasRelation()) {
-            throw new IllegalStateException("No relation defined");
-        }
-        relationService.getCurrentRelation().setFunctionalDependencies(
-            new HashSet<>());
-    }
-
-    /**
-     * Validates a FD string without adding it
-     */
-    public boolean validateFdString(String fdString) {
-        try {
-            FunctionalDependency fd = FdUtil.parseFD(
-                fdString, relationService.getAttributes());
-            return FdUtil.validateFdAttributes(
-                fd, relationService.getAttributes());
-        } catch (Exception e) {
-            return false;
-        }
     }
 }
