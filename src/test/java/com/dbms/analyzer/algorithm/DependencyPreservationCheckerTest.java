@@ -63,6 +63,39 @@ public class DependencyPreservationCheckerTest {
     }
 
     @Test
+    public void testPreservedThroughImpliedDependencies() {
+        // BUG-002: F = {A->B, B->C, C->A}, decomposition {AB, BC}.
+        // C->A is preserved: C->B holds on BC (C->A->B), B->A holds on AB.
+        Set<FunctionalDependency> fds = Set.of(
+                new FunctionalDependency(Set.of("A"), Set.of("B")),
+                new FunctionalDependency(Set.of("B"), Set.of("C")),
+                new FunctionalDependency(Set.of("C"), Set.of("A")));
+
+        Relation r1 = new Relation("R1", Set.of("A", "B"));
+        Relation r2 = new Relation("R2", Set.of("B", "C"));
+
+        assertTrue(checker.findLostDependencies(fds, Set.of(r1, r2)).isEmpty());
+        assertTrue(checker.isPreserved(fds, Set.of(r1, r2)));
+    }
+
+    @Test
+    public void testPreservedWhenOriginalFdSpansRelations() {
+        // BUG-002: F = {A->B, B->A, C->B}, decomposition {AB, ACD}.
+        // C->B is preserved: C->A holds on ACD (C->B->A), A->B holds on AB.
+        Set<FunctionalDependency> fds = Set.of(
+                new FunctionalDependency(Set.of("A"), Set.of("B")),
+                new FunctionalDependency(Set.of("B"), Set.of("A")),
+                new FunctionalDependency(Set.of("C"), Set.of("B")));
+
+        Relation r1 = new Relation("R1", Set.of("A", "B"));
+        Relation r2 = new Relation("R2", Set.of("A", "C", "D"));
+
+        assertTrue(checker.isPreserved(fds, Set.of(r1, r2)));
+        List<String> steps = checker.checkWithSteps(fds, Set.of(r1, r2));
+        assertTrue(steps.stream().noneMatch(s -> s.contains("LOST")));
+    }
+
+    @Test
     public void testCheckWithSteps() {
         Set<FunctionalDependency> fds = Set.of(
                 new FunctionalDependency(Set.of("A"), Set.of("B")));

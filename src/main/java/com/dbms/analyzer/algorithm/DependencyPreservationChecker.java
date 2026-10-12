@@ -4,8 +4,8 @@ import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.model.Relation;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -15,9 +15,16 @@ import java.util.TreeSet;
  * dependencies.
  *
  * A decomposition {R1, R2, …, Rn} preserves a set F of FDs if the union
- * of the projected FDs (F_Ri) is equivalent to F.  Equivalence is checked
- * by verifying that for every FD X → Y in F, Y is contained in the closure
- * of X under the projected FD union.
+ * of the projections of F⁺ onto each Ri is equivalent to F. The projections
+ * are never materialised; instead the standard polynomial test is used for
+ * every X → Y in F:
+ *
+ * <pre>
+ *   res = X
+ *   repeat until res stops changing:
+ *       for each Ri: res = res ∪ ((res ∩ Ri)⁺ ∩ Ri)     (closure under F)
+ *   X → Y is preserved iff Y ⊆ res
+ * </pre>
  */
 public class DependencyPreservationChecker {
 
@@ -35,8 +42,9 @@ public class DependencyPreservationChecker {
      * Checks if a decomposition preserves all original FDs.
      *
      * @param originalFds      the original set of FDs
-     * @param decomposedRelations the decomposed relations (each carrying its own FDs)
-     * @return true if all original FDs are logically implied by the projected FD union
+     * @param decomposedRelations the decomposed relations
+     * @return true if all original FDs are implied by the union of the
+     *         projections of F⁺ onto the decomposed relations
      */
     public boolean isPreserved(
             Set<FunctionalDependency> originalFds,
@@ -52,18 +60,12 @@ public class DependencyPreservationChecker {
             Set<FunctionalDependency> originalFds,
             Set<Relation> decomposedRelations) {
 
-        // Collect all projected FDs from decomposed relations
-        Set<FunctionalDependency> projectedFds = new LinkedHashSet<>();
-        for (Relation r : decomposedRelations) {
-            projectedFds.addAll(
-                    projectFds(originalFds, r.getAttributes()));
-        }
-
+        List<Relation> relations = sortedRelations(decomposedRelations);
         List<FunctionalDependency> lost = new ArrayList<>();
-        for (FunctionalDependency fd : originalFds) {
-            Set<String> closure = closureComputer.computeClosure(
-                    fd.getLeftSide(), projectedFds);
-            if (!closure.containsAll(fd.getRightSide())) {
+        for (FunctionalDependency fd : sortedFds(originalFds)) {
+            Set<String> reachable = reachableAcross(
+                    fd.getLeftSide(), originalFds, relations, null);
+            if (!reachable.containsAll(fd.getRightSide())) {
                 lost.add(fd);
             }
         }
@@ -79,33 +81,22 @@ public class DependencyPreservationChecker {
 
         List<String> steps = new ArrayList<>();
         steps.add("=== Dependency Preservation Check ===");
+        steps.add("For each FD X -> Y: start with res = X, then repeatedly add");
+        steps.add("(res ∩ Ri)+ ∩ Ri for every relation Ri until nothing changes.");
+        steps.add("X -> Y is preserved iff Y ⊆ res.");
         steps.add("");
 
-        // Collect projected FDs
-        Set<FunctionalDependency> projectedFds = new LinkedHashSet<>();
-        for (Relation r : decomposedRelations) {
-            Set<FunctionalDependency> projected =
-                    projectFds(originalFds, r.getAttributes());
-            steps.add("Projected FDs on " + r.getName()
-                    + "(" + String.join(",", new TreeSet<>(r.getAttributes())) + "):");
-            if (projected.isEmpty()) {
-                steps.add("  (none)");
-            } else {
-                projected.forEach(fd -> steps.add("  " + fd));
-            }
-            projectedFds.addAll(projected);
-        }
-        steps.add("");
-
-        // Check each original FD
+        List<Relation> relations = sortedRelations(decomposedRelations);
         boolean allPreserved = true;
-        for (FunctionalDependency fd : originalFds) {
-            Set<String> closure = closureComputer.computeClosure(
-                    fd.getLeftSide(), projectedFds);
-            boolean preserved = closure.containsAll(fd.getRightSide());
-            steps.add("Check " + fd + ": closure of "
-                    + formatSet(fd.getLeftSide()) + " = "
-                    + formatSet(closure)
+        for (FunctionalDependency fd : sortedFds(originalFds)) {
+            List<String> trace = new ArrayList<>();
+            Set<String> reachable = reachableAcross(
+                    fd.getLeftSide(), originalFds, relations, trace);
+            boolean preserved = reachable.containsAll(fd.getRightSide());
+
+            steps.add("Check " + fd + ": res = " + formatSet(fd.getLeftSide()));
+            trace.forEach(line -> steps.add("  " + line));
+            steps.add("  Final res = " + formatSet(reachable)
                     + " → " + (preserved ? "PRESERVED" : "LOST"));
             if (!preserved) allPreserved = false;
         }
@@ -119,22 +110,54 @@ public class DependencyPreservationChecker {
     }
 
     /**
-     * Projects a set of FDs onto a subset of attributes.
-     * An FD X → Y is included in the projection when both X and Y
-     * are subsets of the given attribute set.
+     * Computes the attributes reachable from {@code start} using only
+     * dependencies that hold within individual relations of the decomposition.
      */
-    public Set<FunctionalDependency> projectFds(
+    private Set<String> reachableAcross(
+            Set<String> start,
             Set<FunctionalDependency> fds,
-            Set<String> attributes) {
+            List<Relation> relations,
+            List<String> trace) {
 
-        Set<FunctionalDependency> result = new LinkedHashSet<>();
-        for (FunctionalDependency fd : fds) {
-            if (attributes.containsAll(fd.getLeftSide())
-                    && attributes.containsAll(fd.getRightSide())) {
-                result.add(fd);
+        Set<String> result = new HashSet<>(start);
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            for (Relation relation : relations) {
+                Set<String> attributes = relation.getAttributes();
+                Set<String> local = new HashSet<>(result);
+                local.retainAll(attributes);
+                if (local.isEmpty()) {
+                    continue;
+                }
+
+                Set<String> gained = closureComputer.computeClosure(local, fds);
+                gained.retainAll(attributes);
+                gained.removeAll(result);
+                if (!gained.isEmpty()) {
+                    result.addAll(gained);
+                    changed = true;
+                    if (trace != null) {
+                        trace.add("via " + relation.getName()
+                                + ": " + formatSet(local) + "+ adds "
+                                + formatSet(gained));
+                    }
+                }
             }
         }
         return result;
+    }
+
+    private List<Relation> sortedRelations(Set<Relation> relations) {
+        List<Relation> sorted = new ArrayList<>(relations);
+        sorted.sort(Comparator.comparing(Relation::getName));
+        return sorted;
+    }
+
+    private List<FunctionalDependency> sortedFds(Set<FunctionalDependency> fds) {
+        List<FunctionalDependency> sorted = new ArrayList<>(fds);
+        sorted.sort(Comparator.comparing(FunctionalDependency::toString));
+        return sorted;
     }
 
     private String formatSet(Set<String> values) {

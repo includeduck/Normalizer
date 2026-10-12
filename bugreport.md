@@ -36,7 +36,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | ID | Severity | Title | Status |
 |---|---|---|---|
 | [BUG-001](#bug-001) | Critical | Naive FD projection: BCNF decomposition can return relations that are **not** in BCNF | Open |
-| [BUG-002](#bug-002) | Critical | Dependency-preservation check reports preserved FDs as **LOST** | Open |
+| [BUG-002](#bug-002) | Critical | Dependency-preservation check reports preserved FDs as **LOST** | Fixed |
 | [BUG-003](#bug-003) | Critical | Candidate-key search overflows at ≥ 31 attributes and returns **no keys** | Open |
 | [BUG-004](#bug-004) | High | Exponential key search, repeated ~7× on the UI thread: 13 s freeze at 16 attributes, out of memory at 23 | Open |
 | [BUG-005](#bug-005) | High | `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback | Open |
@@ -110,7 +110,9 @@ R_2(A,C,D)  FDs: (none)
 <a id="bug-002"></a>
 ### BUG-002 — Dependency-preservation check reports preserved FDs as LOST
 
-- **Severity:** Critical · **Status:** Open · **Verified**
+- **Severity:** Critical · **Status:** Fixed · **Verified**
+- **Regression test:** `DependencyPreservationCheckerTest.testPreservedThroughImpliedDependencies`, `testPreservedWhenOriginalFdSpansRelations`
+- **Resolution:** Replaced the projection with the standard `res ∪= (res ∩ Ri)⁺ ∩ Ri` fixed-point test, using closures under the original F. The step-by-step view now shows how `res` grows through each Ri. Removed the naive public `projectFds` method, which had no other callers. FDs and relations are processed in sorted order, so the trace is deterministic.
 - **Location:** [DependencyPreservationChecker.java:126](src/main/java/com/dbms/analyzer/algorithm/DependencyPreservationChecker.java:126) (`projectFds`), used by `findLostDependencies`, `isPreserved` and `checkWithSteps`
 
 **Description.** This uses the same naive projection as BUG-001, so it never sees FDs that hold on a sub-schema only through F⁺.
