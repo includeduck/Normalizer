@@ -53,8 +53,8 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-016](#bug-016) | Low | A failed "Load Example" leaves a half-built relation and a stale UI | Fixed |
 | [BUG-017](#bug-017) | Low | "Check Result" overwrites the Explanation tab | Fixed |
 | [BUG-018](#bug-018) | Low | Closure and decompositions are computed twice per click | Fixed (`cbc67e5`) |
-| [BLD-001](#bld-001) | Low | `build-exe.ps1` hard-codes the artifact name and version | Open |
-| [BLD-002](#bld-002) | Low | `jlink --add-modules ALL-MODULE-PATH` bundles the whole JDK | Open |
+| [BLD-001](#bld-001) | Low | `build-exe.ps1` hard-codes the artifact name and version | Fixed |
+| [BLD-002](#bld-002) | Low | `jlink --add-modules ALL-MODULE-PATH` bundles the whole JDK | Fixed |
 | [BLD-003](#bld-003) | Low | CI runs the test suite twice; PR branches build twice | Fixed |
 | [BLD-004](#bld-004) | Low | Shipped config has DEBUG logging and meaningless properties | Fixed |
 | [BLD-005](#bld-005) | Low | `.gitignore` ignores every `*.ini`; no `.gitattributes` (mixed line endings) | Fixed |
@@ -392,13 +392,17 @@ The handlers catch only `RuntimeException`. An `OutOfMemoryError` from BUG-004 e
 
 <a id="bld-001"></a>
 ### BLD-001 — `build-exe.ps1` hard-codes the artifact name and version
-- **Severity:** Low · **Status:** Open · **By inspection** · [build-exe.ps1](build-exe.ps1)
+- **Severity:** Low · **Status:** Fixed · **By inspection** · [build-exe.ps1](build-exe.ps1)
+- **Regression test:** manual: `build-exe.bat` builds `target/dist/Normalizer/Normalizer.exe`
+- **Resolution:** `build-exe.ps1` reads `project.artifactId` and `project.version` with `mvn help:evaluate`, derives the thin-jar name from them, and passes the numeric part of the version (e.g. `1.0.0` from `1.0.0-SNAPSHOT`) to `jpackage --app-version`.
 
 `$artifactName = "dbms-normalizer-1.0.0-SNAPSHOT"` and `--app-version 1.0.0` duplicate `pom.xml`. The first version bump will make the script fail with "Expected thin application jar was not found". **Fix:** read the version via `mvn help:evaluate -Dexpression=project.version -q -DforceStdout`, or pin `<finalName>` in the POM.
 
 <a id="bld-002"></a>
 ### BLD-002 — `jlink --add-modules ALL-MODULE-PATH` bundles the whole JDK
-- **Severity:** Low · **Status:** Open · **By inspection** · [build-exe.ps1](build-exe.ps1)
+- **Severity:** Low · **Status:** Fixed · **By inspection** · [build-exe.ps1](build-exe.ps1)
+- **Regression test:** manual: built the app image, started the bundled runtime (`runtime/bin/java -cp "app/*" com.dbms.analyzer.Launcher`, Spring started with no missing classes) and the `.exe` (still running after 12 s)
+- **Resolution:** Worse than reported: on the JDK installed here (25), `jlink --add-modules ALL-MODULE-PATH` without `--module-path` fails outright, so the `.exe` could not be built at all. The script now runs `jdeps --print-module-deps` over every staged jar, adds `java.naming`, `java.management` and `jdk.unsupported` (used reflectively), keeps only modules the JDK provides, and links exactly those. The app image went from 176 MB (the last build that worked) to 99 MB. Not changed: JavaFX still loads from the class path, so it prints its "unsupported configuration" warning at start-up; moving it to the module path is optional.
 
 No `--module-path` is passed, so `ALL-MODULE-PATH` resolves to every JDK module. The runtime image ends up much larger than needed. JavaFX is loaded from the classpath (unnamed module), which JavaFX officially does not support and warns about at start-up. **Fix:** run `jdeps --print-module-deps` on the staged jars and pass that module list. Optionally put the JavaFX jars on `--module-path`.
 
