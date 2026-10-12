@@ -153,4 +153,24 @@ public class NormalFormCheckerTest {
         assertTrue(normalFormChecker.isBCNF(
             attributes, fds, candidateKeys));
     }
+
+    @Test
+    public void test2NFViolationReportsMinimalDeterminant() {
+        // R(A,B,C,D), key {A,B,C}; A -> D is the partial dependency
+        Set<String> attributes = Set.of("A", "B", "C", "D");
+        Set<FunctionalDependency> fds = Set.of(
+            new FunctionalDependency(Set.of("A"), Set.of("D")));
+        Set<CandidateKey> candidateKeys = Set.of(
+            new CandidateKey(Set.of("A", "B", "C")));
+
+        NormalFormResult result = normalFormChecker.determineHighestNormalForm(
+            attributes, fds, candidateKeys);
+
+        assertEquals(NormalFormResult.NormalForm.FIRST_NF,
+            result.getHighestNormalForm());
+        assertEquals(Set.of(
+            "2NF violation: {A} partially determines non-prime attribute D"
+                + " from candidate key {A,B,C}"),
+            result.getViolations());
+    }
 }

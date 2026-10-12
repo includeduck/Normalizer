@@ -37,8 +37,8 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 |---|---|---|---|
 | [BUG-001](#bug-001) | Critical | Naive FD projection: BCNF decomposition can return relations that are **not** in BCNF | Open |
 | [BUG-002](#bug-002) | Critical | Dependency-preservation check reports preserved FDs as **LOST** | Fixed |
-| [BUG-003](#bug-003) | Critical | Candidate-key search overflows at ≥ 31 attributes and returns **no keys** | Open |
-| [BUG-004](#bug-004) | High | Exponential key search, repeated ~7× on the UI thread: 13 s freeze at 16 attributes, out of memory at 23 | Open |
+| [BUG-003](#bug-003) | Critical | Candidate-key search overflows at ≥ 31 attributes and returns **no keys** | Fixed |
+| [BUG-004](#bug-004) | High | Exponential key search, repeated ~7× on the UI thread: 13 s freeze at 16 attributes, out of memory at 23 | Fixed |
 | [BUG-005](#bug-005) | High | `OutOfMemoryError` / `StackOverflowError` are not caught; the user gets no feedback | Open |
 | [BUG-006](#bug-006) | Critical | 3NF synthesis emits duplicate relations | Fixed |
 | [BUG-007](#bug-007) | Medium | 1NF is hard-coded `true` but presented as a real check | Open |
@@ -142,7 +142,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-003"></a>
 ### BUG-003 — Candidate-key search overflows at ≥ 31 attributes and returns no keys
 
-- **Severity:** Critical · **Status:** Open · **Verified**
+- **Severity:** Critical · **Status:** Fixed · **Verified**
+- **Regression test:** `CandidateKeyFinderTest.testRelationAboveLimitIsRejected`, `testLargestAllowedRelationWithoutFds`, `RelationServiceTest.testRelationAboveAttributeLimitIsRejected`
+- **Resolution:** Added `AnalysisLimits.MAX_ATTRIBUTES` (20), enforced in `RelationService.createRelation` (with a clear message) and in `CandidateKeyFinder`. Subset masks are now `long` values in the new `FdBitIndex` helper, which rejects universes over 63 attributes. The `1 << n` loop in `NormalFormChecker` is gone (see BUG-004).
 - **Location:** [CandidateKeyFinder.java:68](src/main/java/com/dbms/analyzer/algorithm/CandidateKeyFinder.java:68)
 
 **Description.** `for (int i = 0; i < (1 << n); i++)` uses 32-bit `int`. At n = 31, `1 << 31` is negative, so the loop body never runs. At n = 32, `1 << 32 == 1`, so only the empty set is tried. Either way **zero candidate keys** come back without any error. Everything downstream (prime attributes, 2NF/3NF checks, 3NF synthesis's key step) is then silently wrong; for example, every attribute is classified as non-prime.
@@ -316,7 +318,9 @@ Output from the decomposition check goes into `explanationResultArea`, replacing
 <a id="bug-004"></a>
 ### BUG-004 — Exponential key search, repeated ~7× on the UI thread
 
-- **Severity:** High · **Status:** Open · **Verified**
+- **Severity:** High · **Status:** Fixed · **Verified**
+- **Regression test:** `CandidateKeyFinderTest.testWorstCaseAtLimitFinishesQuickly`, `testMatchesBruteForceOnRandomRelations`, `NormalFormServiceTest.testNormalFormClickAtAttributeLimitIsFast`
+- **Resolution:** Rewrote `CandidateKeyFinder`: attributes are classified (core / never-in-key / optional), only optional subsets are searched with bitmask closures, smallest first, and supersets of found keys are skipped. `CandidateKeyService` caches keys until the attributes or FDs change. The 2NF check now tests only the maximal proper subsets K − {a} (closure is monotone, so this is equivalent) instead of all 2^|K| subsets, and reports a minimal determinant. Measured: one Normal Form click at 20 attributes takes ~32 ms, versus 13.4 s at 16 attributes before; the worst case at the limit (2^10 keys) takes under 1 s. The work still runs on the JavaFX thread, but the attribute limit now bounds it; moving it into a background `Task` remains a possible follow-up.
 - **Location:** [CandidateKeyFinder.java](src/main/java/com/dbms/analyzer/algorithm/CandidateKeyFinder.java); callers in [MainController.java:405](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:405) and [MainController.java:631](src/main/java/com/dbms/analyzer/javafx/controllers/MainController.java:631)
 
 **Description.** Key finding builds all 2ⁿ subsets as `HashSet`s in memory, takes the closure of each (copying FD sets on every getter call), and then checks minimality pairwise, which is O(S²) over the superkeys found. The cost is multiplied by the UI:

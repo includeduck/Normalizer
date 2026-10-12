@@ -16,6 +16,19 @@ public class RelationServiceTest {
     }
 
     @Test
+    public void testRelationAboveAttributeLimitIsRejected() {
+        StringBuilder schema = new StringBuilder("R(");
+        for (int i = 0; i <= com.dbms.analyzer.algorithm.AnalysisLimits.MAX_ATTRIBUTES; i++) {
+            schema.append(i == 0 ? "" : ",").append("a").append(i);
+        }
+        schema.append(")");
+
+        assertThrows(IllegalArgumentException.class,
+            () -> relationService.createRelation(schema.toString()));
+        assertFalse(relationService.hasRelation());
+    }
+
+    @Test
     public void testCreateValidRelation() {
         relationService.createRelation("R(A,B,C)");
         assertTrue(relationService.hasRelation());

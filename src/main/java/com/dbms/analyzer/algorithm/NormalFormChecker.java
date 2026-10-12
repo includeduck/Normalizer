@@ -1,9 +1,8 @@
 package com.dbms.analyzer.algorithm;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import com.dbms.analyzer.model.FunctionalDependency;
 import com.dbms.analyzer.model.CandidateKey;
 import com.dbms.analyzer.model.NormalFormResult;
@@ -128,15 +127,21 @@ public class NormalFormChecker {
                 continue;
             }
 
-            for (Set<String> subset : properNonEmptySubsets(keyAttributes)) {
+            // Closure is monotone, so a proper subset of the key determines a
+            // non-prime attribute iff some maximal proper subset K - {a} does.
+            for (String removed : new TreeSet<>(keyAttributes)) {
+                Set<String> maximalSubset = new TreeSet<>(keyAttributes);
+                maximalSubset.remove(removed);
                 Set<String> closure = closureComputer.computeClosure(
-                    subset, functionalDependencies);
+                    maximalSubset, functionalDependencies);
 
-                for (String nonPrimeAttribute : nonPrimeAttributes) {
-                    if (closure.contains(nonPrimeAttribute)
-                            && !subset.contains(nonPrimeAttribute)) {
+                for (String nonPrimeAttribute : new TreeSet<>(nonPrimeAttributes)) {
+                    if (closure.contains(nonPrimeAttribute)) {
+                        Set<String> determinant = shrinkDeterminant(
+                            maximalSubset, nonPrimeAttribute,
+                            functionalDependencies);
                         violations.add("2NF violation: "
-                            + formatSet(subset)
+                            + formatSet(determinant)
                             + " partially determines non-prime attribute "
                             + nonPrimeAttribute
                             + " from candidate key "
@@ -147,6 +152,27 @@ public class NormalFormChecker {
         }
 
         return violations;
+    }
+
+    /**
+     * Greedily removes attributes from {@code determinant} while it still
+     * determines {@code target}, giving a minimal left side to report.
+     */
+    private Set<String> shrinkDeterminant(
+            Set<String> determinant,
+            String target,
+            Set<FunctionalDependency> functionalDependencies) {
+        Set<String> result = new TreeSet<>(determinant);
+        for (String attribute : new TreeSet<>(determinant)) {
+            Set<String> smaller = new TreeSet<>(result);
+            smaller.remove(attribute);
+            if (!smaller.isEmpty()
+                    && closureComputer.computeClosure(
+                        smaller, functionalDependencies).contains(target)) {
+                result = smaller;
+            }
+        }
+        return result;
     }
 
     private Set<String> find3NfViolations(
@@ -215,24 +241,6 @@ public class NormalFormChecker {
 
     private boolean isTrivial(FunctionalDependency fd) {
         return fd.getLeftSide().containsAll(fd.getRightSide());
-    }
-
-    private Set<Set<String>> properNonEmptySubsets(Set<String> attributes) {
-        List<String> orderedAttributes = new ArrayList<>(attributes);
-        orderedAttributes.sort(String::compareTo);
-
-        Set<Set<String>> subsets = new HashSet<>();
-        int subsetCount = 1 << orderedAttributes.size();
-        for (int mask = 1; mask < subsetCount - 1; mask++) {
-            Set<String> subset = new HashSet<>();
-            for (int index = 0; index < orderedAttributes.size(); index++) {
-                if ((mask & (1 << index)) != 0) {
-                    subset.add(orderedAttributes.get(index));
-                }
-            }
-            subsets.add(subset);
-        }
-        return subsets;
     }
 
     private String formatSet(Set<String> values) {

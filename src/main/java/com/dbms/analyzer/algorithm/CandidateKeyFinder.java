@@ -1,80 +1,107 @@
 package com.dbms.analyzer.algorithm;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import com.dbms.analyzer.model.CandidateKey;
 import com.dbms.analyzer.model.FunctionalDependency;
 
 public class CandidateKeyFinder {
 
-    private ClosureComputer closureComputer;
-
-    public CandidateKeyFinder() {
-        this.closureComputer = new ClosureComputer();
-    }
-
     /**
-     * Finds all candidate keys for a relation
+     * Finds all candidate keys for a relation.
+     *
+     * Attributes are classified first:
+     * <ul>
+     *   <li>never on the non-trivial right side of an FD: cannot be derived,
+     *       so they belong to every key (the core);</li>
+     *   <li>on a right side but never on a left side: never in any key;</li>
+     *   <li>the rest: may or may not be in a key.</li>
+     * </ul>
+     * Only subsets of the last group are searched, smallest first, skipping
+     * supersets of keys already found, so every key found is minimal.
+     *
      * @param attributes All attributes of the relation
      * @param functionalDependencies All FDs of the relation
      * @return Set of all candidate keys
+     * @throws IllegalArgumentException if the relation exceeds
+     *         {@link AnalysisLimits#MAX_ATTRIBUTES}
      */
     public Set<CandidateKey> findAllCandidateKeys(
             Set<String> attributes,
             Set<FunctionalDependency> functionalDependencies) {
-        
+
+        AnalysisLimits.requireWithinLimit(attributes.size());
+
+        FdBitIndex index = new FdBitIndex(attributes, functionalDependencies);
+        long all = index.mask(attributes);
+
+        long derivable = 0L;
+        long determinants = 0L;
+        for (int i = 0; i < index.fdCount(); i++) {
+            derivable |= index.rhs(i) & ~index.lhs(i);
+            determinants |= index.lhs(i);
+        }
+
+        long core = all & ~derivable;
+        long neverInKey = all & derivable & ~determinants;
+        long optional = all & ~core & ~neverInKey;
+
         Set<CandidateKey> candidateKeys = new HashSet<>();
-        Set<Set<String>> superKeys = new HashSet<>();
+        if (FdBitIndex.isSubset(all, index.closure(core))) {
+            candidateKeys.add(new CandidateKey(index.toSet(core)));
+            return candidateKeys;
+        }
 
-        // Generate all subsets and check which are superkeys
-        Set<Set<String>> allSubsets = generateAllSubsets(attributes);
-        
-        for (Set<String> subset : allSubsets) {
-            Set<String> closure = closureComputer.computeClosure(
-                subset, functionalDependencies);
-            
-            if (closure.equals(attributes)) {
-                superKeys.add(new HashSet<>(subset));
+        List<Integer> optionalBits = new ArrayList<>();
+        for (int bit = 0; bit < Long.SIZE - 1; bit++) {
+            if ((optional & (1L << bit)) != 0) {
+                optionalBits.add(bit);
             }
         }
 
-        // Filter out non-minimal superkeys to get candidate keys
-        for (Set<String> superKey : superKeys) {
-            boolean isMinimal = true;
-            for (Set<String> other : superKeys) {
-                if (!superKey.equals(other) && superKey.containsAll(other)) {
-                    isMinimal = false;
-                    break;
+        int m = optionalBits.size();
+        List<Long> foundKeys = new ArrayList<>();
+        for (int size = 1; size <= m; size++) {
+            // Gosper's hack: iterate all m-bit combinations with `size` bits set
+            long combination = (1L << size) - 1;
+            while (combination < (1L << m)) {
+                long candidate = core | expand(combination, optionalBits);
+
+                if (!containsAnyKey(candidate, foundKeys)
+                        && FdBitIndex.isSubset(all, index.closure(candidate))) {
+                    foundKeys.add(candidate);
                 }
-            }
-            if (isMinimal) {
-                candidateKeys.add(new CandidateKey(superKey));
+
+                long lowest = combination & -combination;
+                long ripple = combination + lowest;
+                combination = ripple | (((ripple ^ combination) >>> 2) / lowest);
             }
         }
 
+        for (long key : foundKeys) {
+            candidateKeys.add(new CandidateKey(index.toSet(key)));
+        }
         return candidateKeys;
     }
 
-    /**
-     * Generates all subsets of a given set
-     */
-    private Set<Set<String>> generateAllSubsets(Set<String> set) {
-        Set<Set<String>> subsets = new HashSet<>();
-        List<String> list = new ArrayList<>(set);
-        int n = list.size();
-        
-        for (int i = 0; i < (1 << n); i++) {
-            Set<String> subset = new HashSet<>();
-            for (int j = 0; j < n; j++) {
-                if ((i & (1 << j)) != 0) {
-                    subset.add(list.get(j));
-                }
+    private static long expand(long combination, List<Integer> bits) {
+        long mask = 0L;
+        for (int i = 0; i < bits.size(); i++) {
+            if ((combination & (1L << i)) != 0) {
+                mask |= 1L << bits.get(i);
             }
-            subsets.add(subset);
         }
-        
-        return subsets;
+        return mask;
+    }
+
+    private static boolean containsAnyKey(long candidate, List<Long> keys) {
+        for (long key : keys) {
+            if (FdBitIndex.isSubset(key, candidate)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -1,6 +1,7 @@
 package com.dbms.analyzer.service;
 
 import org.springframework.stereotype.Service;
+import com.dbms.analyzer.algorithm.AnalysisLimits;
 import com.dbms.analyzer.model.Relation;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,6 +47,8 @@ public class RelationService {
                     "Duplicate attribute: " + trimmed);
             }
         }
+
+        AnalysisLimits.requireWithinLimit(attributes.size());
 
         this.currentRelation = new Relation(relationName, attributes);
         return currentRelation;

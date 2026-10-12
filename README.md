@@ -98,6 +98,8 @@ dbms-normalizer/
 2. Click **Create / Replace** or press `Enter`.
 3. The summary pane updates with the active relation.
 
+> Relations are limited to **20 attributes**: key finding and decomposition take exponential time in the number of attributes.
+
 ### ➕ Adding Functional Dependencies
 1. Enter a dependency in the Functional Dependency field.
 2. Use compact form like `AB -> CD` or comma-separated multi-character attributes like `student_id, course_id -> grade`.
