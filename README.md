@@ -29,6 +29,7 @@ This application helps students, instructors, and database learners analyze rela
 - 🧱 **3NF Synthesis**: Build a lossless, dependency-preserving 3NF decomposition.
 - ✅ **Decomposition Checks**: Test the latest decomposition for dependency preservation and lossless join.
 - 🎓 **Educational Explanations**: View detailed algorithm steps and reasoning.
+- 📚 **Built-in Examples**: Load ready-made relations (student/course, employee/department, library loans).
 
 ## 🛠️ Technology Stack
 
@@ -82,12 +83,13 @@ Normalizer/
    cd Normalizer
    ```
 
-2. **Build the project:**
+2. **Build the project and run the tests:**
    ```bash
-   mvn clean package
+   mvn -B verify
    ```
+   `MainControllerUiTest` opens the real window, so it runs only where a display is available and is skipped otherwise (for example in CI).
 
-3. **Run the tests:**
+3. **Run the tests only:**
    ```bash
    mvn test
    ```
@@ -117,7 +119,12 @@ Normalizer/
 2. Use compact form like `AB -> CD` or comma-separated multi-character attributes like `student_id, course_id -> grade`.
    - Compact input is split into the relation's attribute names (`ab` on `R(a,b)`, `A1B` on `R(A1,B)`). If it could be split more than one way, you'll be asked to use commas.
    - Relation and attribute names must start with a letter or underscore and contain only letters, digits and underscores.
-3. Click **Add FD** or press `Enter`.
+3. Click **Add FD** or press `Enter`. Duplicates are rejected.
+4. To remove one, select it in the summary list and click **Remove Selected**.
+
+### 📚 Loading an Example
+1. Pick an example from the drop-down and click **Load Example**.
+2. The relation, its FDs and a closure input are filled in; the current relation is only replaced if the example loads completely.
 
 ### 🔍 Computing Attribute Closure
 1. Enter attributes in the Closure field, e.g., `ABC` or `student_id, course_id`.
@@ -152,6 +159,10 @@ Normalizer/
 2. Click **Check Result**.
 3. The **Check Result** tab shows which FDs are preserved or lost and whether the join is lossless.
 
+### 💡 Explanation and Reset
+- **Explain** summarizes the relation, its keys and which normal forms hold, in the **Explanation** tab.
+- **Clear** resets the session; the **App Tutorial** tab stays available.
+
 ## 🧠 Algorithm Details
 
 <details>
@@ -174,7 +185,7 @@ Implements checks for:
   <li><b>1NF:</b> Assumed, not checked: the tool treats every attribute as atomic</li>
   <li><b>2NF:</b> No partial dependencies on candidate keys</li>
   <li><b>3NF:</b> For every FD X → A, X is a superkey or A is prime</li>
-  <li><b>BCNF:</b> Every FD's left side is a superkey</li>
+  <li><b>BCNF:</b> Every non-trivial FD's left side is a superkey</li>
 </ul>
 </details>
 
@@ -195,33 +206,33 @@ Recursively identifies BCNF violations and decomposes relations until all satisf
 - **Model**: `Relation`, `FunctionalDependency`, `CandidateKey`, `NormalFormResult`, `DecompositionStep`
 - **Algorithm**: `ClosureComputer`, `CandidateKeyFinder`, `NormalFormChecker`, `MinimalCoverComputer`, `BcnfDecomposer`, `ThreeNfSynthesizer`, `DependencyPreservationChecker`, `LosslessJoinChecker`, `FdProjector`, `FdUtil`, `FdOrder`
 - **Service**: `RelationService`, `FdService`, `ClosureService`, `CandidateKeyService`, `NormalFormService`, `MinimalCoverService`, `BcnfDecompositionService`, `ThreeNfService`, `DecompositionAnalysisService`, `ExplanationService`
+- **JavaFX**: `MainApp`, `MainController`, `ResultFormatter`, `SampleRelations`, `UnexpectedErrorHandler`
 
 See [MarkDown/PROJECT_STRUCTURE.md](MarkDown/PROJECT_STRUCTURE.md) for the full layout.
 
 ## 🔮 Future Enhancements
 
 - [ ] Save and load analysis sessions
-- [ ] SQL schema export functionality
+- [ ] SQL schema export
 - [ ] Minimal cover visualization
 - [ ] Interactive decomposition graphs
-- [ ] Report generation (PDF/Excel)
-- [ ] Support for Multi-Valued Dependencies (MVDs)
-- [ ] 4NF and 5NF normalization support
-- [ ] Database import/export integration
-- [ ] Advanced visualization features
+- [ ] Report generation
+
+The project's scope is normalization up to BCNF; 4NF/5NF and multi-valued dependencies are not planned.
 
 ## 📚 Documentation
-For detailed documentation on DBMS concepts, see the included Use Case document: [MarkDown/UC.md](MarkDown/UC.md). Known issues are tracked in [bugreport.md](bugreport.md).
+- [MarkDown/UC.md](MarkDown/UC.md): use cases and requirements
+- [MarkDown/Progress.md](MarkDown/Progress.md): what is implemented and what remains
+- [MarkDown/PROJECT_STRUCTURE.md](MarkDown/PROJECT_STRUCTURE.md): project layout and class relationships
+- [bugreport.md](bugreport.md): known issues and their status
 
 ## 🤝 Contributing
 Contributions are welcome! Please ensure:
 1. Code follows project structure.
-2. Unit tests are included for new features.
-3. Algorithm implementations are well-commented.
-4. JavaFX UI remains user-friendly.
-
-## 📄 License
-[Specify your license here]
+2. Unit tests are included for new features; algorithm changes need tests that check correctness, not just that a result exists.
+3. `mvn -B verify` passes.
+4. `bugreport.md` is updated in the same commit when a change fixes, finds or affects an issue (see [AGENTS.md](AGENTS.md)).
+5. JavaFX UI remains user-friendly.
 
 ## 💬 Support
 For issues, questions, or suggestions, please [create an issue](https://github.com/includeduck/Normalizer/issues).

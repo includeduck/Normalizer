@@ -234,7 +234,7 @@ Every other action (closure, keys, minimal cover, BCNF, 3NF, Check Result) also 
 | Usability      | The application should remain beginner-friendly and educational. |
 | Reliability    | Invalid input is reported with a message naming the problem; unexpected errors are shown in an error dialog. |
 | Maintainability| UI logic and DBMS algorithms should remain separated.           |
-| Scalability    | Architecture should support future additions such as 4NF and 5NF. |
+| Scope          | Normalization up to BCNF; 4NF/5NF and multi-valued dependencies are out of scope. |
 
 ## 6. Future Enhancements
 
@@ -243,5 +243,3 @@ Every other action (closure, keys, minimal cover, BCNF, 3NF, Check Result) also 
 - Minimal cover visualization
 - Interactive decomposition graphs
 - Report generation
-- Support for Multi-Valued Dependencies (MVDs)
-- 4NF and 5NF normalization support

@@ -1,137 +1,85 @@
 # Progress
 
-Last updated: 2026-05-17
+Last updated: 2026-10-12
+
+Known defects and their fixes are tracked in [`bugreport.md`](../bugreport.md); this file tracks features and project setup.
 
 ## Implemented
 
 ### Project Setup
-- [x] Maven project parses and builds successfully.
-- [x] Java 21 build target configured.
-- [x] Spring Boot backend dependency configured.
-- [x] JavaFX controls and FXML dependencies configured.
-- [x] JavaFX Maven plugin configured for `mvn javafx:run`.
-- [x] Spring Boot Maven plugin configured for packaging.
-- [x] Desktop launcher added so JavaFX starts first and boots Spring inside the JavaFX lifecycle.
-- [x] Spring context configured as a non-web application.
-- [x] Main FXML startup issue fixed by importing `java.lang.String`.
-- [x] IntelliJ project settings updated locally for Java 21 and Maven run configurations.
+- [x] Maven project builds with a Java 21 target (`mvn -B verify`).
+- [x] Spring Boot (non-web) provides dependency injection; JavaFX controls and FXML from Maven.
+- [x] `mvn javafx:run` launches the app; the desktop launcher starts JavaFX first and boots Spring inside its lifecycle.
+- [x] GitHub Actions CI runs `mvn -B verify` on pushes to `main` and on pull requests.
+- [x] `.gitattributes` keeps text files LF in the repository (CRLF for Windows scripts).
+- [x] `build-exe.bat` / `build-exe.ps1` build `Normalizer.exe` with `jpackage`, reading the version from `pom.xml` and bundling only the JDK modules the app needs.
+- [x] IntelliJ `.idea/` settings stay local (ignored by git).
 
 ### Backend Wiring
-- [x] Spring component scanning works for services, controllers, repository, and config.
-- [x] Algorithm beans defined in `AppConfig`.
-- [x] Service layer converted to constructor injection for core services.
-- [x] Spring context test added to verify core app/controller wiring.
-- [x] Attribute parsing supports comma-separated multi-character names while preserving single-letter shorthand.
-- [x] Relation creation validates empty names and rejects whitespace inside attribute names.
+- [x] Services, controller and algorithm classes are wired by Spring with constructor injection (`AppConfig`).
+- [x] Relations and FDs are immutable model objects; `RelationService` holds the current relation.
+- [x] One name grammar for relations, attributes and FDs: letters, digits and underscores, not starting with a digit.
+- [x] Attribute lists can be comma/space separated, or compact (`AB`, `ab`, `A1B`), which is split into the relation's attribute names; ambiguous input is rejected.
+- [x] Relations are limited to 20 attributes (`AnalysisLimits`).
+- [x] Uncaught errors and start-up failures are shown in an error dialog (`UnexpectedErrorHandler`).
 
 ### Main JavaFX Workflow
-- [x] Main screen loads through Spring-managed FXML controller.
-- [x] Relation creation is wired from the main screen.
-- [x] Functional dependency creation is wired from the main screen.
-- [x] Relation and FD list refresh after updates.
-- [x] Attribute closure computation is wired from the main screen.
-- [x] Candidate key computation is wired from the main screen.
-- [x] Normal form analysis button is wired from the main screen.
-- [x] BCNF decomposition button is wired from the main screen.
-- [x] Main result tabs are bound and display action results/errors.
-- [x] Status label updates after main actions.
-- [x] FD removal from the main screen via list selection.
-- [x] Session clear/reset from the main screen.
-- [x] Duplicate FD detection with user feedback.
-- [x] Minimal cover computation wired from the main screen.
-- [x] 3NF synthesis wired from the main screen.
-- [x] Decomposition analysis (dep preservation + lossless join) wired from the main screen.
-- [x] Main workflow uses embedded relation, FD, and closure forms instead of prompt dialogs.
-- [x] Inline validation messages are shown beside relation, FD, and closure inputs.
-- [x] Relation summary panel shows attributes, FDs, candidate keys, current normal form, and last decomposition.
-- [x] Result tabs are available for closure, keys, normal forms, minimal cover, decomposition, and explanations.
-- [x] Main actions support keyboard-friendly Enter submission and mnemonic shortcuts.
-- [x] Main screen visual design and spacing polished with a dedicated stylesheet.
-- [x] Header window mode controls added for windowed, maximized, and fullscreen states.
-- [x] Main stylesheet refreshed with a dark bluish-green desktop theme.
-- [x] Workflow panel compacted so all action sections fit on a 1920 x 1080 screen.
-- [x] App Tutorial result tab added with step-by-step usage guidance.
-- [x] Workflow and summary panes made independently scrollable for smaller or resized windows.
-- [x] Built-in sample examples added for student/course, employee/department, and library loan workflows.
+- [x] Single main window (`main.fxml` + `MainController`) with embedded relation, FD and closure forms and inline validation.
+- [x] Actions: create relation, add/remove FDs (duplicates rejected), closure, keys, normal form, minimal cover, explain, BCNF, 3NF, Check Result, clear.
+- [x] Result tabs: App Tutorial, Closure, Keys, Normal Forms, Minimal Cover, Decomposition, Check Result, Explanation.
+- [x] Relation summary panel shows attributes, FDs, candidate keys, current normal form and the last decomposition.
+- [x] Built-in examples (student/course, employee/department, library loans); loading one is all-or-nothing.
+- [x] Keyboard-friendly Enter submission and mnemonics; windowed/maximized/fullscreen controls.
+- [x] Dark bluish-green stylesheet; workflow and summary panes scroll independently.
+- [x] Report text is built by `ResultFormatter`; the tutorial text lives in `resources/text/tutorial.txt`.
 
 ### Algorithms
-- [x] Attribute closure computation.
-- [x] Candidate key discovery.
-- [x] 2NF detection for partial dependencies on candidate-key subsets.
-- [x] 3NF detection for non-trivial FDs whose determinant is not a superkey and whose RHS is non-prime.
-- [x] Detailed normal form violation reporting for 2NF, 3NF, and BCNF checks.
-- [x] Basic BCNF check.
-- [x] BCNF decomposition with FD projection onto sub-relations.
-- [x] Trivial FD filtering during BCNF violation search.
-- [x] Exact violating determinant reported during BCNF decomposition.
-- [x] Step-by-step BCNF decomposition explanation.
-- [x] Minimal cover computation (decompose RHS, remove extraneous LHS, remove redundant FDs).
-- [x] 3NF synthesis (minimal cover → relation per FD → candidate key relation → remove subsumed).
-- [x] Dependency preservation checking (projected FD closure equivalence).
-- [x] Lossless join checking (binary superkey shortcut + general chase algorithm).
-- [x] Project scope confirmed through BCNF; 4NF/5NF support is not planned.
-
-### Models
-- [x] Deterministic `toString()` for `Relation`, `FunctionalDependency`, and `CandidateKey` (sorted attributes).
-- [x] `equals`/`hashCode` on `Relation` for reliable Set usage.
+- [x] Attribute closure (fixed point), with a step trace.
+- [x] Candidate keys: pruned search (always / never / maybe in a key) with bitmask closures.
+- [x] 2NF, 3NF and BCNF checks with detailed violations; 1NF is assumed (attributes are atomic).
+- [x] Minimal cover (singleton right sides, extraneous attributes, redundant FDs), with a step trace.
+- [x] BCNF decomposition checked against all implied FDs (F⁺); final relations carry their projected FDs.
+- [x] 3NF synthesis (minimal cover, one relation per left side, key relation, remove subsumed), with projected FDs.
+- [x] Dependency preservation (standard fixed-point test) and lossless join (binary shortcut and chase).
+- [x] Results do not depend on hash-set iteration order (`FdOrder`).
+- [x] Project scope is through BCNF; 4NF/5NF support is not planned.
 
 ### Tests And Verification
-- [x] Existing algorithm tests pass.
-- [x] Existing service tests pass.
-- [x] Spring context smoke test passes.
-- [x] 2NF and 3NF tests pass.
-- [x] Minimal cover algorithm tests pass (6 tests).
-- [x] 3NF synthesis tests pass (4 tests).
-- [x] Dependency preservation tests pass (4 tests).
-- [x] Lossless join tests pass (5 tests).
-- [x] FD parser edge case tests pass (19 tests).
-- [x] Closure service multi-character attribute tests pass (2 tests).
-- [x] BCNF decomposition tests pass (3 tests).
-- [x] `mvn test` passes (72 tests, 0 failures).
-- [x] `mvn -DskipTests package` passes.
-- [x] `mvn javafx:run` reaches desktop app startup and remains alive.
-
-## Partially Implemented
-
-### UI
-- [x] Main screen can run the full workflow through embedded forms.
-- [x] Buttons/actions are organized into relation, FD, closure, analysis, and decomposition sections.
-- [x] Relation, FD, closure, candidate key, normal form, BCNF, and explanation workflows are integrated into the main workspace.
-- [x] Main screen layout is polished with workflow, result, and summary panes.
-- [x] Error handling uses inline validation labels and a status bar.
+- [x] 123 tests, all passing (`mvn -B verify`).
+- [x] Seeded random tests against brute-force oracles for keys, BCNF, 3NF, minimal cover, normal forms and order independence.
+- [x] Textbook examples with exact expected answers.
+- [x] Performance tests at the 20-attribute limit.
+- [x] Spring context tests, including bean wiring.
+- [x] UI smoke test (`MainControllerUiTest`) that clicks through the real window; skipped on machines without a display, including CI.
+- [x] Packaged app image verified by building it and starting the bundled runtime and `Normalizer.exe`.
 
 ## Remaining Work
 
-### Core Backend
-- [ ] Decide whether `InMemorySessionRepository` should replace direct state in `RelationService`.
-
-### JavaFX Application
-- [x] Add startup sample data or examples for development/demo mode.
-
-### Tests
-- [ ] Add service tests using Spring context where useful.
-- [ ] Add JavaFX controller tests or lightweight FXML loading tests.
-
-### Packaging And Tooling
-- [ ] Decide whether `.idea` files should stay local-only or be committed intentionally.
-- [x] Add PowerShell and batch scripts that generate `Normalizer.exe` via `jpackage`.
+### Tooling
 - [ ] Add Maven Wrapper (`mvnw`) for consistent local setup.
 - [ ] Add formatting/checkstyle configuration.
-- [ ] Add CI workflow for tests.
-- [ ] Investigate Mockito dynamic agent warning from tests.
-- [ ] Document direct Java/JAR launch expectations for JavaFX runtime modules.
+- [ ] Add Mockito as a test Java agent: tests print "Mockito is currently self-attaching", which future JDKs will block.
+- [ ] Optionally run JavaFX from the module path in the packaged app, to remove its "unsupported configuration" start-up warning.
+- [ ] Optionally run `MainControllerUiTest` in CI (needs a virtual display, e.g. xvfb).
 
-## Current Development Commands
+### Features (see `UC.md`, section 6)
+- [ ] Save and load analysis sessions.
+- [ ] SQL schema export.
+- [ ] Minimal cover visualization.
+- [ ] Interactive decomposition graphs.
+- [ ] Report generation.
+
+## Development Commands
 
 ```bash
-mvn test
-mvn -DskipTests package
-mvn javafx:run
+mvn -B verify          # build and run all tests
+mvn javafx:run         # run the application
+build-exe.bat          # build target/dist/Normalizer/Normalizer.exe (Windows)
 ```
 
+## Environment Notes
 
-## Known Environment Notes
-
-- Maven is currently using JDK 21 successfully.
-- The shell `java -version` may still point to Java 8 on this machine, so direct Java commands should be run after fixing `JAVA_HOME` and `PATH`.
-- `mvn javafx:run` is the recommended development launch command for now.
+- Building needs JDK 21 or newer; this machine builds with JDK 25.
+- `build-exe.bat` needs `jpackage`, `jlink` and `jdeps` from that JDK on `PATH`.
+- The packaged app can also be started from its bundled runtime for console output:
+  `target/dist/Normalizer/runtime/bin/java -cp "target/dist/Normalizer/app/*" com.dbms.analyzer.Launcher`
