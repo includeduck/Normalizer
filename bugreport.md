@@ -48,7 +48,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Fixed (`65954c6`) |
 | [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Fixed (`65954c6`) |
 | [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | Fixed (`ddb03b7`) |
-| [BUG-014](#bug-014) | Low | `FunctionalDependency.hashCode()` is additive, so `X→Y` and `Y→X` always collide | Open |
+| [BUG-014](#bug-014) | Low | `FunctionalDependency.hashCode()` is additive, so `X→Y` and `Y→X` always collide | Fixed |
 | [BUG-015](#bug-015) | Low | Removing an FD in the UI matches it by `toString()` | Open |
 | [BUG-016](#bug-016) | Low | A failed "Load Example" leaves a half-built relation and a stale UI | Open |
 | [BUG-017](#bug-017) | Low | "Check Result" overwrites the Explanation tab | Open |
@@ -62,7 +62,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [CQ-002](#cq-002) | Low | Dependency injection is only half applied | Open |
 | [CQ-003](#cq-003) | Low | Every algorithm is written twice (plain + "with steps") | Open |
 | [CQ-004](#cq-004) | Low | `MainController` is a 904-line god class; the service layer is mostly pass-through | Open |
-| [CQ-005](#cq-005) | Low | Defensive copies in getters run inside the hot closure loop | Open |
+| [CQ-005](#cq-005) | Low | Defensive copies in getters run inside the hot closure loop | Fixed |
 | [CQ-006](#cq-006) | Low | Stale "backward compatibility" APIs with no callers | Fixed (`5345b5f`) |
 | [TEST-001](#test-001) | Medium | Several tests have assertions that can never fail | Fixed (`2ea1c2a`) |
 | [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | Fixed (`2ea1c2a`) |
@@ -283,7 +283,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-014"></a>
 ### BUG-014 — `FunctionalDependency.hashCode()` is additive
 
-- **Severity:** Low · **Status:** Open · **By inspection**
+- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Regression test:** `FunctionalDependencyTest.testReversedDependencyHasDifferentHash`
+- **Resolution:** `hashCode()` now uses `Objects.hash(leftSide, rightSide)`.
 - **Location:** [FunctionalDependency.java:51](src/main/java/com/dbms/analyzer/model/FunctionalDependency.java:51)
 
 `leftSide.hashCode() + rightSide.hashCode()` is symmetric, so `X→Y` and `Y→X` always collide. Results are still correct; only hashing performance suffers. **Fix:** `Objects.hash(leftSide, rightSide)`, or let a `record` generate it.
@@ -455,7 +457,9 @@ The controller takes 10 injected services, handles formatting, holds state (`las
 
 <a id="cq-005"></a>
 ### CQ-005 — Defensive copies in getters run inside the hot closure loop
-- **Severity:** Low · **Status:** Open · **By inspection**
+- **Severity:** Low · **Status:** Fixed · **By inspection**
+- **Regression test:** `FunctionalDependencyTest.testGettersAreReadOnlyViewsWithoutCopying`
+- **Resolution:** `FunctionalDependency` and `CandidateKey` copy their sets once in the constructor and their getters return the same read-only view, so the closure loop no longer allocates on every call. All callers were checked: none modifies a returned set. `Relation` getters still return copies, since callers use them as working sets.
 
 `getLeftSide()` and `getRightSide()` allocate a new `HashSet` on every call, and `ClosureComputer` calls them O(|F|) times per fixed-point pass, for each of 2ⁿ subsets. This is a large constant factor in BUG-004. Making the models immutable (BUG-013) removes the need to copy.
 

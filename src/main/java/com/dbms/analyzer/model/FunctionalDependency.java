@@ -1,6 +1,8 @@
 package com.dbms.analyzer.model;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -9,16 +11,18 @@ public class FunctionalDependency {
     private final Set<String> rightSide;
 
     public FunctionalDependency(Set<String> leftSide, Set<String> rightSide) {
-        this.leftSide = new HashSet<>(leftSide);
-        this.rightSide = new HashSet<>(rightSide);
+        this.leftSide = Collections.unmodifiableSet(new HashSet<>(leftSide));
+        this.rightSide = Collections.unmodifiableSet(new HashSet<>(rightSide));
     }
 
+    /** Read-only view; copy it before modifying. */
     public Set<String> getLeftSide() {
-        return new HashSet<>(leftSide);
+        return leftSide;
     }
 
+    /** Read-only view; copy it before modifying. */
     public Set<String> getRightSide() {
-        return new HashSet<>(rightSide);
+        return rightSide;
     }
 
     /**
@@ -41,6 +45,6 @@ public class FunctionalDependency {
 
     @Override
     public int hashCode() {
-        return leftSide.hashCode() + rightSide.hashCode();
+        return Objects.hash(leftSide, rightSide);
     }
 }

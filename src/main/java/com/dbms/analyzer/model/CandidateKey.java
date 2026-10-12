@@ -1,5 +1,6 @@
 package com.dbms.analyzer.model;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -8,11 +9,12 @@ public class CandidateKey {
     private final Set<String> attributes;
 
     public CandidateKey(Set<String> attributes) {
-        this.attributes = new HashSet<>(attributes);
+        this.attributes = Collections.unmodifiableSet(new HashSet<>(attributes));
     }
 
+    /** Read-only view; copy it before modifying. */
     public Set<String> getAttributes() {
-        return new HashSet<>(attributes);
+        return attributes;
     }
 
     /**
