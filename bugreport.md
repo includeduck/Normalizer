@@ -68,9 +68,9 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [TEST-002](#test-002) | Medium | No invariant/property-based tests for the decomposition algorithms | Fixed (`2ea1c2a`) |
 | [TEST-003](#test-003) | Low | Normal-form tests use hand-written candidate keys instead of computed ones | Fixed |
 | [TEST-004](#test-004) | Low | No tests for large inputs, performance limits, or the UI | Fixed |
-| [DOC-001](#doc-001) | Low | `Progress.md`, `UC.md`, `PROJECT_STRUCTURE.md` duplicated in root and `MarkDown/` | Open |
-| [DOC-002](#doc-002) | Low | README overstates 1NF and omits implemented features | Open |
-| [DOC-003](#doc-003) | Low | `UC.md` is out of date with the implementation | Open |
+| [DOC-001](#doc-001) | Low | `Progress.md`, `UC.md`, `PROJECT_STRUCTURE.md` duplicated in root and `MarkDown/` | Fixed |
+| [DOC-002](#doc-002) | Low | README overstates 1NF and omits implemented features | Fixed |
+| [DOC-003](#doc-003) | Low | `UC.md` is out of date with the implementation | Fixed |
 | [DOC-004](#doc-004) | Low | `PROJECT_STRUCTURE.md` describes dead code as the live architecture | Fixed (`5345b5f`) |
 
 ---
@@ -554,19 +554,25 @@ Nothing pins the behaviour at the attribute limit (BUG-003/004). There are no Te
 
 <a id="doc-001"></a>
 ### DOC-001 — Docs duplicated in root and `MarkDown/`
-- **Severity:** Low · **Status:** Open · **Verified**
+- **Severity:** Low · **Status:** Fixed · **Verified**
+- **Regression test:** n/a (docs)
+- **Resolution:** Removed the root copies; `MarkDown/` (created by the "Repo reordered" commit) is the single home for `UC.md`, `Progress.md` and `PROJECT_STRUCTURE.md`. `bugreport.md` and `AGENTS.md` stay in the root. Links in the README and this report point to `MarkDown/`.
 
 Commit `41f9fc5` "Repo reordered" *copied* `Progress.md`, `UC.md` and `PROJECT_STRUCTURE.md` into `MarkDown/` and left the originals in place. The contents are identical apart from line endings, and they will drift. **Fix:** keep a single copy (`git mv`).
 
 <a id="doc-002"></a>
 ### DOC-002 — README overstates 1NF and omits implemented features
-- **Severity:** Low · **Status:** Open · **By inspection** · [README.md](README.md)
+- **Severity:** Low · **Status:** Fixed · **By inspection** · [README.md](README.md)
+- **Regression test:** n/a (docs)
+- **Resolution:** The README lists minimal cover, 3NF synthesis and Check Result in features and usage, describes the current algorithms (pruned key search, F⁺-based BCNF, preservation test, chase), states the 20-attribute limit and the name rules, documents `build-exe.bat`, uses the real clone URL and issues link, and lists the current classes. The 1NF wording was fixed with BUG-007. The license line is still a placeholder: that choice is the owner's.
 
 The README claims a 1NF atomicity check (BUG-007). It does not mention minimal cover, 3NF synthesis or the lossless/dependency-preservation check (**Check Result**), and it gives no attribute limit. It uses `git clone <repository-url>` as a placeholder.
 
 <a id="doc-003"></a>
 ### DOC-003 — `UC.md` is out of date with the implementation
-- **Severity:** Low · **Status:** Open · **By inspection** · [UC.md](UC.md)
+- **Severity:** Low · **Status:** Fixed · **By inspection** · [UC.md](MarkDown/UC.md)
+- **Regression test:** n/a (docs)
+- **Resolution:** `MarkDown/UC.md` now matches the app: features and requirements include minimal cover, 3NF synthesis and decomposition checks; UC-5 states that 1NF is assumed; UC-6 describes the step trace instead of a tree and points to Check Result for lost dependencies; UC-7 describes the Explain button instead of an "explanation mode"; new UC-8 (3NF synthesis) and UC-9 (Check Result); UC-1/UC-2 list the name, limit and ambiguity errors; the performance and reliability requirements state what the app now guarantees; the implemented preservation checker was removed from Future Enhancements.
 
 - "Future Enhancements" lists the dependency preservation checker and minimal cover, both of which are already implemented.
 - UC-6 promises a "decomposition tree" and a "dependency preservation warning"; neither exists.
@@ -575,7 +581,7 @@ The README claims a 1NF atomicity check (BUG-007). It does not mention minimal c
 
 <a id="doc-004"></a>
 ### DOC-004 — `PROJECT_STRUCTURE.md` describes dead code as the live architecture
-- **Severity:** Low · **Status:** Fixed (`5345b5f`) · **By inspection** · [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)
+- **Severity:** Low · **Status:** Fixed (`5345b5f`) · **By inspection** · [PROJECT_STRUCTURE.md](MarkDown/PROJECT_STRUCTURE.md)
 - **Resolution:** `PROJECT_STRUCTURE.md` regenerated from the current tree (both copies, see DOC-001): file counts, all 12 algorithm classes, the single controller and FXML file, and the class diagram. The README project tree no longer lists `repository/`.
 
 It describes "controllers/ (7 files)", "components/ (3 files)" and "repository/ — Data Persistence" as active parts of the design (CQ-001). Update it after the dead code is removed.

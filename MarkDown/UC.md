@@ -5,7 +5,7 @@
 ## 1. Introduction
 
 ### Purpose
-This application helps users analyze relational schemas using concepts from Database Management Systems (DBMS), including Functional Dependencies (FDs), Attribute Closure, Candidate Keys, Normal Forms, and BCNF decomposition.
+This application helps users analyze relational schemas using concepts from Database Management Systems (DBMS), including Functional Dependencies (FDs), Attribute Closure, Candidate Keys, Normal Forms, minimal covers, BCNF decomposition and 3NF synthesis.
 
 ### Technology Stack
 - JavaFX for desktop GUI
@@ -17,7 +17,10 @@ This application helps users analyze relational schemas using concepts from Data
 - Attribute Closure Computation
 - Candidate Key Detection
 - Normal Form Detection
+- Minimal Cover Computation
 - BCNF Decomposition
+- 3NF Synthesis
+- Dependency Preservation and Lossless-Join Checks
 - Step-by-step Educational Explanations
 
 ## 2. Actors
@@ -34,7 +37,10 @@ The system shall allow users to:
 - Compute attribute closures
 - Find candidate keys
 - Detect highest normal form
+- Compute a minimal cover of the FDs
 - Normalize relations to BCNF
+- Synthesize a 3NF decomposition
+- Check a decomposition for dependency preservation and lossless join
 - View detailed algorithm explanations
 
 ## 4. Use Cases
@@ -58,6 +64,8 @@ The system shall allow users to:
 **Alternative Flows:**
 - Duplicate attributes detected.
 - Invalid relation syntax.
+- Invalid relation or attribute name (names use letters, digits and underscores, and cannot start with a digit).
+- More than 20 attributes.
 
 ---
 
@@ -78,8 +86,9 @@ The system shall allow users to:
 7. System displays formatted dependencies.
 
 **Alternative Flows:**
-- Undefined attribute detected.
+- Undefined attribute detected (the message names it).
 - Invalid dependency syntax.
+- Ambiguous compact input such as `ABC` when both `A,B,C` and `AB,C` are possible: the user is asked to separate attributes with commas.
 
 ---
 
@@ -136,8 +145,8 @@ The system shall allow users to:
 - Candidate keys have been identified
 
 **Main Success Scenario:**
-1. User selects 'Analyze Normal Form'.
-2. System checks 1NF, 2NF, 3NF, and BCNF.
+1. User selects 'Normal Form'.
+2. System checks 2NF, 3NF, and BCNF. 1NF is assumed: every attribute is treated as atomic.
 3. System detects normalization violations.
 4. System explains why a violation occurs.
 5. System displays the highest valid normal form.
@@ -152,18 +161,18 @@ The system shall allow users to:
 **Goal:** Perform recursive BCNF decomposition.
 
 **Preconditions:**
-- A BCNF violation exists
+- A relation exists
 
 **Main Success Scenario:**
-1. User selects 'Normalize to BCNF'.
-2. System identifies violating dependencies.
-3. System computes decomposition relations.
-4. System recursively analyzes decomposed schemas.
-5. System stops once all relations satisfy BCNF.
-6. System displays decomposition tree.
+1. User selects 'BCNF'.
+2. System finds a violating dependency, checking sub-relations against all implied FDs (F⁺).
+3. System splits the relation into X⁺ and X ∪ (R − X⁺).
+4. System repeats for each part until every relation satisfies BCNF.
+5. System displays each numbered step and the final relations with their projected FDs.
 
 **Alternative Flows:**
-- Dependency preservation warning.
+- Relation already satisfies BCNF: a single relation is returned.
+- Some dependencies cannot be preserved in BCNF: the user sees this with 'Check Result' (UC-9).
 
 ---
 
@@ -172,24 +181,58 @@ The system shall allow users to:
 **Goal:** Provide educational reasoning behind computations.
 
 **Preconditions:**
-- Analysis has already been performed
+- A relation exists
 
 **Main Success Scenario:**
-1. User enables explanation mode.
-2. System displays detailed reasoning.
-3. System shows closure derivations and normalization logic.
-4. System highlights violating dependencies and superkeys.
+1. User selects 'Explain'.
+2. System summarizes the relation and its FDs.
+3. System lists candidate keys and prime/non-prime attributes.
+4. System shows which normal forms hold and lists every violation.
+
+Every other action (closure, keys, minimal cover, BCNF, 3NF, Check Result) also shows its own step-by-step trace in its tab.
+
+---
+
+### UC-8: Synthesize a 3NF Decomposition
+
+**Goal:** Produce a lossless, dependency-preserving 3NF decomposition.
+
+**Preconditions:**
+- A relation exists
+
+**Main Success Scenario:**
+1. User selects '3NF'.
+2. System computes a minimal cover.
+3. System creates one relation per left-hand side in the cover.
+4. System adds a relation for a candidate key if none contains one.
+5. System removes duplicate and subsumed relations.
+6. System displays each step and the final relations with their FDs.
+
+---
+
+### UC-9: Check a Decomposition
+
+**Goal:** Test the latest decomposition for dependency preservation and lossless join.
+
+**Preconditions:**
+- A BCNF or 3NF decomposition has been run
+
+**Main Success Scenario:**
+1. User selects 'Check Result'.
+2. System tests every original FD for preservation and shows how each was derived.
+3. System tests the lossless-join property (binary test or chase).
+4. System shows both results in the Check Result tab.
 
 **Alternative Flows:**
-- Explanation mode disabled.
+- No decomposition has been run: the user is asked to run BCNF or 3NF first.
 
 ## 5. Non-Functional Requirements
 
 | Category        | Requirement                                                      |
 |----------------|------------------------------------------------------------------|
-| Performance    | Closure and normalization calculations should complete efficiently for moderate schemas. |
+| Performance    | Relations of up to 20 attributes are supported; analyses at that size complete in about a second or less. |
 | Usability      | The application should remain beginner-friendly and educational. |
-| Reliability    | Invalid input should never crash the application.               |
+| Reliability    | Invalid input is reported with a message naming the problem; unexpected errors are shown in an error dialog. |
 | Maintainability| UI logic and DBMS algorithms should remain separated.           |
 | Scalability    | Architecture should support future additions such as 4NF and 5NF. |
 
@@ -197,7 +240,6 @@ The system shall allow users to:
 
 - Save and load analysis sessions
 - SQL schema export
-- Dependency preservation checker
 - Minimal cover visualization
 - Interactive decomposition graphs
 - Report generation

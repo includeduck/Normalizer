@@ -2,10 +2,10 @@
 
 ## Project Overview
 
-- Java classes (main): 33
-- Java test classes: 16
+- Java classes (main): 36
+- Java test classes: 22
 - FXML layout files: 1
-- Resource files: 2 (`application.properties`, `styles.css`)
+- Resource files: 3 (`application.properties`, `styles.css`, `text/tutorial.txt`)
 
 Known issues and their status are tracked in [`bugreport.md`](../bugreport.md).
 
@@ -20,6 +20,7 @@ dbms-normalizer/
 ├── README.md                                   # Project documentation
 ├── bugreport.md                                # Running bug and issue log
 ├── AGENTS.md                                   # Instructions for AI agents
+├── MarkDown/                                   # UC.md, Progress.md, this file
 ├── build-exe.bat / build-exe.ps1               # Windows .exe packaging (jpackage)
 ├── .github/workflows/ci.yml                    # CI: build and test on push
 │
@@ -31,6 +32,8 @@ dbms-normalizer/
     │   │   │
     │   │   ├── javafx/
     │   │   │   ├── MainApp.java                # JavaFX application; boots Spring, loads main UI
+    │   │   │   ├── ResultFormatter.java        # Report text for the UI (no JavaFX types)
+    │   │   │   ├── SampleRelations.java        # Built-in examples for "Load Example"
     │   │   │   ├── controllers/
     │   │   │   │   └── MainController.java     # The single UI controller (main.fxml)
     │   │   │   └── utils/
@@ -48,7 +51,7 @@ dbms-normalizer/
     │   │   │   ├── DecompositionAnalysisService.java  # Dependency preservation, lossless join
     │   │   │   └── ExplanationService.java     # Explanation text
     │   │   │
-    │   │   ├── algorithm/                      # Algorithm Implementations (12 files)
+    │   │   ├── algorithm/                      # Algorithm Implementations (13 files)
     │   │   │   ├── ClosureComputer.java        # Fixed-point attribute closure
     │   │   │   ├── CandidateKeyFinder.java     # Pruned candidate-key search
     │   │   │   ├── NormalFormChecker.java      # 2NF/3NF/BCNF checks
@@ -59,6 +62,7 @@ dbms-normalizer/
     │   │   │   ├── LosslessJoinChecker.java    # Binary test and chase
     │   │   │   ├── FdUtil.java                 # FD parsing and validation
     │   │   │   ├── FdOrder.java                # Canonical ordering of FDs and keys
+    │   │   │   ├── FdProjector.java            # Projection of F⁺ onto a sub-schema
     │   │   │   ├── FdBitIndex.java             # Bitmask closures (package-private)
     │   │   │   └── AnalysisLimits.java         # Maximum attribute count
     │   │   │
@@ -75,12 +79,14 @@ dbms-normalizer/
     │   └── resources/
     │       ├── application.properties          # Spring Boot properties
     │       ├── css/styles.css                  # JavaFX stylesheet
-    │       └── fxml/main.fxml                  # Main workspace (the only FXML file)
+    │       ├── fxml/main.fxml                  # Main workspace (the only FXML file)
+    │       └── text/tutorial.txt               # "App Tutorial" tab text
     │
     └── test/java/com/dbms/analyzer/
         ├── DbmsApplicationContextTest.java     # Spring context loads
-        ├── algorithm/                          # Algorithm tests (10 files)
-        ├── javafx/utils/                       # UnexpectedErrorHandlerTest
+        ├── algorithm/                          # Algorithm, property and textbook tests (12 files)
+        ├── javafx/                             # ResultFormatterTest, MainControllerUiTest, error handler
+        ├── model/                              # RelationTest, FunctionalDependencyTest
         └── service/                            # Service tests (4 files)
 ```
 
@@ -100,7 +106,7 @@ dbms-normalizer/
 - **NormalFormResult.java** - Highest normal form, sorted violations, explanation
 - **DecompositionStep.java** - One BCNF decomposition step
 
-### Algorithm Classes (12)
+### Algorithm Classes (13)
 - **ClosureComputer.java** - Attribute closure by fixed-point iteration, with an optional trace
 - **CandidateKeyFinder.java** - Classifies attributes (always / never / maybe in a key) and searches the remaining subsets smallest first
 - **NormalFormChecker.java** - 2NF/3NF/BCNF checks on the original relation (1NF is assumed)
@@ -111,14 +117,17 @@ dbms-normalizer/
 - **LosslessJoinChecker.java** - Binary shortcut and the chase for n-way decompositions
 - **FdUtil.java** - FD and attribute-set parsing and validation
 - **FdOrder.java** - Canonical order, so results don't depend on hash-set iteration
+- **FdProjector.java** - Minimal cover of the projection of F⁺ onto a sub-schema (used by BCNF and 3NF)
 - **FdBitIndex.java** - Bitmask closures used by the subset-enumerating algorithms
 - **AnalysisLimits.java** - `MAX_ATTRIBUTES` (20)
 
 ### Service Classes (10)
 Business logic between the UI and the algorithms. Each service works on the current relation held by `RelationService`.
 
-### JavaFX (3)
+### JavaFX (5)
 - **MainController.java** - Handles all UI events for `main.fxml`
+- **ResultFormatter.java** - Builds the report text shown in each tab; unit-tested without a display
+- **SampleRelations.java** - The built-in example relations
 - **UnexpectedErrorHandler.java** - Default uncaught-exception handler that logs and shows an error dialog
 - **main.fxml** - The application window
 
@@ -177,8 +186,8 @@ Models:
 ## Development Notes
 
 - **Separation of concerns**: the UI (`MainController`, `main.fxml`) is separate from the services and algorithms.
-- **Dependency injection**: Spring wires the services and controller. The algorithm classes still create some of their own helpers (see CQ-002 in `bugreport.md`).
-- **Testability**: algorithms are plain classes; the decomposition and key-finding tests check results against brute-force answers on random inputs.
+- **Dependency injection**: Spring wires the services, the controller and the algorithm classes (constructor injection via `AppConfig`).
+- **Testability**: algorithms are plain classes; the decomposition, key-finding and normal-form tests check results against brute-force answers on random inputs, and `MainControllerUiTest` clicks through the real window (skipped without a display).
 
 ## Quick Start for Developers
 

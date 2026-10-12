@@ -24,7 +24,10 @@ This application helps students, instructors, and database learners analyze rela
 - 🧮 **Attribute Closure Computation**: Calculate closure of attribute sets with step-by-step explanations.
 - 🔑 **Candidate Key Detection**: Find all candidate keys and identify prime attributes.
 - 📊 **Normal Form Analysis**: Detect the highest normal form (2NF, 3NF, BCNF) satisfied by a relation. 1NF is assumed: every attribute is treated as atomic.
+- 🧹 **Minimal Cover**: Reduce the FDs to a minimal (canonical) cover, step by step.
 - ✂️ **BCNF Decomposition**: Recursively decompose relations to achieve BCNF.
+- 🧱 **3NF Synthesis**: Build a lossless, dependency-preserving 3NF decomposition.
+- ✅ **Decomposition Checks**: Test the latest decomposition for dependency preservation and lossless join.
 - 🎓 **Educational Explanations**: View detailed algorithm steps and reasoning.
 
 ## 🛠️ Technology Stack
@@ -40,9 +43,13 @@ This application helps students, instructors, and database learners analyze rela
 ## 📁 Project Structure
 
 ```text
-dbms-normalizer/
+Normalizer/
 ├── pom.xml                                   # Maven configuration
 ├── README.md
+├── bugreport.md                              # Known issues and their status
+├── AGENTS.md                                 # Instructions for AI agents
+├── MarkDown/                                 # Use cases, progress, project structure
+├── build-exe.bat / build-exe.ps1             # Windows .exe packaging
 ├── src/
 │   ├── main/
 │   │   ├── java/com/dbms/analyzer/
@@ -53,7 +60,7 @@ dbms-normalizer/
 │   │   │   ├── algorithm/                   # Core DBMS algorithms
 │   │   │   ├── model/                       # Data models
 │   │   │   └── config/                      # Spring configuration
-│   │   └── resources/                       # FXML, CSS, Images, Properties
+│   │   └── resources/                       # FXML, CSS, tutorial text, properties
 │   └── test/
 │       └── java/com/dbms/analyzer/          # Unit tests
 └── .gitignore
@@ -71,8 +78,8 @@ dbms-normalizer/
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
-   cd dbms-normalizer
+   git clone https://github.com/includeduck/Normalizer.git
+   cd Normalizer
    ```
 
 2. **Build the project:**
@@ -89,6 +96,12 @@ dbms-normalizer/
    ```bash
    mvn javafx:run
    ```
+
+5. **Build a Windows executable** (optional, needs a JDK 21+ with `jpackage`):
+   ```bash
+   build-exe.bat
+   ```
+   The app is written to `target/dist/Normalizer/Normalizer.exe`; keep it inside that folder.
 
 ## 📖 Usage Guide
 
@@ -121,10 +134,23 @@ dbms-normalizer/
 2. System checks 2NF, 3NF, and BCNF (1NF is assumed).
 3. View the highest normal form satisfied along with any violations and explanations.
 
+### 🧹 Minimal Cover
+1. Click **Minimal Cover**.
+2. View each step (singleton right sides, extraneous attributes, redundant FDs) in the **Minimal Cover** tab.
+
 ### 🪓 BCNF Decomposition
-1. Click the **BCNF Decomposition** button.
+1. Click **BCNF**.
 2. System recursively decomposes the relation.
-3. View all resulting relations in BCNF and decomposition details.
+3. View each step and the resulting relations, with their FDs, in the **Decomposition** tab.
+
+### 🧱 3NF Synthesis
+1. Click **3NF**.
+2. View the minimal cover, the relations built from it and the final 3NF relations in the **Decomposition** tab.
+
+### ✅ Checking a Decomposition
+1. Run **BCNF** or **3NF** first.
+2. Click **Check Result**.
+3. The **Check Result** tab shows which FDs are preserved or lost and whether the join is lossless.
 
 ## 🧠 Algorithm Details
 
@@ -137,7 +163,7 @@ Uses iterative fixed-point algorithm to compute attribute closures by repeatedly
 <details>
 <summary><b>Candidate Key Finding</b></summary>
 <br>
-Generates all subsets of attributes, computes closures, identifies superkeys, and filters to find minimal ones.
+Attributes that never appear on a right side are in every key; attributes that appear only on right sides are in none. Only the remaining attributes are searched, smallest subsets first, using bitmask closures, so every key found is minimal.
 </details>
 
 <details>
@@ -147,7 +173,7 @@ Implements checks for:
 <ul>
   <li><b>1NF:</b> Assumed, not checked: the tool treats every attribute as atomic</li>
   <li><b>2NF:</b> No partial dependencies on candidate keys</li>
-  <li><b>3NF:</b> No transitive dependencies</li>
+  <li><b>3NF:</b> For every FD X → A, X is a superkey or A is prime</li>
   <li><b>BCNF:</b> Every FD's left side is a superkey</li>
 </ul>
 </details>
@@ -155,20 +181,27 @@ Implements checks for:
 <details>
 <summary><b>BCNF Decomposition</b></summary>
 <br>
-Recursively identifies BCNF violations and decomposes relations until all satisfy BCNF.
+Recursively identifies BCNF violations and decomposes relations until all satisfy BCNF. Sub-relations are checked against every implied FD (F⁺), and each final relation shows a minimal cover of its projected FDs.
+</details>
+
+<details>
+<summary><b>3NF Synthesis and Decomposition Checks</b></summary>
+<br>
+3NF synthesis builds one relation per left side of the minimal cover, adds a key relation if needed and removes subsumed relations. Dependency preservation uses the standard fixed-point test; the lossless join uses the binary shortcut or the chase.
 </details>
 
 ## 🧩 Core Classes
 
-- **Model**: `Relation`, `FunctionalDependency`, `Attribute`, `CandidateKey`, `NormalFormResult`, `DecompositionStep`
-- **Algorithm**: `ClosureComputer`, `CandidateKeyFinder`, `NormalFormChecker`, `BcnfDecomposer`, `FdUtil`
-- **Service**: `RelationService`, `FdService`, `ClosureService`, `CandidateKeyService`, `NormalFormService`, `BcnfDecompositionService`, `ExplanationService`
+- **Model**: `Relation`, `FunctionalDependency`, `CandidateKey`, `NormalFormResult`, `DecompositionStep`
+- **Algorithm**: `ClosureComputer`, `CandidateKeyFinder`, `NormalFormChecker`, `MinimalCoverComputer`, `BcnfDecomposer`, `ThreeNfSynthesizer`, `DependencyPreservationChecker`, `LosslessJoinChecker`, `FdProjector`, `FdUtil`, `FdOrder`
+- **Service**: `RelationService`, `FdService`, `ClosureService`, `CandidateKeyService`, `NormalFormService`, `MinimalCoverService`, `BcnfDecompositionService`, `ThreeNfService`, `DecompositionAnalysisService`, `ExplanationService`
+
+See [MarkDown/PROJECT_STRUCTURE.md](MarkDown/PROJECT_STRUCTURE.md) for the full layout.
 
 ## 🔮 Future Enhancements
 
 - [ ] Save and load analysis sessions
 - [ ] SQL schema export functionality
-- [ ] Dependency preservation checker
 - [ ] Minimal cover visualization
 - [ ] Interactive decomposition graphs
 - [ ] Report generation (PDF/Excel)
@@ -178,7 +211,7 @@ Recursively identifies BCNF violations and decomposes relations until all satisf
 - [ ] Advanced visualization features
 
 ## 📚 Documentation
-For detailed documentation on DBMS concepts, see the included Use Case document: [UC.md](UC.md)
+For detailed documentation on DBMS concepts, see the included Use Case document: [MarkDown/UC.md](MarkDown/UC.md). Known issues are tracked in [bugreport.md](bugreport.md).
 
 ## 🤝 Contributing
 Contributions are welcome! Please ensure:
@@ -191,7 +224,7 @@ Contributions are welcome! Please ensure:
 [Specify your license here]
 
 ## 💬 Support
-For issues, questions, or suggestions, please [create an issue](#) or contact the development team.
+For issues, questions, or suggestions, please [create an issue](https://github.com/includeduck/Normalizer/issues).
 
 ---
 *This project is designed as an educational tool for learning DBMS normalization concepts. It implements algorithms from standard database theory textbooks.*
