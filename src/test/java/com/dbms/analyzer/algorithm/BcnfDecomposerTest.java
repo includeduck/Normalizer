@@ -26,7 +26,7 @@ public class BcnfDecomposerTest {
         attributes.add("B");
 
         Relation relation = new Relation("R", attributes);
-        relation.addFunctionalDependency(new FunctionalDependency(
+        relation = relation.withFunctionalDependency(new FunctionalDependency(
             Set.of("A"), Set.of("B")));
 
         Set<Relation> decomposed = bcnfDecomposer.decomposeToBcnf(relation);
@@ -43,7 +43,7 @@ public class BcnfDecomposerTest {
         attributes.add("C");
 
         Relation relation = new Relation("R", attributes);
-        relation.addFunctionalDependency(new FunctionalDependency(
+        relation = relation.withFunctionalDependency(new FunctionalDependency(
             Set.of("B"), Set.of("C")));
 
         Set<Relation> decomposed = bcnfDecomposer.decomposeToBcnf(relation);
@@ -72,9 +72,9 @@ public class BcnfDecomposerTest {
         // BUG-001: R(A,B,C,D), A -> B, B -> A, C -> B. After splitting off
         // (A,B), C -> A still holds on (A,C,D) via B, so (A,C,D) is not BCNF.
         Relation relation = new Relation("R", Set.of("A", "B", "C", "D"));
-        relation.addFunctionalDependency(fd("A", "B"));
-        relation.addFunctionalDependency(fd("B", "A"));
-        relation.addFunctionalDependency(fd("C", "B"));
+        relation = relation.withFunctionalDependency(fd("A", "B"));
+        relation = relation.withFunctionalDependency(fd("B", "A"));
+        relation = relation.withFunctionalDependency(fd("C", "B"));
 
         Set<Relation> decomposed = bcnfDecomposer.decomposeToBcnf(relation);
 
@@ -90,8 +90,8 @@ public class BcnfDecomposerTest {
         // R(A,B,C), A -> B, B -> C: (A,B) and (B,C); A -> C is not shown on
         // either, but each relation gets its true projected FDs.
         Relation relation = new Relation("R", Set.of("A", "B", "C"));
-        relation.addFunctionalDependency(fd("A", "B"));
-        relation.addFunctionalDependency(fd("B", "C"));
+        relation = relation.withFunctionalDependency(fd("A", "B"));
+        relation = relation.withFunctionalDependency(fd("B", "C"));
 
         for (Relation r : bcnfDecomposer.decomposeToBcnf(relation)) {
             assertProjectionEquivalent(relation, r);
@@ -103,10 +103,10 @@ public class BcnfDecomposerTest {
         // BUG-010: numbering used to repeat and skip
         Relation relation = new Relation("R",
             Set.of("A", "B", "C", "D", "E", "F", "G"));
-        relation.addFunctionalDependency(fd("A", "B"));
-        relation.addFunctionalDependency(fd("B", "C"));
-        relation.addFunctionalDependency(fd("D", "E"));
-        relation.addFunctionalDependency(fd("E", "F"));
+        relation = relation.withFunctionalDependency(fd("A", "B"));
+        relation = relation.withFunctionalDependency(fd("B", "C"));
+        relation = relation.withFunctionalDependency(fd("D", "E"));
+        relation = relation.withFunctionalDependency(fd("E", "F"));
 
         List<DecompositionStep> steps = new ArrayList<>();
         bcnfDecomposer.decomposeToBcnfWithSteps(relation, steps);
@@ -131,7 +131,7 @@ public class BcnfDecomposerTest {
             Relation relation = new Relation("R", new HashSet<>(attributes));
             int fdCount = random.nextInt(6);
             for (int i = 0; i < fdCount; i++) {
-                relation.addFunctionalDependency(new FunctionalDependency(
+                relation = relation.withFunctionalDependency(new FunctionalDependency(
                     randomNonEmptySubset(attributes, random),
                     randomNonEmptySubset(attributes, random)));
             }
@@ -163,14 +163,14 @@ public class BcnfDecomposerTest {
     public void testLargestAllowedRelationFinishesQuickly() {
         // Chain x0 -> x1 -> ... -> x19 forces many sub-relation checks
         Set<String> attributes = new HashSet<>();
-        Relation relation;
+        Set<FunctionalDependency> chain = new HashSet<>();
         for (int i = 0; i < AnalysisLimits.MAX_ATTRIBUTES; i++) {
             attributes.add("x" + i);
         }
-        relation = new Relation("R", attributes);
         for (int i = 0; i + 1 < AnalysisLimits.MAX_ATTRIBUTES; i++) {
-            relation.addFunctionalDependency(fd("x" + i, "x" + (i + 1)));
+            chain.add(fd("x" + i, "x" + (i + 1)));
         }
+        Relation relation = new Relation("R", attributes, chain);
 
         Set<Relation> decomposed = assertTimeoutPreemptively(
             Duration.ofSeconds(10),

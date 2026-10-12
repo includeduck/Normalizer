@@ -16,7 +16,7 @@ public class ThreeNfSynthesizerTest {
     @Test
     public void testAlreadyIn3NF() {
         Relation r = new Relation("R", Set.of("A", "B"));
-        r.addFunctionalDependency(
+        r = r.withFunctionalDependency(
                 new FunctionalDependency(Set.of("A"), Set.of("B")));
 
         Set<Relation> result = synthesizer.synthesize(r);
@@ -29,9 +29,9 @@ public class ThreeNfSynthesizerTest {
         // R(A,B,C,D) with A -> B, C -> D
         // Should produce at least two relations
         Relation r = new Relation("R", Set.of("A", "B", "C", "D"));
-        r.addFunctionalDependency(
+        r = r.withFunctionalDependency(
                 new FunctionalDependency(Set.of("A"), Set.of("B")));
-        r.addFunctionalDependency(
+        r = r.withFunctionalDependency(
                 new FunctionalDependency(Set.of("C"), Set.of("D")));
 
         Set<Relation> result = synthesizer.synthesize(r);
@@ -49,7 +49,7 @@ public class ThreeNfSynthesizerTest {
         // Candidate key is {A,B}, but the FD B -> C creates relation {B,C}
         // A candidate key relation {A,B} should be added
         Relation r = new Relation("R", Set.of("A", "B", "C"));
-        r.addFunctionalDependency(
+        r = r.withFunctionalDependency(
                 new FunctionalDependency(Set.of("B"), Set.of("C")));
 
         Set<Relation> result = synthesizer.synthesize(r);
@@ -69,7 +69,7 @@ public class ThreeNfSynthesizerTest {
     @Test
     public void testWithStepsReturnsNonEmpty() {
         Relation r = new Relation("R", Set.of("A", "B", "C"));
-        r.addFunctionalDependency(
+        r = r.withFunctionalDependency(
                 new FunctionalDependency(Set.of("A"), Set.of("B")));
 
         List<String> steps = synthesizer.synthesizeWithSteps(r);
@@ -81,9 +81,9 @@ public class ThreeNfSynthesizerTest {
     public void testIdenticalSchemasAreMergedIntoOne() {
         // BUG-006: A -> B and B -> A both produce schema {A,B}
         Relation r = new Relation("R", Set.of("A", "B"));
-        r.addFunctionalDependency(
+        r = r.withFunctionalDependency(
                 new FunctionalDependency(Set.of("A"), Set.of("B")));
-        r.addFunctionalDependency(
+        r = r.withFunctionalDependency(
                 new FunctionalDependency(Set.of("B"), Set.of("A")));
 
         Set<Relation> result = synthesizer.synthesize(r);

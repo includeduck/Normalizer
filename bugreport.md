@@ -47,7 +47,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 | [BUG-010](#bug-010) | Low | BCNF step numbering can produce duplicate or skipped step numbers | Fixed (`f4f9c8d`) |
 | [BUG-011](#bug-011) | Medium | Relation schema parser accepts attribute names that can never be used in an FD | Open |
 | [BUG-012](#bug-012) | Medium | FD attribute parsing is inconsistent between upper- and lower-case and gives vague errors | Open |
-| [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | In progress |
+| [BUG-013](#bug-013) | Medium | Mutable model objects are stored in hash-based collections | Fixed |
 | [BUG-014](#bug-014) | Low | `FunctionalDependency.hashCode()` is additive, so `X→Y` and `Y→X` always collide | Open |
 | [BUG-015](#bug-015) | Low | Removing an FD in the UI matches it by `toString()` | Open |
 | [BUG-016](#bug-016) | Low | A failed "Load Example" leaves a half-built relation and a stale UI | Open |
@@ -261,8 +261,9 @@ For the step-by-step view, show the `res` growth per Ri instead of "projected FD
 <a id="bug-013"></a>
 ### BUG-013 — Mutable model objects are stored in hash-based collections
 
-- **Severity:** Medium · **Status:** In progress · **By inspection**
-- **Progress:** The unused setters on `FunctionalDependency`, `CandidateKey` and `Relation` were removed and those fields made `final` (with CQ-006). Still open: `Relation`'s FD set is mutable (`addFunctionalDependency`, `setFunctionalDependencies`), and `Relation.equals` ignores FDs.
+- **Severity:** Medium · **Status:** Fixed · **By inspection**
+- **Regression test:** `RelationTest` (copies, equality, `with`/`without`)
+- **Resolution:** `Relation` is now immutable: FDs are given to the constructor and `withFunctionalDependency`/`withoutFunctionalDependency` return new relations; `FdService` swaps the current relation via a package-private `RelationService.replaceCurrentRelation`. `equals`/`hashCode` now include the FDs, which is safe because nothing can change them. Together with the earlier removal of the setters, all model classes used in hash-based collections are immutable.
 - **Location:** [FunctionalDependency.java](src/main/java/com/dbms/analyzer/model/FunctionalDependency.java), [Relation.java](src/main/java/com/dbms/analyzer/model/Relation.java), [CandidateKey.java](src/main/java/com/dbms/analyzer/model/CandidateKey.java)
 
 **Description.** `setLeftSide`, `setRightSide`, `setAttributes` and `setName` change fields that feed `equals`/`hashCode`, while instances live in `HashSet`s throughout the code. No caller uses the setters today, but the first one that does will corrupt a set without any error. Also, `Relation.equals` ignores FDs, so two relations with the same schema and different FDs count as equal inside the `LinkedHashSet` results.

@@ -24,7 +24,7 @@ public class DependencyPreservationCheckerTest {
                 new FunctionalDependency(Set.of("B"), Set.of("C")));
 
         Relation r1 = new Relation("R1", Set.of("A", "B"));
-        r1.addFunctionalDependency(fds.iterator().next());
+        r1 = r1.withFunctionalDependency(fds.iterator().next());
 
         Relation r2 = new Relation("R2", Set.of("B", "C"));
 

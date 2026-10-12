@@ -62,6 +62,17 @@ public class RelationService {
     }
 
     /**
+     * Replaces the current relation, e.g. with a copy that has different
+     * FDs ({@link Relation} is immutable). Used by {@link FdService}.
+     */
+    void replaceCurrentRelation(Relation relation) {
+        if (currentRelation == null) {
+            throw new IllegalStateException("No relation defined");
+        }
+        this.currentRelation = relation;
+    }
+
+    /**
      * Validates if a relation exists
      */
     public boolean hasRelation() {

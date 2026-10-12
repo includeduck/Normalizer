@@ -4,15 +4,24 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * An immutable relation schema with its functional dependencies.
+ * "Changing" the FDs returns a new relation.
+ */
 public class Relation {
     private final String name;
     private final Set<String> attributes;
-    private Set<FunctionalDependency> functionalDependencies;
+    private final Set<FunctionalDependency> functionalDependencies;
 
     public Relation(String name, Set<String> attributes) {
+        this(name, attributes, Set.of());
+    }
+
+    public Relation(String name, Set<String> attributes,
+                    Set<FunctionalDependency> functionalDependencies) {
         this.name = name;
-        this.attributes = new HashSet<>(attributes);
-        this.functionalDependencies = new HashSet<>();
+        this.attributes = Set.copyOf(attributes);
+        this.functionalDependencies = Set.copyOf(functionalDependencies);
     }
 
     public String getName() {
@@ -27,16 +36,18 @@ public class Relation {
         return new HashSet<>(functionalDependencies);
     }
 
-    public void addFunctionalDependency(FunctionalDependency fd) {
-        functionalDependencies.add(fd);
+    /** Returns a copy of this relation with {@code fd} added. */
+    public Relation withFunctionalDependency(FunctionalDependency fd) {
+        Set<FunctionalDependency> fds = new HashSet<>(functionalDependencies);
+        fds.add(fd);
+        return new Relation(name, attributes, fds);
     }
 
-    public void removeFunctionalDependency(FunctionalDependency fd) {
-        functionalDependencies.remove(fd);
-    }
-
-    public void setFunctionalDependencies(Set<FunctionalDependency> fds) {
-        functionalDependencies = new HashSet<>(fds);
+    /** Returns a copy of this relation with {@code fd} removed. */
+    public Relation withoutFunctionalDependency(FunctionalDependency fd) {
+        Set<FunctionalDependency> fds = new HashSet<>(functionalDependencies);
+        fds.remove(fd);
+        return new Relation(name, attributes, fds);
     }
 
     /**
@@ -52,11 +63,13 @@ public class Relation {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Relation relation = (Relation) o;
-        return name.equals(relation.name) && attributes.equals(relation.attributes);
+        return name.equals(relation.name)
+            && attributes.equals(relation.attributes)
+            && functionalDependencies.equals(relation.functionalDependencies);
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode() * 31 + attributes.hashCode();
+        return java.util.Objects.hash(name, attributes, functionalDependencies);
     }
 }

@@ -111,18 +111,18 @@ public class ThreeNfSynthesizer {
             if (toRemove.contains(i)) continue;
 
             Set<String> schema = schemas.get(i);
-            Relation r = new Relation(
-                    relation.getName() + "_3NF_" + counter, schema);
 
             // Project FDs onto this sub-schema
+            Set<FunctionalDependency> schemaFdSet = new LinkedHashSet<>();
             for (FunctionalDependency fd : minCover) {
                 if (schema.containsAll(fd.getLeftSide())
                         && schema.containsAll(fd.getRightSide())) {
-                    r.addFunctionalDependency(fd);
+                    schemaFdSet.add(fd);
                 }
             }
 
-            result.add(r);
+            result.add(new Relation(
+                    relation.getName() + "_3NF_" + counter, schema, schemaFdSet));
             counter++;
         }
 

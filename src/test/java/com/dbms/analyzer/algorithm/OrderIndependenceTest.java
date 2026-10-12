@@ -124,9 +124,8 @@ public class OrderIndependenceTest {
 
         OrderedRelation(String name, Set<String> attributes,
                         List<FunctionalDependency> order) {
-            super(name, attributes);
+            super(name, attributes, new LinkedHashSet<>(order));
             this.order = order;
-            order.forEach(this::addFunctionalDependency);
         }
 
         @Override

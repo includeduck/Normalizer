@@ -130,9 +130,8 @@ public class BcnfDecomposer {
         long determinant = findViolatingDeterminant(schema, isOriginal, index);
 
         if (determinant == NO_VIOLATION) {
-            Relation result = new Relation(name, index.toSet(schema));
-            result.setFunctionalDependencies(projectFds(schema, index));
-            bcnfRelations.add(result);
+            bcnfRelations.add(new Relation(
+                    name, index.toSet(schema), projectFds(schema, index)));
             return;
         }
 

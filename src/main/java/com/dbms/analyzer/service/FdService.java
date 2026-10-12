@@ -31,7 +31,8 @@ public class FdService {
                 "FD references undefined attributes");
         }
 
-        relationService.getCurrentRelation().addFunctionalDependency(fd);
+        relationService.replaceCurrentRelation(
+            relationService.getCurrentRelation().withFunctionalDependency(fd));
     }
 
     /**
@@ -41,7 +42,8 @@ public class FdService {
         if (!relationService.hasRelation()) {
             throw new IllegalStateException("No relation defined");
         }
-        relationService.getCurrentRelation().removeFunctionalDependency(fd);
+        relationService.replaceCurrentRelation(
+            relationService.getCurrentRelation().withoutFunctionalDependency(fd));
     }
 
     /**
