@@ -386,3 +386,18 @@
 .corner {
     -fx-background-color: #071a1f;
 }
+
+.definition-input {
+    -fx-pref-height: 120px;
+}
+
+.hint-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #7fa8a4;
+}
+
+/* Shown while a .txt file is dragged over the window */
+.app-root.drop-target {
+    -fx-border-color: #14b8a6;
+    -fx-border-width: 2px;
+}

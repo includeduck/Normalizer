@@ -15,15 +15,24 @@ import com.dbms.analyzer.service.ExplanationService;
 import com.dbms.analyzer.service.FdService;
 import com.dbms.analyzer.service.MinimalCoverService;
 import com.dbms.analyzer.service.NormalFormService;
+import com.dbms.analyzer.service.RelationDefinitionFormat;
 import com.dbms.analyzer.service.RelationService;
 import com.dbms.analyzer.service.ThreeNfService;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -33,6 +42,10 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.springframework.stereotype.Controller;
 
@@ -43,6 +56,8 @@ public class MainController {
     private static final String VALIDATION_OK = "validation-ok";
     private static final String STATUS_ERROR = "status-error";
     private static final String STATUS_OK = "status-ok";
+    private static final String DROP_TARGET = "drop-target";
+    private static final long MAX_DEFINITION_FILE_BYTES = 1_000_000;
 
     private final RelationService relationService;
     private final FdService fdService;
@@ -103,6 +118,10 @@ public class MainController {
     private Label fdValidationLabel;
     @FXML
     private Label closureValidationLabel;
+    @FXML
+    private TextArea definitionInputArea;
+    @FXML
+    private Label definitionValidationLabel;
 
     @FXML
     private Label relationLabel;
@@ -144,6 +163,8 @@ public class MainController {
     private Button threeNfButton;
     @FXML
     private Button checkDecompositionButton;
+    @FXML
+    private Button saveDefinitionButton;
 
     @FXML
     private ToggleButton windowedButton;
@@ -196,6 +217,8 @@ public class MainController {
             (observable, oldValue, newValue) -> clearValidation(fdValidationLabel));
         closureInputField.textProperty().addListener(
             (observable, oldValue, newValue) -> clearValidation(closureValidationLabel));
+        definitionInputArea.textProperty().addListener(
+            (observable, oldValue, newValue) -> clearValidation(definitionValidationLabel));
         fdListView.getSelectionModel().selectedItemProperty().addListener(
             (observable, oldValue, newValue) -> updateControls());
         sampleComboBox.getItems().setAll(
@@ -281,6 +304,7 @@ public class MainController {
         relationInputField.clear();
         fdInputField.clear();
         closureInputField.clear();
+        definitionInputArea.clear();
         clearValidations();
         clearResultAreas();
         updateRelationDisplay();
@@ -300,6 +324,9 @@ public class MainController {
             relationInputField.setText(sample.schema());
             fdInputField.clear();
             closureInputField.setText(sample.closureSeed());
+            // Show the example in the text format too, as a template
+            definitionInputArea.setText(RelationDefinitionFormat.format(
+                relationService.getCurrentRelation(), sample.closureSeed()));
             clearValidations();
             clearResultAreas();
             updateRelationDisplay();
@@ -312,6 +339,161 @@ public class MainController {
             updateRelationDisplay();
             setValidation(relationValidationLabel, e.getMessage(), true);
             setStatus("Example could not be loaded", true);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Text definitions (Definition box, Open File..., Save..., drag & drop)
+    // ---------------------------------------------------------------
+
+    @FXML
+    private void handleApplyDefinition() {
+        applyDefinition(definitionInputArea.getText(), null);
+    }
+
+    @FXML
+    private void handleOpenDefinition() {
+        File file = definitionFileChooser("Open relation definition")
+            .showOpenDialog(stage);
+        if (file != null) {
+            openDefinitionFile(file.toPath());
+        }
+    }
+
+    @FXML
+    private void handleSaveDefinition() {
+        if (!ensureRelation(definitionValidationLabel)) {
+            return;
+        }
+        FileChooser chooser = definitionFileChooser("Save relation definition");
+        chooser.setInitialFileName(relationService.getCurrentRelation().getName() + ".txt");
+        File file = chooser.showSaveDialog(stage);
+        if (file != null) {
+            saveDefinitionFile(file.toPath());
+        }
+    }
+
+    @FXML
+    private void handleDefinitionDragOver(DragEvent event) {
+        if (droppedTextFile(event.getDragboard()) != null) {
+            event.acceptTransferModes(TransferMode.COPY);
+            setDropHighlight(event, true);
+        }
+        event.consume();
+    }
+
+    @FXML
+    private void handleDefinitionDragExited(DragEvent event) {
+        setDropHighlight(event, false);
+        event.consume();
+    }
+
+    @FXML
+    private void handleDefinitionDragDropped(DragEvent event) {
+        File file = droppedTextFile(event.getDragboard());
+        if (file != null) {
+            openDefinitionFile(file.toPath());
+        }
+        setDropHighlight(event, false);
+        event.setDropCompleted(file != null);
+        event.consume();
+    }
+
+    /** Reads a definition file into the Definition box and applies it. */
+    void openDefinitionFile(Path path) {
+        String name = String.valueOf(path.getFileName());
+        String text;
+        try {
+            if (Files.size(path) > MAX_DEFINITION_FILE_BYTES) {
+                showDefinitionError(name + " is larger than 1 MB; this is not a relation definition.");
+                return;
+            }
+            text = Files.readString(path, StandardCharsets.UTF_8);
+        } catch (CharacterCodingException e) {
+            showDefinitionError(name + " is not a UTF-8 text file.");
+            return;
+        } catch (IOException e) {
+            showDefinitionError("Could not read " + name + ": " + e.getMessage());
+            return;
+        }
+
+        definitionInputArea.setText(text);
+        applyDefinition(text, name);
+    }
+
+    /** Writes the current relation, its FDs and the closure input to a file. */
+    void saveDefinitionFile(Path path) {
+        String text = RelationDefinitionFormat.format(
+            relationService.getCurrentRelation(), closureInputField.getText());
+        String name = String.valueOf(path.getFileName());
+        try {
+            Files.writeString(path, text, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            showDefinitionError("Could not save " + name + ": " + e.getMessage());
+            return;
+        }
+        definitionInputArea.setText(text);
+        setValidation(definitionValidationLabel,
+            "Saved the current relation to " + name + ".", false);
+        setStatus("Definition saved", false);
+    }
+
+    private void applyDefinition(String text, String source) {
+        try {
+            RelationDefinitionFormat.Definition definition =
+                RelationDefinitionFormat.parse(text);
+            Relation relation = fdService.loadDefinition(definition);
+
+            lastDecomposition = null;
+            relationInputField.setText(definition.relation().text());
+            fdInputField.clear();
+            closureInputField.setText(
+                definition.closure() == null ? "" : definition.closure().text());
+            clearValidations();
+            clearResultAreas();
+            updateRelationDisplay();
+            setValidation(definitionValidationLabel,
+                "Loaded " + relation + " with "
+                    + ResultFormatter.formatCount(relation.getFunctionalDependencies().size(),
+                        "dependency", "dependencies")
+                    + (source == null ? "" : " from " + source) + ".",
+                false);
+            setStatus("Definition applied", false);
+        } catch (RuntimeException e) {
+            updateRelationDisplay();
+            showDefinitionError(e.getMessage());
+        }
+    }
+
+    private void showDefinitionError(String message) {
+        setValidation(definitionValidationLabel, message, true);
+        setStatus("Definition could not be applied", true);
+    }
+
+    private static FileChooser definitionFileChooser(String title) {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle(title);
+        chooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Text files (*.txt)", "*.txt"),
+            new FileChooser.ExtensionFilter("All files", "*.*"));
+        return chooser;
+    }
+
+    /** The dragged file if it is exactly one .txt file, otherwise null. */
+    private static File droppedTextFile(Dragboard dragboard) {
+        if (!dragboard.hasFiles() || dragboard.getFiles().size() != 1) {
+            return null;
+        }
+        File file = dragboard.getFiles().get(0);
+        return file.getName().toLowerCase(Locale.ROOT).endsWith(".txt") ? file : null;
+    }
+
+    private static void setDropHighlight(DragEvent event, boolean on) {
+        if (event.getSource() instanceof Node node) {
+            node.getStyleClass().remove(DROP_TARGET);
+            if (on) {
+                node.getStyleClass().add(DROP_TARGET);
+            }
         }
     }
 
@@ -604,6 +786,7 @@ public class MainController {
         threeNfButton.setDisable(!hasRelation);
         checkDecompositionButton.setDisable(
             !hasRelation || lastDecomposition == null || lastDecomposition.isEmpty());
+        saveDefinitionButton.setDisable(!hasRelation);
     }
 
     private void createRelation(String input) {
@@ -704,12 +887,14 @@ public class MainController {
         clearValidation(relationValidationLabel);
         clearValidation(fdValidationLabel);
         clearValidation(closureValidationLabel);
+        clearValidation(definitionValidationLabel);
     }
 
     private void updateValidationVisibility() {
         updateValidationVisibility(relationValidationLabel);
         updateValidationVisibility(fdValidationLabel);
         updateValidationVisibility(closureValidationLabel);
+        updateValidationVisibility(definitionValidationLabel);
     }
 
     private void updateValidationVisibility(Label label) {

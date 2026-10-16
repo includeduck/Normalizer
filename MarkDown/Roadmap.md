@@ -35,6 +35,7 @@ These are the definitions the implementation will follow.
   - MVD: `X ->> Y`. The parser must test for `->>` before `->`.
   - JD: `*(A,B | B,C | A,C)`. The components must together cover every attribute of the relation.
 - The dependency input field accepts all three kinds. The summary list shows them in groups (FDs, MVDs, JDs).
+- The text definition format (`RelationDefinitionFormat`, used by the Definition box and `.txt` files) accepts MVDs and JDs inside the same `FD = { ... }` block, one per line, and `Save…` writes them back.
 
 ### 2. Implication engine (the core)
 

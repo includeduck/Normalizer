@@ -1,0 +1,11 @@
+# Student enrollments: the partial dependencies keep this relation in 1NF.
+# Open it with "Open File..." or drop it onto the window.
+relation = Enrollment(student_id, course_id, instructor, advisor, grade)
+
+FD = {
+    student_id, course_id -> grade
+    course_id -> instructor
+    student_id -> advisor
+}
+
+closure = student_id, course_id

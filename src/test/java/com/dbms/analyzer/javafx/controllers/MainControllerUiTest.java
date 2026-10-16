@@ -2,6 +2,8 @@ package com.dbms.analyzer.javafx.controllers;
 
 import com.dbms.analyzer.algorithm.FdUtil;
 import com.dbms.analyzer.model.FunctionalDependency;
+import com.dbms.analyzer.service.RelationDefinitionFormat;
+import com.dbms.analyzer.service.RelationService;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -14,10 +16,14 @@ import javafx.scene.control.TextField;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -76,13 +82,7 @@ class MainControllerUiTest {
     void fullSessionThroughTheUi() throws Exception {
         assumeTrue(fxAvailable, "JavaFX needs a display; skipped on headless machines");
 
-        onFx(() -> {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            loader.load();
-            ui = loader.getNamespace();
-            return null;
-        });
+        loadWindow();
 
         onFx(() -> {
             button("clearAllButton").fire();
@@ -134,6 +134,79 @@ class MainControllerUiTest {
 
             button("normalFormButton").fire();
             assertTrue(area("normalFormResultArea").getText().contains("1NF: assumed"));
+            return null;
+        });
+    }
+
+    @Test
+    void definitionBoxOpenAndSave(@TempDir Path dir) throws Exception {
+        assumeTrue(fxAvailable, "JavaFX needs a display; skipped on headless machines");
+        loadWindow();
+        MainController controller = applicationContext.getBean(MainController.class);
+        RelationService relationService = applicationContext.getBean(RelationService.class);
+
+        onFx(() -> {
+            button("clearAllButton").fire();
+
+            // An invalid line is reported with its number and nothing is applied
+            area("definitionInputArea").setText(
+                "relation = R(A,B,C)\nFD = {\n  A -> B\n  A -> Z\n}");
+            button("applyDefinitionButton").fire();
+            assertTrue(label("definitionValidationLabel").getText()
+                .startsWith("Line 4: Unknown attribute 'Z'"),
+                label("definitionValidationLabel").getText());
+            assertEquals("No relation defined", label("relationLabel").getText());
+
+            area("definitionInputArea").setText(
+                "relation = R(A,B,C)\nFD = {\n  A -> B\n  B -> C\n}\nclosure = A");
+            button("applyDefinitionButton").fire();
+            assertEquals("R(A,B,C)", label("relationLabel").getText());
+            assertEquals(List.of(FdUtil.parseFD("A -> B"), FdUtil.parseFD("B -> C")),
+                fdList().getItems());
+            assertEquals("A", text("closureInputField").getText());
+            assertEquals("Loaded R(A,B,C) with 2 dependencies.",
+                label("definitionValidationLabel").getText());
+
+            // Save writes the current relation; reopening restores it
+            Path saved = dir.resolve("r.txt");
+            controller.saveDefinitionFile(saved);
+            String savedText = Files.readString(saved, StandardCharsets.UTF_8);
+            assertEquals(RelationDefinitionFormat.format(
+                relationService.getCurrentRelation(), "A"), savedText);
+
+            button("clearAllButton").fire();
+            controller.openDefinitionFile(saved);
+            assertEquals("R(A,B,C)", label("relationLabel").getText());
+            assertEquals(2, fdList().getItems().size());
+            assertEquals(savedText, area("definitionInputArea").getText());
+            assertEquals("Loaded R(A,B,C) with 2 dependencies from r.txt.",
+                label("definitionValidationLabel").getText());
+
+            // A file that is not UTF-8 text is rejected; the relation stays
+            Path binary = dir.resolve("binary.txt");
+            Files.write(binary, new byte[] {(byte) 0xC3, (byte) 0x28, (byte) 0xFF});
+            controller.openDefinitionFile(binary);
+            assertEquals("binary.txt is not a UTF-8 text file.",
+                label("definitionValidationLabel").getText());
+            assertEquals("R(A,B,C)", label("relationLabel").getText());
+
+            // Loading an example also shows it in the text format
+            @SuppressWarnings("unchecked")
+            ComboBox<String> samples = (ComboBox<String>) ui.get("sampleComboBox");
+            samples.getSelectionModel().select("Library Loans");
+            button("loadSampleButton").fire();
+            assertTrue(area("definitionInputArea").getText().startsWith("relation = Loan("),
+                area("definitionInputArea").getText());
+            return null;
+        });
+    }
+
+    private void loadWindow() throws Exception {
+        onFx(() -> {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
+            loader.load();
+            ui = loader.getNamespace();
             return null;
         });
     }

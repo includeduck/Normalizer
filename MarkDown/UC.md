@@ -33,6 +33,7 @@ The user may be a student, instructor, or database learner using the system to a
 The system shall allow users to:
 - Create relation schemas
 - Add functional dependencies
+- Define a relation and its FDs together as text, or open/save them as a `.txt` file
 - Validate dependency syntax
 - Compute attribute closures
 - Find candidate keys
@@ -89,6 +90,26 @@ The system shall allow users to:
 - Undefined attribute detected (the message names it).
 - Invalid dependency syntax.
 - Ambiguous compact input such as `ABC` when both `A,B,C` and `AB,C` are possible: the user is asked to separate attributes with commas.
+
+---
+
+### UC-2a: Define Relation and FDs as Text or from a File
+
+**Goal:** Enter a relation and all of its FDs at once.
+
+**Preconditions:**
+- Application is running
+
+**Main Success Scenario:**
+1. User types or pastes a definition into the Definition box and selects 'Apply', selects 'Open File…', or drops a `.txt` file onto the window.
+2. The definition has a `relation = R(...)` line, an `FD = { ... }` block with one FD per line (`;` also separates FDs), and an optional `closure = ...` line; `#` starts a comment.
+3. System validates every line with the same rules as the input fields.
+4. System replaces the current relation and FDs and fills the Closure field.
+5. User can select 'Save…' to write the current relation in the same format.
+
+**Alternative Flows:**
+- A line is invalid: nothing changes and the message names the line (e.g. `Line 6: Unknown attribute 'grde'`).
+- The file is not UTF-8 text or is larger than 1 MB: it is rejected.
 
 ---
 

@@ -5,7 +5,10 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane styleClass="app-root" xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.dbms.analyzer.javafx.controllers.MainController">
+            fx:controller="com.dbms.analyzer.javafx.controllers.MainController"
+            onDragOver="#handleDefinitionDragOver"
+            onDragDropped="#handleDefinitionDragDropped"
+            onDragExited="#handleDefinitionDragExited">
     <top>
         <VBox spacing="4" styleClass="app-header">
             <HBox alignment="CENTER_LEFT" spacing="16">
@@ -59,6 +62,26 @@
                                             mnemonicParsing="true" onAction="#handleClearAll"
                                             styleClass="secondary-button"/>
                                 </HBox>
+                            </VBox>
+
+                            <VBox spacing="6" styleClass="section">
+                                <Label text="Definition (relation + FDs)" styleClass="section-title"/>
+                                <TextArea fx:id="definitionInputArea" prefRowCount="6"
+                                          wrapText="false" styleClass="definition-input"
+                                          promptText="relation = R(A, B, C)&#10;FD = {&#10;    A -> B&#10;    B -> C&#10;}"/>
+                                <Label fx:id="definitionValidationLabel" wrapText="true" styleClass="validation-message"/>
+                                <HBox spacing="8">
+                                    <Button fx:id="applyDefinitionButton" text="A_pply"
+                                            mnemonicParsing="true" onAction="#handleApplyDefinition"/>
+                                    <Button fx:id="openDefinitionButton" text="_Open File…"
+                                            mnemonicParsing="true" onAction="#handleOpenDefinition"
+                                            styleClass="secondary-button"/>
+                                    <Button fx:id="saveDefinitionButton" text="_Save…"
+                                            mnemonicParsing="true" onAction="#handleSaveDefinition"
+                                            styleClass="secondary-button"/>
+                                </HBox>
+                                <Label text="Tip: drop a .txt file anywhere on the window to open it."
+                                       wrapText="true" styleClass="hint-label"/>
                             </VBox>
 
                             <VBox spacing="6" styleClass="section">

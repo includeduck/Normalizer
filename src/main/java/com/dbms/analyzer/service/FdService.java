@@ -45,6 +45,48 @@ public class FdService {
         return relation;
     }
 
+    /**
+     * Applies a parsed text definition, all-or-nothing like
+     * {@link #loadRelation}. Errors name the line they come from.
+     */
+    public Relation loadDefinition(RelationDefinitionFormat.Definition definition) {
+        RelationDefinitionFormat.Line schema = definition.relation();
+        Relation relation;
+        try {
+            relation = relationService.parseRelation(schema.text());
+        } catch (IllegalArgumentException e) {
+            throw RelationDefinitionFormat.error(schema.number(), e.getMessage());
+        }
+
+        for (RelationDefinitionFormat.Line line : definition.dependencies()) {
+            try {
+                relation = relation.withFunctionalDependency(
+                    parseDependency(line.text(), relation.getAttributes()));
+            } catch (IllegalArgumentException e) {
+                throw RelationDefinitionFormat.error(line.number(), e.getMessage());
+            }
+        }
+
+        RelationDefinitionFormat.Line closure = definition.closure();
+        if (closure != null) {
+            try {
+                Set<String> attributes =
+                    FdUtil.stringToAttributes(closure.text(), relation.getAttributes());
+                List<String> unknown =
+                    FdUtil.unknownAttributes(attributes, relation.getAttributes());
+                if (!unknown.isEmpty()) {
+                    throw new IllegalArgumentException(FdUtil.unknownAttributesMessage(
+                        unknown, relation.getAttributes()));
+                }
+            } catch (IllegalArgumentException e) {
+                throw RelationDefinitionFormat.error(closure.number(), e.getMessage());
+            }
+        }
+
+        relationService.installRelation(relation);
+        return relation;
+    }
+
     private static FunctionalDependency parseDependency(
             String fdString, Set<String> attributes) {
         FunctionalDependency fd = FdUtil.parseFD(fdString, attributes);

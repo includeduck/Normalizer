@@ -2,8 +2,8 @@
 
 ## Project Overview
 
-- Java classes (main): 36
-- Java test classes: 22
+- Java classes (main): 37
+- Java test classes: 23
 - FXML layout files: 1
 - Resource files: 3 (`application.properties`, `styles.css`, `text/tutorial.txt`)
 
@@ -21,6 +21,7 @@ dbms-normalizer/
 ├── bugreport.md                                # Running bug and issue log
 ├── AGENTS.md                                   # Instructions for AI agents
 ├── MarkDown/                                   # UC.md, Progress.md, Roadmap.md, this file
+├── examples/                                   # Relation definition files (.txt)
 ├── build-exe.bat / build-exe.ps1               # Windows .exe packaging (jpackage)
 ├── mvnw / mvnw.cmd, .mvn/wrapper/              # Maven Wrapper (pins Maven 3.9.16)
 ├── .github/workflows/ci.yml                    # CI: build and test (main and PRs)
@@ -40,9 +41,10 @@ dbms-normalizer/
     │   │   │   └── utils/
     │   │   │       └── UnexpectedErrorHandler.java  # Error dialogs for uncaught errors
     │   │   │
-    │   │   ├── service/                        # Service Layer (10 files)
+    │   │   ├── service/                        # Service Layer (11 files)
     │   │   │   ├── RelationService.java        # Holds the current relation
-    │   │   │   ├── FdService.java              # Adds/removes functional dependencies
+    │   │   │   ├── FdService.java              # Adds/removes FDs; loads examples and text definitions
+    │   │   │   ├── RelationDefinitionFormat.java  # Parses/writes the text definition format
     │   │   │   ├── ClosureService.java         # Attribute closure
     │   │   │   ├── CandidateKeyService.java    # Candidate keys (cached), prime attributes
     │   │   │   ├── NormalFormService.java      # Normal form analysis
@@ -88,7 +90,7 @@ dbms-normalizer/
         ├── algorithm/                          # Algorithm, property and textbook tests (12 files)
         ├── javafx/                             # ResultFormatterTest, MainControllerUiTest, error handler
         ├── model/                              # RelationTest, FunctionalDependencyTest
-        └── service/                            # Service tests (4 files)
+        └── service/                            # Service tests (5 files)
 ```
 
 ---
@@ -122,7 +124,7 @@ dbms-normalizer/
 - **FdBitIndex.java** - Bitmask closures used by the subset-enumerating algorithms
 - **AnalysisLimits.java** - `MAX_ATTRIBUTES` (20)
 
-### Service Classes (10)
+### Service Classes (11)
 Business logic between the UI and the algorithms. Each service works on the current relation held by `RelationService`.
 
 ### JavaFX (5)

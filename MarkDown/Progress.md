@@ -31,6 +31,7 @@ Known defects and their fixes are tracked in [`bugreport.md`](../bugreport.md); 
 - [x] Result tabs: App Tutorial, Closure, Keys, Normal Forms, Minimal Cover, Decomposition, Check Result, Explanation.
 - [x] Relation summary panel shows attributes, FDs, candidate keys, current normal form and the last decomposition.
 - [x] Built-in examples (student/course, employee/department, library loans); loading one is all-or-nothing.
+- [x] Text definitions: a Definition box (Apply), Open File…, Save… and drag-and-drop of `.txt` files, using one format (`relation = ...`, `FD = { ... }` with one FD per line, optional `closure = ...`); errors name the line and change nothing. Sample files in `examples/`.
 - [x] Keyboard-friendly Enter submission and mnemonics; windowed/maximized/fullscreen controls.
 - [x] Dark bluish-green stylesheet; workflow and summary panes scroll independently.
 - [x] Report text is built by `ResultFormatter`; the tutorial text lives in `resources/text/tutorial.txt`.
@@ -47,7 +48,7 @@ Known defects and their fixes are tracked in [`bugreport.md`](../bugreport.md); 
 - [x] Implemented scope: normalization up to BCNF (4NF/5NF planned below).
 
 ### Tests And Verification
-- [x] 123 tests, all passing (`./mvnw -B verify`).
+- [x] 133 tests, all passing (`./mvnw -B verify`).
 - [x] Seeded random tests against brute-force oracles for keys, BCNF, 3NF, minimal cover, normal forms and order independence.
 - [x] Textbook examples with exact expected answers.
 - [x] Performance tests at the 20-attribute limit.

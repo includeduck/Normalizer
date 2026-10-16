@@ -1,0 +1,8 @@
+# A classic case: in 3NF but not BCNF, and BCNF cannot preserve AB -> C.
+# Try BCNF, then Check Result; compare with 3NF.
+relation = R(A, B, C)
+
+FD = {
+    A, B -> C
+    C -> B
+}

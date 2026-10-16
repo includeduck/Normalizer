@@ -17,6 +17,16 @@ Examples:
 - student_id,course_id -> grade
 Compact input such as AB -> C is split into the relation's attributes.
 
+Or define everything at once in the Definition box, then choose Apply:
+    relation = R(A, B, C)
+    FD = {
+        A -> B
+        B -> C
+    }
+One FD per line; an optional "closure = A" line fills the Closure box.
+Open File... loads a .txt file in this format (you can also drop the
+file onto the window), and Save... writes the current relation to one.
+
 3. Compute closures
 Enter one or more attributes in the Closure box and choose Compute Closure.
 The Closure tab shows the step-by-step expansion and final closure.

@@ -1,0 +1,4 @@
+# A transitive chain: key A, 2NF but not 3NF.
+relation = R(A, B, C, D)
+FD = { A -> B; B -> C; C -> D }
+closure = A

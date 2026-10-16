@@ -7,7 +7,7 @@ Whoever finds, fixes or re-triages an issue (human or AI agent) updates it **in 
 |---|---|
 | **Last updated** | 2026-10-12 (all issues from the review fixed) |
 | **Last full review at commit** | `6b6ad65` (Add CI Pipeline) |
-| **Test suite** | 123 tests, all passing (78 at the review, when none of them caught the bugs below) |
+| **Test suite** | 133 tests, all passing (78 at the review, when none of them caught the bugs below) |
 | **Open issues** | 0 · 37 fixed |
 
 ---

@@ -20,6 +20,7 @@ This application helps students, instructors, and database learners analyze rela
 ## ✨ Features
 
 - 🏗️ **Relation Schema Creation**: Define relations with multiple attributes.
+- 📝 **Text Definitions**: Type or paste a whole relation with its FDs, open it from a `.txt` file (or drop the file on the window), and save the current relation back to a file.
 - 🔗 **Functional Dependency Management**: Add and validate functional dependencies.
 - 🧮 **Attribute Closure Computation**: Calculate closure of attribute sets with step-by-step explanations.
 - 🔑 **Candidate Key Detection**: Find all candidate keys and identify prime attributes.
@@ -50,6 +51,7 @@ Normalizer/
 ├── bugreport.md                              # Known issues and their status
 ├── AGENTS.md                                 # Instructions for AI agents
 ├── MarkDown/                                 # Use cases, progress, roadmap, project structure
+├── examples/                                 # Relation definition files to open in the app
 ├── build-exe.bat / build-exe.ps1             # Windows .exe packaging
 ├── mvnw / mvnw.cmd, .mvn/wrapper/            # Maven Wrapper (pins the Maven version)
 ├── src/
@@ -122,9 +124,30 @@ Normalizer/
 3. Click **Add FD** or press `Enter`. Duplicates are rejected.
 4. To remove one, select it in the summary list and click **Remove Selected**.
 
+### 📝 Defining a Relation as Text or from a File
+Instead of entering the relation and FDs one at a time, you can write them together:
+
+```text
+# Lines starting with # are comments
+relation = Enrollment(student_id, course_id, instructor, grade)
+
+FD = {
+    student_id, course_id -> grade
+    course_id -> instructor
+}
+
+closure = student_id, course_id     # optional: fills the Closure field
+```
+
+- Type or paste it into the **Definition** box and click **Apply**, or click **Open File…** (or drop a `.txt` file anywhere on the window).
+- Put one FD per line inside `FD = { }`; `;` also separates FDs, e.g. `FD = { A -> B; B -> C }`. The `closure` line is optional, and keys are not case-sensitive.
+- The same rules apply as in the input fields. If any line is wrong, nothing is changed and the message names the line, e.g. `Line 6: Unknown attribute 'grde'`.
+- **Save…** writes the current relation, its FDs and the closure input in this format, so files can be shared and reopened.
+- Ready-made files are in [`examples/`](examples/).
+
 ### 📚 Loading an Example
 1. Pick an example from the drop-down and click **Load Example**.
-2. The relation, its FDs and a closure input are filled in; the current relation is only replaced if the example loads completely.
+2. The relation, its FDs and a closure input are filled in, and the **Definition** box shows the example in the text format; the current relation is only replaced if the example loads completely.
 
 ### 🔍 Computing Attribute Closure
 1. Enter attributes in the Closure field, e.g., `ABC` or `student_id, course_id`.
@@ -205,7 +228,7 @@ Recursively identifies BCNF violations and decomposes relations until all satisf
 
 - **Model**: `Relation`, `FunctionalDependency`, `CandidateKey`, `NormalFormResult`, `DecompositionStep`
 - **Algorithm**: `ClosureComputer`, `CandidateKeyFinder`, `NormalFormChecker`, `MinimalCoverComputer`, `BcnfDecomposer`, `ThreeNfSynthesizer`, `DependencyPreservationChecker`, `LosslessJoinChecker`, `FdProjector`, `FdUtil`, `FdOrder`
-- **Service**: `RelationService`, `FdService`, `ClosureService`, `CandidateKeyService`, `NormalFormService`, `MinimalCoverService`, `BcnfDecompositionService`, `ThreeNfService`, `DecompositionAnalysisService`, `ExplanationService`
+- **Service**: `RelationService`, `FdService`, `RelationDefinitionFormat`, `ClosureService`, `CandidateKeyService`, `NormalFormService`, `MinimalCoverService`, `BcnfDecompositionService`, `ThreeNfService`, `DecompositionAnalysisService`, `ExplanationService`
 - **JavaFX**: `MainApp`, `MainController`, `ResultFormatter`, `SampleRelations`, `UnexpectedErrorHandler`
 
 See [MarkDown/PROJECT_STRUCTURE.md](MarkDown/PROJECT_STRUCTURE.md) for the full layout.
